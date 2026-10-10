@@ -1,0 +1,183 @@
+@extends('layouts.app')
+
+@section('title', 'الملف السريري الشامل - ' . ($patient->name ?? 'سليمان فهد المنصور'))
+
+@section('content')
+<div class="space-y-6">
+    <!-- Top Patient Hero Header -->
+    <div
+        class="bg-white rounded-xl border border-[#e2e8f0] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div
+                class="w-16 h-16 rounded-2xl bg-[#00685f] text-white flex items-center justify-center font-bold text-2xl shadow-sm">
+                {{ mb_substr($patient->name ?? 'س', 0, 1) }}
+            </div>
+            <div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <h1 class="text-2xl font-bold text-[#0b1c30]">{{ $patient->name ?? 'سليمان فهد المنصور' }}</h1>
+                    <span
+                        class="font-mono text-xs font-bold text-[#00685f] bg-[#eff4ff] px-2.5 py-1 rounded border border-teal-200">
+                        {{ $patient->mrn ?? 'MRN-84920' }}
+                    </span>
+                    <span
+                        class="font-mono font-bold text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded border border-rose-200">
+                        فصيلة الدم: {{ $patient->blood_group ?? 'A+' }}
+                    </span>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-[#64748b] mt-2 font-mono">
+                    <span>الهوية: {{ $patient->national_id ?? '1098234710' }}</span>
+                    <span>·</span>
+                    <span>العمر: {{ $patient->age ?? 58 }} سنة ({{ $patient->gender ?? 'ذكر' }})</span>
+                    <span>·</span>
+                    <span class="text-teal-800 font-bold">هاتف: {{ $patient->phone ?? '0505123984' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            <a href="{{ route('patients.edit', $patient->id ?? 1) }}"
+                class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>تعديل الملف</span>
+            </a>
+            <button type="button" onclick="window.clinicalApp.openBookModal('{{ $patient->id ?? 'pat-1' }}')"
+                class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>+ حجز موعد</span>
+            </button>
+            <button type="button" onclick="window.print()"
+                class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+                title="طباعة التقرير الطبي الكامل">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Clinical Safety Strip: Drug Allergies & Chronic Conditions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Allergy Alert Banner (WCAG AAA contrast) -->
+        <div class="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-5 space-y-3">
+            <div class="flex items-center gap-2 text-xs font-bold text-[#be123c]">
+                <svg class="w-4 h-4 text-[#be123c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>تنبيه الحساسية الدوائية والغذائية المؤكدة:</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @forelse($patient->allergies ?? ['البنسلين (Penicillin)', 'مركبات السلفا'] as $allergy)
+                <span
+                    class="px-3 py-1 bg-white text-[#be123c] font-bold text-xs rounded-lg border border-[#fecdd3] shadow-2xs">
+                    ⚠️ {{ $allergy }}
+                </span>
+                @empty
+                <span class="text-xs text-slate-500">لا توجد حساسية معروفة</span>
+                @endforelse
+            </div>
+            <p class="text-[11px] text-[#9f1239] leading-relaxed">
+                يمنع صرف أو حقن أي مضادات حيوية أو مستحضرات تحوي هذه المواد دون استشارة أخصائي الحساسية.
+            </p>
+        </div>
+
+        <!-- Chronic Diseases & Emergency Contacts -->
+        <div class="bg-white border border-[#e2e8f0] rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span class="font-bold text-xs text-[#0b1c30]">الأمراض والمتابعات المزمنة:</span>
+                <span class="text-[11px] text-slate-500 font-mono">طوارئ: {{ $patient->emergency_contact['phone'] ??
+                    '0555981240' }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @forelse($patient->chronic_diseases ?? ['ارتفاع ضغط الدم', 'السكري النوع الثاني'] as $disease)
+                <span class="px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg">
+                    {{ $disease }}
+                </span>
+                @empty
+                <span class="text-xs text-slate-500">سليم من الأمراض المزمنة</span>
+                @endforelse
+            </div>
+            <div class="pt-2 text-xs text-[#64748b]">
+                قريب الطوارئ: <span class="font-semibold text-slate-800">{{ $patient->emergency_contact['name'] ?? 'فهد
+                    سليمان المنصور (الابن)' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinical History & Care Tabs -->
+    <div class="bg-white rounded-xl border border-[#e2e8f0] shadow-xs overflow-hidden">
+        <!-- Tabs Nav -->
+        <div class="border-b border-[#e2e8f0] bg-[#f8fafc] px-6 flex gap-6 text-xs font-semibold">
+            <button class="py-4 border-b-2 border-[#00685f] text-[#00685f]">
+                سجل المواعيد والزيارات السريرية
+            </button>
+            <button class="py-4 border-b-2 border-transparent text-[#64748b] hover:text-slate-900">
+                المتابعات الحرجة وما بعد الزيارة
+            </button>
+            <button class="py-4 border-b-2 border-transparent text-[#64748b] hover:text-slate-900">
+                سجل الملاحظات والشكاوى
+            </button>
+        </div>
+
+        <!-- Appointments History Table -->
+        <div class="p-6 space-y-4">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm">
+                    <thead
+                        class="bg-[#f8fafc] text-[#64748b] text-xs font-semibold uppercase border-b border-[#e2e8f0]">
+                        <tr>
+                            <th class="py-3 px-4">تاريخ ووقت الموعد</th>
+                            <th class="py-3 px-4">الطبيب المعالج</th>
+                            <th class="py-3 px-4">العيادة</th>
+                            <th class="py-3 px-4">نوع الزيارة</th>
+                            <th class="py-3 px-4">الحالة</th>
+                            <th class="py-3 px-4">الملاحظة السريرية والتشخيص</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#e2e8f0] text-xs">
+                        <tr class="hover:bg-[#f8fafc]">
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-800">2026-10-08 - 08:30 ص</td>
+                            <td class="py-3.5 px-4 font-medium text-slate-900">د. خالد عبد الرحمن المهيدب</td>
+                            <td class="py-3.5 px-4 text-slate-600">عيادة الباطنية والقلب</td>
+                            <td class="py-3.5 px-4"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">متابعة
+                                    دورية</span></td>
+                            <td class="py-3.5 px-4">
+                                <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#ECFDF5] text-[#047857]">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#047857]"></span>
+                                    <span>مكتملة</span>
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-700">فحص ضغط الدم 138/85، تم تعديل جرعة دواء أملوديبين.
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-[#f8fafc]">
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-800">2026-09-14 - 10:00 ص</td>
+                            <td class="py-3.5 px-4 font-medium text-slate-900">د. سارة فيصل التميمي</td>
+                            <td class="py-3.5 px-4 text-slate-600">عيادة العظام والمفاصل</td>
+                            <td class="py-3.5 px-4"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">كشف
+                                    استشاري</span></td>
+                            <td class="py-3.5 px-4">
+                                <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#ECFDF5] text-[#047857]">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#047857]"></span>
+                                    <span>مكتملة</span>
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-700">مراجعة ألم مفصل الركبة اليمنى بعد المجهود، فحص أشعة
+                                الرنين.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
