@@ -10,11 +10,11 @@
         <div class="flex items-center gap-4">
             <div
                 class="w-16 h-16 rounded-2xl bg-[#00685f] text-white flex items-center justify-center font-bold text-2xl shadow-sm">
-                {{ mb_substr($patient->name ?? 'س', 0, 1) }}
+                {{ mb_substr($patient->fullname ?? 'س', 0, 1) }}
             </div>
             <div>
                 <div class="flex flex-wrap items-center gap-3">
-                    <h1 class="text-2xl font-bold text-[#0b1c30]">{{ $patient->name ?? 'سليمان فهد المنصور' }}</h1>
+                    <h1 class="text-2xl font-bold text-[#0b1c30]">{{ $patient->fullname ?? 'سليمان فهد المنصور' }}</h1>
                     <span
                         class="font-mono text-xs font-bold text-[#00685f] bg-[#eff4ff] px-2.5 py-1 rounded border border-teal-200">
                         {{ $patient->mrn ?? 'MRN-84920' }}
@@ -25,9 +25,9 @@
                     </span>
                 </div>
                 <div class="flex flex-wrap items-center gap-3 text-xs text-[#64748b] mt-2 font-mono">
-                    <span>الهوية: {{ $patient->national_id ?? '1098234710' }}</span>
+                    <span>عنوان: {{ $patient->address ?? '1098234710' }}</span>
                     <span>·</span>
-                    <span>العمر: {{ $patient->age ?? 58 }} سنة ({{ $patient->gender ?? 'ذكر' }})</span>
+                    <span>العمر: {{ $patient->birthdate?->age ?? 58 }} سنة ({{ $patient->gender ?? 'ذكر' }})</span>
                     <span>·</span>
                     <span class="text-teal-800 font-bold">هاتف: {{ $patient->phone ?? '0505123984' }}</span>
                 </div>
@@ -74,14 +74,11 @@
                 <span>تنبيه الحساسية الدوائية والغذائية المؤكدة:</span>
             </div>
             <div class="flex flex-wrap gap-2">
-                @forelse($patient->allergies ?? ['البنسلين (Penicillin)', 'مركبات السلفا'] as $allergy)
                 <span
                     class="px-3 py-1 bg-white text-[#be123c] font-bold text-xs rounded-lg border border-[#fecdd3] shadow-2xs">
-                    ⚠️ {{ $allergy }}
+                    ⚠️ {{ $patient->allergies ?: 'لا يوجد'}}
                 </span>
-                @empty
-                <span class="text-xs text-slate-500">لا توجد حساسية معروفة</span>
-                @endforelse
+                
             </div>
             <p class="text-[11px] text-[#9f1239] leading-relaxed">
                 يمنع صرف أو حقن أي مضادات حيوية أو مستحضرات تحوي هذه المواد دون استشارة أخصائي الحساسية.
@@ -92,21 +89,15 @@
         <div class="bg-white border border-[#e2e8f0] rounded-xl p-5 space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span class="font-bold text-xs text-[#0b1c30]">الأمراض والمتابعات المزمنة:</span>
-                <span class="text-[11px] text-slate-500 font-mono">طوارئ: {{ $patient->emergency_contact['phone'] ??
-                    '0555981240' }}</span>
+                <span class="text-[11px] text-slate-500 font-mono">طوارئ: {{ $patient->emergency_phone ?? 'لا يوجد' }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
-                @forelse($patient->chronic_diseases ?? ['ارتفاع ضغط الدم', 'السكري النوع الثاني'] as $disease)
                 <span class="px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg">
-                    {{ $disease }}
+                    {{ $patient->chronic_diseases ?? 'لا يوجد'}}
                 </span>
-                @empty
-                <span class="text-xs text-slate-500">سليم من الأمراض المزمنة</span>
-                @endforelse
             </div>
             <div class="pt-2 text-xs text-[#64748b]">
-                قريب الطوارئ: <span class="font-semibold text-slate-800">{{ $patient->emergency_contact['name'] ?? 'فهد
-                    سليمان المنصور (الابن)' }}</span>
+                قريب الطوارئ: <span class="font-semibold text-slate-800">{{ $patient->emergency_name ?? 'لا يوجد' }}</span>
             </div>
         </div>
     </div>

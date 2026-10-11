@@ -5,6 +5,9 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
+    {{-- Success Message --}}
+    <x-alerts />
+
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-[#0b1c30]">دليل وسجل الملفات السريرية (MRN)</h1>
@@ -13,7 +16,7 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('patients.create') }}"
+            <a href="{{ route('patients.create')}}"
                 class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -60,17 +63,17 @@
                     <div class="flex items-center gap-3">
                         <div
                             class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center font-bold text-sm">
-                            {{ mb_substr($patient->name, 0, 1) }}
+                            {{ mb_substr($patient->fullname, 0, 1) }}
                         </div>
                         <div>
                             <a href="{{ route('patients.show', $patient->id) }}"
                                 class="font-bold text-sm text-[#0b1c30] hover:text-[#00685f]">
-                                {{ $patient->name }}
+                                {{ $patient->fullname }}
                             </a>
                             <div class="flex items-center gap-1.5 text-xs text-[#64748b] mt-0.5 font-mono">
                                 <span class="font-bold text-teal-800">{{ $patient->mrn }}</span>
                                 <span>·</span>
-                                <span>{{ $patient->age }} سنة</span>
+                                <span>{{ $patient->birthdate?->age }} سنة</span>
                             </div>
                         </div>
                     </div>
@@ -83,13 +86,15 @@
                 <div class="space-y-1.5 py-2 border-y border-slate-100 text-xs">
                     <div class="flex items-center gap-1">
                         <span class="text-[11px] font-bold text-rose-700">الحساسية:</span>
-                        <span class="text-[11px] text-slate-700 truncate">{{ implode('، ', (array)$patient->allergies)
+                        <span class="text-[11px] text-slate-700 truncate">{{$patient->allergies ? $patient->allergies :
+                            'لا يوجد'
                             }}</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="text-[11px] font-bold text-slate-500">المزمن:</span>
-                        <span class="text-[11px] text-slate-700 truncate">{{ implode('، ',
-                            (array)$patient->chronic_diseases) }}</span>
+                        <span class="text-[11px] text-slate-700 truncate">{{ $patient->chronic_diseases ?
+                            $patient->chronic_diseases : 'لا يوجد'
+                            }}</span>
                     </div>
                 </div>
             </div>
@@ -101,21 +106,22 @@
                         الملف الشامل
                     </a>
                     <span class="text-slate-300">|</span>
-                    <a href="{{ route('patients.edit', $patient->id) }}"
+                    <a href="{{ route('patients.edit', $patient) }}"
                         class="text-slate-600 hover:text-slate-900 font-semibold">
                         تعديل
                     </a>
                 </div>
-                <form action="{{ route('patients.destroy', $patient->id) }}" method="POST"
-                    onsubmit="return confirm('هل أنت متأكد من رغبتك في حذف هذا الملف؟')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-red-600 hover:underline text-[11px]">حذف</button>
-                </form>
+                <button type="button"
+                    onclick="document.getElementById('deletePatientModal-{{ $patient->id }}').classList.remove('hidden')"
+                    class="text-red-600">
+                    حذف
+                </button>
             </div>
         </div>
+        <x-delete-patient-modal :patient="$patient" />
         @empty
         <!-- Populated via native JS in SPA mode -->
+
         @endforelse
     </div>
 </div>

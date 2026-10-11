@@ -15,6 +15,7 @@
             ← العودة للقائمة
         </a>
     </div>
+    <x-alerts />
 
     <!-- Form Container -->
     <form action="{{route('users.update',$user)}}" method="POST" class="space-y-6">
@@ -38,9 +39,7 @@
 
                     class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none
                     focus:ring-1 focus:ring-[#00685f]" />
-                    @error('name')
-                    <p class="text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+
                 </div>
 
 
@@ -51,9 +50,7 @@
 
                     class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left
                     focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
-                    @error('username')
-                    <p class="text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+
                 </div>
 
 
@@ -98,10 +95,7 @@
 
 
             </div>
-            <br />
-            @error('role_id')
-            <p class="text-sm text-red-600"> {{ $message }}</p>
-            @enderror
+
         </div>
 
         <!-- Section 3: Granular Permissions Matrix -->

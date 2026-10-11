@@ -1,7 +1,9 @@
 <!-- Delete Patient Confirmation Modal Component -->
-<div id="deletePatientModal" class="fixed inset-0 z-50 overflow-hidden hidden flex items-center justify-center p-4">
+@props(['patient'])
+<div id="deletePatientModal-{{$patient->id}}"
+    class="fixed inset-0 z-50 overflow-hidden hidden flex items-center justify-center p-4">
     <!-- Backdrop -->
-    <div onclick="document.getElementById('deletePatientModal').classList.add('hidden')"
+    <div onclick="document.getElementById('deletePatientModal-{{ $patient->id }}').classList.add('hidden')"
         class="absolute inset-0 bg-[#0f172a]/50 backdrop-blur-xs"></div>
 
     <div
@@ -17,16 +19,19 @@
                     <p class="text-xs text-red-700">إجراء غير قابل للتراجع</p>
                 </div>
             </div>
-            <button type="button" onclick="document.getElementById('deletePatientModal').classList.add('hidden')"
+            <button type="button"
+                onclick="document.getElementById('deletePatientModal-{{ $patient->id }}').classList.add('hidden')"
                 class="p-1 text-slate-400 hover:text-slate-700">✕</button>
         </div>
 
         <!-- Body -->
         <div class="p-5 space-y-3 text-xs text-slate-700 leading-relaxed">
             <p>
-                هل أنت متأكد من رغبتك في حذف ملف المريض <strong class="text-slate-900 font-bold">{{ $patient->name ??
-                    'المريض' }}</strong> (رقم الملف: <span class="font-mono text-teal-800 font-bold">{{ $patient->mrn ??
-                    'MRN' }}</span>)؟
+                هل أنت متأكد من رغبتك في حذف ملف المريض <strong class="text-slate-900 font-bold">{{ $patient->fullname
+                    ??
+                    'المريض' }}</strong>
+                {{-- (رقم الملف: <span class="font-mono text-teal-800 font-bold">{{ $patient->mrn ??
+                    'MRN' }}</span>)؟ --}}
             </p>
             <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-amber-900 text-[11px]">
                 <strong>تنبيه طبي وأمني:</strong> حذف الملف سيؤدي إلى أرشفة سجل المواعيد السابقة، ونتائج التحاليل،
@@ -36,11 +41,12 @@
 
         <!-- Footer Actions with DELETE form -->
         <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
-            <button type="button" onclick="document.getElementById('deletePatientModal').classList.add('hidden')"
+            <button type="button"
+                onclick="document.getElementById('deletePatientModal-{{ $patient->id }}').classList.add('hidden')"
                 class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition">
                 إلغاء
             </button>
-            <form action="{{ route('patients.destroy', $patient->id ?? 1) }}" method="POST">
+            <form action="{{route('patients.destroy', $patient)}}" method="POST">
                 @csrf
                 @method('DELETE')
                 <button type="submit"

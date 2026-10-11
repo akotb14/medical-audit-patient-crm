@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
-use App\RoleEnum;
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 

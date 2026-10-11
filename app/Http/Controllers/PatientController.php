@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PatientRequests\CreatePatientRequest;
+use App\Http\Requests\PatientRequests\UpdatePatientRequest;
 use App\Models\Patient;
-use Illuminate\Http\Request;
 
 class PatientController extends Controller
 {
@@ -13,6 +14,8 @@ class PatientController extends Controller
     public function index()
     {
         //
+        $patients = Patient::where('status', 'active')->cursorPaginate(10);
+        return view('patients.index', compact('patients'));
     }
 
     /**
@@ -20,15 +23,17 @@ class PatientController extends Controller
      */
     public function create()
     {
-        //
+        return view('patients.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreatePatientRequest $request)
     {
         //
+        $patient = Patient::create($request->validated());
+        return redirect()->route('patients.index')->with('success', 'تم اضافة المريض بنجاح');
     }
 
     /**
@@ -36,7 +41,8 @@ class PatientController extends Controller
      */
     public function show(Patient $patient)
     {
-        //
+
+        return view('patients.show', compact('patient'));
     }
 
     /**
@@ -45,14 +51,17 @@ class PatientController extends Controller
     public function edit(Patient $patient)
     {
         //
+        return view('patients.edit', compact('patient'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Patient $patient)
+    public function update(UpdatePatientRequest $request, Patient $patient)
     {
         //
+        Patient::where('id', $patient->id)->update($request->validated());
+        return redirect()->route('patients.index')->with('success', 'تم تحديث المريض بنجاح');
     }
 
     /**
@@ -61,5 +70,7 @@ class PatientController extends Controller
     public function destroy(Patient $patient)
     {
         //
+        Patient::where('id', $patient->id)->update(['status' => 'inactive']);
+        return redirect()->back()->with('success', 'تم حذف المريض بنجاح');
     }
 }

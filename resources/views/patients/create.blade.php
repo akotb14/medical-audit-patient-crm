@@ -17,7 +17,7 @@
             <span>← العودة لدليل المرضى</span>
         </a>
     </div>
-
+    <x-alerts />
     <!-- Create Form -->
     <form action="{{ route('patients.store') }}" method="POST" class="space-y-6">
         @csrf
@@ -36,22 +36,23 @@
                 <div>
                     <label for="name" class="font-bold text-slate-700 block mb-1">الاسم الرباعي للمريض: <span
                             class="text-red-500">*</span></label>
-                    <input type="text" id="name" name="name" required placeholder="مثال: عبد العزيز بن فيصل الدوسري"
+                    <input type="text" id="name" name="fullname" required placeholder="مثال: عبد العزيز بن فيصل الدوسري"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
                 <div>
-                    <label for="national_id" class="font-bold text-slate-700 block mb-1">الهوية الوطنية / الإقامة: <span
+                    <label for="address" class="font-bold text-slate-700 block mb-1"> العنوان: <span
                             class="text-red-500">*</span></label>
-                    <input type="text" id="national_id" name="national_id" required placeholder="10XXXXXXXX"
+                    <input type="text" id="address" name="address" required placeholder="مثال: شارع الملك فيصل"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="age" class="font-bold text-slate-700 block mb-1">العمر (بالسنوات): <span
+                        <label for="birth_date" class="font-bold text-slate-700 block mb-1">تاريخ الميلاد: <span
                                 class="text-red-500">*</span></label>
-                        <input type="number" id="age" name="age" min="1" max="120" required placeholder="32"
+                        <input type="date" id="birth_date" name="birthdate" min="1900-01-01"
+                            max="{{now()->format('Y-m-d')}}" required placeholder="2001-01-01"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                     </div>
                     <div>
@@ -59,8 +60,8 @@
                                 class="text-red-500">*</span></label>
                         <select id="gender" name="gender"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                            <option value="ذكر">ذكر</option>
-                            <option value="أنثى">أنثى</option>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
                         </select>
                     </div>
                 </div>
@@ -130,7 +131,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <span>جهة اتصال الطوارئ والتغطية التأمينية</span>
+                <span>جهة اتصال الطوارئ </span>
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -147,26 +148,7 @@
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
-                <div>
-                    <label for="insurance_provider" class="font-bold text-slate-700 block mb-1">جهة التأمين
-                        الطبي:</label>
-                    <select id="insurance_provider" name="insurance_provider"
-                        class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                        <option value="نقدي / غير مؤمن">نقدي / سداد ذاتي</option>
-                        <option value="شركة بوبا العربية">شركة بوبا العربية للتأمين</option>
-                        <option value="شركة التعاونية للتأمين">شركة التعاونية للتأمين</option>
-                        <option value="ميدغلف">ميدغلف (MedGulf)</option>
-                        <option value="تكافل الراجحي">تكافل الراجحي</option>
-                    </select>
-                </div>
 
-                <div>
-                    <label for="insurance_policy_number" class="font-bold text-slate-700 block mb-1">رقم بطاقة التأمين
-                        (إن وجد):</label>
-                    <input type="text" id="insurance_policy_number" name="insurance_policy_number"
-                        placeholder="POL-9938210"
-                        class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
-                </div>
             </div>
         </div>
 

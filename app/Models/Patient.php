@@ -9,7 +9,7 @@ class Patient extends Model
     //
     protected $fillable = [
         'fullname',
-        'age',
+        'birthdate',
         'gender',
         'phone',
         'address',
@@ -22,4 +22,10 @@ class Patient extends Model
         'created_by',
         'updated_by',
     ];
+    protected function casts(): array
+    {
+        return [
+            'birthdate' => 'date',
+        ];
+    }
 }
