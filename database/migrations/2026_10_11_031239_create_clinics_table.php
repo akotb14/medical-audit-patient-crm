@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('clinics', function (Blueprint $table) {
             $table->id();
-            $table->string('name' , 255); 
-            $table->string('description' , 500)->nullable();
-            $table->enum('status',['active' , 'inactive'])->default('active');
+            $table->string('name', 255);
+            $table->string('description', 500)->nullable();
+            $table->enum('status', ['active', 'maintenance', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

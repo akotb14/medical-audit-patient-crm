@@ -24,3 +24,4 @@ Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 
 require __DIR__ . '/users.php';
 require __DIR__ . '/patients.php';
+require __DIR__ . '/clinics.php';

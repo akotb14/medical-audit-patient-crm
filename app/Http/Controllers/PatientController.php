@@ -14,7 +14,7 @@ class PatientController extends Controller
     public function index()
     {
         //
-        $patients = Patient::where('status', 'active')->cursorPaginate(10);
+        $patients = Patient::where('status', 'active')->cursorPaginate(20);
         return view('patients.index', compact('patients'));
     }
 

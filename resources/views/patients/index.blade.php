@@ -118,11 +118,15 @@
                 </button>
             </div>
         </div>
+
         <x-delete-patient-modal :patient="$patient" />
         @empty
         <!-- Populated via native JS in SPA mode -->
 
         @endforelse
+    </div>
+    <div class="mt-6">
+        {{$patients->links()}}
     </div>
 </div>
 @endsection
