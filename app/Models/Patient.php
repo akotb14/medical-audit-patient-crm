@@ -21,6 +21,7 @@ class Patient extends Model
         'status',
         'created_by',
         'updated_by',
+        'mrn',
     ];
     protected function casts(): array
     {
@@ -28,4 +29,5 @@ class Patient extends Model
             'birthdate' => 'date',
         ];
     }
+
 }

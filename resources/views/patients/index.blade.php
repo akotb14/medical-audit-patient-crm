@@ -28,10 +28,10 @@
     </div>
 
     <!-- Filter & Search Bar -->
-    <div
+    <form action="{{ route('patients.index') }}" method="GET"
         class="bg-white p-4 rounded-xl border border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="relative flex-1 max-w-md">
-            <input type="text" id="patientDirectorySearch" placeholder="بحث بالاسم، رقم الملف MRN، أو الهوية الوطنية..."
+            <input type="text" id="patientDirectorySearch" value="{{ request('search') }}" placeholder="بحث بالاسم، رقم الملف MRN، أو الهوية الوطنية..." name="search"
                 class="w-full pl-3 pr-9 py-2 text-xs bg-[#f8fafc] border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-right" />
             <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,17 +41,33 @@
         </div>
         <div class="flex items-center gap-2 text-xs">
             <span class="text-slate-500">فصيلة الدم:</span>
-            <select id="patientBloodFilter"
+            <select id="patientBloodFilter" name="blood_group"
                 class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700">
-                <option value="all">كافة الفصائل</option>
-                <option value="A+">A+</option>
-                <option value="O+">O+</option>
-                <option value="B+">B+</option>
-                <option value="AB+">AB+</option>
-                <option value="O-">O-</option>
+                <option value="">كافة الفصائل</option>
+                <option value="A+" @selected(request('blood_group') == 'A+')>A+</option>
+                <option value="O+" @selected(request('blood_group') == 'O+')>O+</option>
+                <option value="B+" @selected(request('blood_group') == 'B+')>B+</option>
+                <option value="AB+" @selected(request('blood_group') == 'AB+')>AB+</option>
+                <option value="O-" @selected(request('blood_group') == 'O-')'>O-</option>
             </select>
         </div>
-    </div>
+        {{-- //button for submit and button for reset --}}
+        <div class="flex items-center gap-2 text-xs">
+              <button
+                type="submit"
+                class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] rounded-lg hover:bg-[#00554e] transition"
+            >
+                بحث
+            </button>
+            <a
+                href="{{ route('patients.index') }}"
+                class="px-3 py-2 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+            >
+                إعادة تعيين
+            </a>
+        </div>
+        </div>
+    </form>
 
     <!-- Patients Grid -->
     <div id="patientsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

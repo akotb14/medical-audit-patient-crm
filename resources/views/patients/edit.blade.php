@@ -68,8 +68,8 @@
                         <label for="birthdate" class="font-bold text-slate-700 block mb-1">العمر: <span
                                 class="text-red-500">*</span></label>
                         <input type="date" id="birthdate" name="birthdate" min="1900-01-01"
-                            max="{{now()->format('Y-m-d')}}" required 
-                            value="{{ old('birthdate', $patient->birthdate)}}"
+                            max="{{now()->format('Y-m-d')}}" required
+                            value="{{ old('birthdate', $patient->birthdate?->format('Y-m-d')) }}"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                     </div>
                     <div>

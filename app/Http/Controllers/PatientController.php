@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PatientRequests\CreatePatientRequest;
+use App\Http\Requests\PatientRequests\PatientIndexRequest;
 use App\Http\Requests\PatientRequests\UpdatePatientRequest;
 use App\Models\Patient;
+use App\Queries\PatientIndexQuery;
+use Illuminate\Support\Str;
 
 class PatientController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(PatientIndexRequest $request ,PatientIndexQuery $patientIndexQuery )
     {
         //
-        $patients = Patient::where('status', 'active')->cursorPaginate(20);
+
+        $patients = $patientIndexQuery->build($request->validated())->where('status', 'active')
+                ->cursorPaginate(10)->withQueryString();;
         return view('patients.index', compact('patients'));
     }
 
@@ -31,8 +36,15 @@ class PatientController extends Controller
      */
     public function store(CreatePatientRequest $request)
     {
-        //
-        $patient = Patient::create($request->validated());
+        $data = $request->validated();
+
+        do {
+            $mrn = 'MRN-' . strtoupper(Str::random(8));
+        } while (Patient::where('mrn', $mrn)->exists());
+
+        $data['mrn'] = $mrn;
+
+        Patient::create($data);
         return redirect()->route('patients.index')->with('success', 'تم اضافة المريض بنجاح');
     }
 

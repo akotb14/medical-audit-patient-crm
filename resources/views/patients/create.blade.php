@@ -36,14 +36,14 @@
                 <div>
                     <label for="name" class="font-bold text-slate-700 block mb-1">الاسم الرباعي للمريض: <span
                             class="text-red-500">*</span></label>
-                    <input type="text" id="name" name="fullname" required placeholder="مثال: عبد العزيز بن فيصل الدوسري"
+                    <input type="text" id="name" name="fullname" required placeholder="مثال: عبد العزيز بن فيصل الدوسري" value="{{old('fullname')}}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
                 <div>
                     <label for="address" class="font-bold text-slate-700 block mb-1"> العنوان: <span
                             class="text-red-500">*</span></label>
-                    <input type="text" id="address" name="address" required placeholder="مثال: شارع الملك فيصل"
+                    <input type="text" id="address" name="address" required placeholder="مثال: شارع الملك فيصل" value="{{old('address')}}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
@@ -52,7 +52,7 @@
                         <label for="birth_date" class="font-bold text-slate-700 block mb-1">تاريخ الميلاد: <span
                                 class="text-red-500">*</span></label>
                         <input type="date" id="birth_date" name="birthdate" min="1900-01-01"
-                            max="{{now()->format('Y-m-d')}}" required placeholder="2001-01-01"
+                            max="{{now()->format('Y-m-d')}}" required placeholder="2001-01-01" value="{{old('birthdate')}}"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                     </div>
                     <div>
@@ -70,7 +70,7 @@
                     <div>
                         <label for="phone" class="font-bold text-slate-700 block mb-1">رقم الجوال: <span
                                 class="text-red-500">*</span></label>
-                        <input type="tel" id="phone" name="phone" required placeholder="05XXXXXXXX"
+                        <input type="tel" id="phone" name="phone" required placeholder="05XXXXXXXX" value="{{old('phone')}}"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                     </div>
                     <div>
@@ -106,7 +106,7 @@
                     <label for="allergies" class="font-bold text-rose-700 block mb-1">
                         الحساسية الدوائية والغذائية المعروفة (مفصولة بفواصل):
                     </label>
-                    <input type="text" id="allergies" name="allergies"
+                    <input type="text" id="allergies" name="allergies" value="{{old('allergies')}}"
                         placeholder="مثال: البنسلين (Penicillin)، السلفا، مركبات الأسبرين"
                         class="w-full p-2.5 bg-white border border-rose-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-rose-500" />
                     <p class="text-[11px] text-slate-500 mt-1">تظهر هذه التنبيهات بشارة تحذير حمراء عالية التباين في
@@ -117,7 +117,7 @@
                     <label for="chronic_diseases" class="font-bold text-slate-700 block mb-1">
                         الأمراض المزمنة والتاريخ الطبي (مفصولة بفواصل):
                     </label>
-                    <input type="text" id="chronic_diseases" name="chronic_diseases"
+                    <input type="text" id="chronic_diseases" name="chronic_diseases" value="{{old('chronic_diseases')}}"
                         placeholder="مثال: ارتفاع ضغط الدم، السكري النوع الثاني، الربو التحسسي"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
@@ -137,14 +137,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                     <label for="emergency_name" class="font-bold text-slate-700 block mb-1">اسم قريب للطوارئ:</label>
-                    <input type="text" id="emergency_name" name="emergency_name"
+                    <input type="text" id="emergency_name" name="emergency_name" value="{{old('emergency_name')}}"
                         placeholder="مثال: فهد عبد العزيز الدوسري (الأخ)"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
                 <div>
                     <label for="emergency_phone" class="font-bold text-slate-700 block mb-1">هاتف الطوارئ:</label>
-                    <input type="tel" id="emergency_phone" name="emergency_phone" placeholder="05XXXXXXXX"
+                    <input type="tel" id="emergency_phone" name="emergency_phone" placeholder="05XXXXXXXX" value="{{old('emergency_phone')}}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
