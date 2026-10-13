@@ -50,7 +50,7 @@
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500">الأطباء الموزعون على العيادات</p>
-                <p class="text-xl font-bold text-teal-700 mt-0.5" id="totalDoctorsAssignedStat">8 أطباء</p>
+                <p class="text-xl font-bold text-teal-700 mt-0.5" id="totalDoctorsAssignedStat">{{$doctors_counts}} أطباء متاحين</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
                 👨‍⚕️
@@ -59,7 +59,7 @@
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500">متوسط الأطباء لكل عيادة</p>
-                <p class="text-xl font-bold text-blue-700 mt-0.5">1.5 طبيب / عيادة</p>
+                <p class="text-xl font-bold text-blue-700 mt-0.5">{{number_format($doctors_counts/$clinics->count())}} طبيب / عيادة</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
                 📊
@@ -67,8 +67,8 @@
         </div>
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-[11px] font-semibold text-slate-500">جاهزية الأجنحة السريرية</p>
-                <p class="text-xl font-bold text-emerald-700 mt-0.5">100% تشغيل</p>
+                <p class="text-[11px] font-semibold text-slate-500">جاهزية العيادات</p>
+                <p class="text-xl font-bold text-emerald-700 mt-0.5">{{number_format($clinics->where("status","active")->count()/$clinics->count()*100)}}% جاهز</p>تشغيل</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-slate-50 text-slate-700 flex items-center justify-center font-bold">
                 ✅
@@ -76,28 +76,7 @@
         </div>
     </div>
 
-    <!-- Filter & Search Bar -->
-    <div
-        class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div class="relative flex-1 max-w-md">
-            <input type="text" id="clinicsDirectorySearch" placeholder="بحث باسم العيادة، الرمز CLN، أو التخصص الطبي..."
-                class="w-full pl-3 pr-9 py-2 text-xs bg-[#f8fafc] border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-right" />
-            <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-            </svg>
-        </div>
-        <div class="flex items-center gap-3 text-xs">
-            <span class="text-slate-500">نوع الترتيب:</span>
-            <select id="clinicSortFilter"
-                class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700">
-                <option value="name">حسب الاسم أبجدياً</option>
-                <option value="doctors">الأكثر أطباء أولاً</option>
-                <option value="floor">حسب الدور والجناح</option>
-            </select>
-        </div>
-    </div>
+    
 
     <!-- Clinics Grid Container -->
     <div id="clinicsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -117,7 +96,8 @@
 
                         </div>
                     </div>
-                    @php
+                   
+                   @php
                     $statusConfig = match ($clinic->status) {
                     'active' => ['label' => 'نشطة', 'class' => 'bg-green-100 text-green-700'],
                     'maintenance' => ['label' => 'تحت الصيانة', 'class' => 'bg-amber-100 text-amber-700'],
@@ -125,22 +105,17 @@
                     default => ['label' => 'غير محددة', 'class' => 'bg-gray-100 text-gray-700'],
                     };
                     @endphp
-
-                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusConfig['class'] }}">
-                        {{ $statusConfig['label'] }}
-                    </span>
-                </div>
-
-                <div class="bg-[#f8fafc] rounded-lg p-3 border border-slate-100 space-y-2 mb-4 text-xs">
-
-
-                    <div class="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-200/60">
-                        <span class="text-teal-900 font-medium">👨‍⚕️ الأطباء التابعون :</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
-                            {{ $clinic->doctors_count ?? 0 }} أطباء
+                    <div  class="flex flex-col gap-1 items-end ">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800">
+                            {{ ($doctors_counts_by_clinic[$clinic->id]) ?? 0 }} أطباء
+                        </span>
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusConfig['class'] }}">
+                            {{ $statusConfig['label'] }}
                         </span>
                     </div>
                 </div>
+
+              
             </div>
 
             <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -159,6 +134,9 @@
             لا توجد عيادات مسجلة حالياً
         </div>
         @endforelse
+    </div>
+    <div class="mt-6">
+        {{$clinics->links()}}
     </div>
 </div>
 @endsection

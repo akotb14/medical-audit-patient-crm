@@ -104,7 +104,8 @@
     <a href={{route('clinics.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
             font-semibold transition text-right
              {{request()->routeIs('clinics.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
-             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">     <div class=" flex items-center gap-2.5">
+             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">  
+        <div class=" flex items-center gap-2.5">
         <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
@@ -115,18 +116,20 @@
         <span id="navClinicsCount"
             class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border bg-teal-50 text-teal-800 border-teal-200">6</span>
     </a>
-    <button type="button" data-screen="doctors"
-        class="nav-tab-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition text-right text-[#3d4947] hover:bg-[#f1f5f9] hover:text-[#0b1c30]">
-        <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <span>الأطباء والاستشاريون</span>
+    <a href={{route('doctors.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+            font-semibold transition text-right
+             {{request()->routeIs('doctors.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
+             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">  
+        <div class=" flex items-center gap-2.5">
+        <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <span>الأطباء والاستشاريون</span>
         </div>
         <span id="navDoctorsCount"
             class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border bg-blue-50 text-blue-800 border-blue-200">8</span>
-    </button>
+    </a>
     <!-- RBAC Users & Roles Modules -->
     <div class="pt-3 pb-1 px-3 text-[11px] font-semibold text-[#64748b] uppercase tracking-wider">
         الأمان وإدارة الكادر

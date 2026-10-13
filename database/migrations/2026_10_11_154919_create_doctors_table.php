@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('fullname', 255);
             $table->string('phone', 15)->nullable();
-            $table->string('email', 255)->nullable();
+            $table->string('email', 255)->nullable()->unique();
             $table->string('specialty', 255)->nullable();
 
             $table->foreignId('clinic_id')->nullable()
                 ->constrained('clinics')->nullOnDelete();
-            
+
             $table->timestamps();
         });
     }

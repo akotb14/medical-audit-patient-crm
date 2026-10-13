@@ -27,8 +27,8 @@
             class="pt-2 flex items-center justify-center gap-3">
             @csrf
             @method('DELETE')
-            <input type="hidden" id="deleteClinicIdInput" name="clinic_id" value="" />
-            <button type="button" onclick="window.clinicalApp.closeModal('deleteClinicModal-{{$clinic->id}}')"
+            {{-- <input type="hidden" id="deleteClinicIdInput" name="id" value="{{$clinic->id}}" /> --}}
+            <button type="button" onclick="document.getElementById('deleteClinicModal-{{$clinic->id}}').classList.add('hidden')"
                 class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">
                 إلغاء التراجع
             </button>

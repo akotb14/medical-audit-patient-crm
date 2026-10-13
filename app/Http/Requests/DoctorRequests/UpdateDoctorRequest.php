@@ -2,28 +2,38 @@
 
 namespace App\Http\Requests\DoctorRequests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateDoctorRequest extends FormRequest
+use Illuminate\Validation\Rule;
+
+class UpdateDoctorRequest extends BaseDoctorRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
-    }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $doctor = $this->route('doctor');
+
         return [
-            //
+            ...parent::rules(),
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('doctors', 'email')->ignore($doctor),],
+
+                 'phone' => [
+                'nullable',
+                'string',
+                'max:15',
+                Rule::unique('doctors', 'phone')->ignore($doctor),
+            ]
         ];
     }
+    public function messages(): array{
+        return [...parent::messages(),
+            'email.unique' => 'البريد الإلكتروني مستخدم من قبل',
+            'phone.unique' => 'رقم الهاتف مستخدم من قبل',
+        ];
+    }
+
 }

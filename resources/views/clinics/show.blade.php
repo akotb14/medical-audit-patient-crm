@@ -36,11 +36,18 @@
                 <div>
                     <div class="flex items-center gap-3">
                         <h1 class="text-xl font-bold text-[#0b1c30]" id="clinicShowName">{{ $clinic->name }}</h1>
-                        <span
-                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200"
-                            id="clinicShowStatus">
-                            {{ ($clinic->status ?? 'active') === 'active' ? 'نشطة ومجهزة' : 'تحت الصيانة' }}
-                        </span>
+                       @php
+                    $statusConfig = match ($clinic->status) {
+                    'active' => ['label' => 'نشطة', 'class' => 'bg-green-100 text-green-700'],
+                    'maintenance' => ['label' => 'تحت الصيانة', 'class' => 'bg-amber-100 text-amber-700'],
+                    'inactive' => ['label' => 'غير نشطة', 'class' => 'bg-red-100 text-red-700'],
+                    default => ['label' => 'غير محددة', 'class' => 'bg-gray-100 text-gray-700'],
+                    };
+                    @endphp
+
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusConfig['class'] }}">
+                        {{ $statusConfig['label'] }}
+                    </span>
                     </div>
 
                 </div>
@@ -51,7 +58,7 @@
                 <div class="text-right">
                     <p class="text-[11px] font-bold text-teal-900 uppercase">الأطباء المعتمدون بالعيادة</p>
                     <p class="text-2xl font-black text-teal-800 mt-0.5" id="clinicDoctorsCountBadge">
-                        {{ $clinic->doctors_count ?? 0 }} <span class="text-xs font-medium text-teal-700">أطباء</span>
+                        {{ $clinic->doctors->count() ?? 0 }} <span class="text-xs font-medium text-teal-700">أطباء</span>
                     </p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center text-lg">
@@ -72,24 +79,12 @@
             <div>
                 <div class="flex items-center gap-2">
                     <h2 class="text-base font-bold text-[#0b1c30]">الأطباء والاستشاريون التابعون لهذه العيادة</h2>
-                    <span
-                        class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                         $clinic->doctors
-                    </span>
                 </div>
                 <p class="text-xs text-slate-500 mt-0.5">
                     كافة الأطباء المسجلين والمرتبطين وظيفياً بهذه العيادة وجداول كشوفاتهم
                 </p>
             </div>
 
-            <!-- Action to directly add doctor to this clinic -->
-            <button type="button" onclick="window.clinicalApp.openNewDoctorModalForClinic()"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-xs transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>+ تعيين طبيب جديد لهذه العيادة</span>
-            </button>
         </div>
 
         <!-- Doctors List Table / Cards -->
@@ -98,7 +93,7 @@
                 <thead>
                     <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 font-bold">
                         <th class="py-3 px-3">الطبيب المعالج</th>
-                        <th class="py-3 px-3">الدرجة والتخصص</th>
+                        <th class="py-3 px-3"> التخصص</th>
                         <th class="py-3 px-3">أيام الدوام</th>
                         <th class="py-3 px-3">الحالة</th>
                         <th class="py-3 px-3 text-left">الإجراءات</th>
@@ -106,30 +101,51 @@
                 </thead>
                 <tbody id="clinicDoctorsTableBody" class="divide-y divide-slate-100">
                     <!-- Populated dynamically via JS prototype and Blade loop in backend -->
-                    @forelse($clinic->doctors ?? [] as $doctor)
+                    @forelse($doctors ?? [] as $doctor)
                     <tr class="hover:bg-slate-50/80 transition">
                         <td class="py-3 px-3">
                             <div class="flex items-center gap-2.5">
                                 <div
                                     class="w-8 h-8 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs">
-                                    {{ mb_substr($doctor->name, 0, 1) }}
+                                    {{ mb_substr($doctor->fullname, 0, 1) }}
                                 </div>
                                 <div>
-                                    <p class="font-bold text-slate-800">{{ $doctor->name }}</p>
+                                    <p class="font-bold text-slate-800">{{ $doctor->fullname }}</p>
                                     <p class="text-[11px] text-slate-400 font-mono">{{ $doctor->phone }}</p>
                                 </div>
                             </div>
                         </td>
                         <td class="py-3 px-3">
-                            <span class="font-semibold text-slate-700">{{ $doctor->title }}</span>
                             <p class="text-[11px] text-slate-500">{{ $doctor->specialty }}</p>
                         </td>
                         <td class="py-3 px-3 text-slate-600">{{ $doctor->schedule_days }}</td>
                         <td class="py-3 px-3">
-                            <span
-                                class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                {{ $doctor->status === 'active' ? 'متاح ومناوب' : 'إجازة' }}
-                            </span>
+                           
+                    @php
+                        $statusStyles = match ($doctor->status) {
+                            'active' => [
+                                'label' => 'متاح ومناوب',
+                                'class' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                            ],
+                            'holiday' => [
+                                'label' => 'في إجازة',
+                                'class' => 'bg-amber-50 text-amber-800 border-amber-200',
+                            ],
+                            'inactive' => [
+                                'label' => 'غير نشط',
+                                'class' => 'bg-slate-100 text-slate-700 border-slate-200',
+                            ],
+                            default => [
+                                'label' => 'غير معروف',
+                                'class' => 'bg-gray-100 text-gray-600 border-gray-200',
+                            ],
+                        };
+                    @endphp
+
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $statusStyles['class'] }}">
+                        {{ $statusStyles['label'] }}
+                    </span>
+
                         </td>
                         <td class="py-3 px-3 text-left">
                             <div class="flex items-center justify-end gap-1.5">
@@ -150,6 +166,9 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <div >
+        {{$doctors->links()}}
     </div>
 </div>
 @endsection
