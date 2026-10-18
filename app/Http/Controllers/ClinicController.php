@@ -5,21 +5,26 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ClinicRequests\CreateClinicRequest;
 use App\Http\Requests\ClinicRequests\UpdateClinicRequest;
 use App\Models\Clinic;
+use App\Services\DoctorService;
 use Illuminate\Support\Facades\Cache;
 
 class ClinicController extends Controller
 {
+    public function __construct(private DoctorService $doctor_service ){}
     //
     public function index()
     {
-        $clinics = Clinic::cursorPaginate(10);
-        return view('clinics.index', compact('clinics'));
+        $doctors_counts = $this->doctor_service->getDoctorsCounts();
+        $doctors_counts_by_clinic = $this->doctor_service->getDoctorsCountsByClinic();
+        
+        $clinics = Clinic::all();
+        return view('clinics.index', compact('clinics' , 'doctors_counts' , 'doctors_counts_by_clinic'));
     }
     public function show(Clinic $clinic)
     {
         $doctors = $clinic->doctors()
             ->orderBy('id')
-            ->cursorPaginate(10);       
+            ->paginate(20);
         return view('clinics.show', compact('clinic' ,'doctors'));
     }
     public function create()

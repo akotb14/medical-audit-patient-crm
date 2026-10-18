@@ -6,11 +6,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span>منظومة الرعاية السريرية RTL</span>
+            <span>منظومة الرعاية السريرية </span>
         </div>
-        <div class="text-[11px] text-[#64748b] mt-1">
-            إصدار الإدارة الطبية 2.6.4 (Laravel Blade / Native JS)
-        </div>
+
     </div>
 
     <!-- Navigation Items -->
@@ -19,7 +17,7 @@
             الوحدات التشغيلية
         </div>
 
-        <a href={{route('dashboard.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+        <a href={{route('dashboard.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('dashboard.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">        <div class=" flex items-center gap-2.5">
@@ -33,9 +31,9 @@
     </div>
     </a>
 
-    <a href={{route('appointments.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('visits.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
-             {{request()->routeIs('appointments.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
+             {{request()->routeIs('visits.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">          <div class=" flex items-center gap-2.5">
         <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -49,7 +47,7 @@
         </span>
     </a>
 
-    <a href={{route('followups.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('followups.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('followups.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">   <div class=" flex items-center gap-2.5">
@@ -65,7 +63,7 @@
         </span>
     </a>
 
-    <a href={{route('complaints.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('complaints.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('complaints.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">   <div class=" flex items-center gap-2.5">
@@ -81,7 +79,7 @@
         </span>
     </a>
 
-    <a href={{route('patients.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('patients.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('patients.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
@@ -101,10 +99,10 @@
     <div class="pt-3 pb-1 px-3 text-[11px] font-semibold text-[#64748b] uppercase tracking-wider">
         الهيكل الطبي والعيادات
     </div>
-    <a href={{route('clinics.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('clinics.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('clinics.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
-             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">  
+             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
         <div class=" flex items-center gap-2.5">
         <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,10 +114,10 @@
         <span id="navClinicsCount"
             class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border bg-teal-50 text-teal-800 border-teal-200">6</span>
     </a>
-    <a href={{route('doctors.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('doctors.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('doctors.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
-             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">  
+             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
         <div class=" flex items-center gap-2.5">
         <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -135,10 +133,10 @@
         الأمان وإدارة الكادر
     </div>
 
-    <a href={{route('users.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('users.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('users.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
-             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">  
+             hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
         <div class=" flex items-center gap-2.5">
         <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -152,7 +150,7 @@
         </span>
     </a>
 
-    <a href={{route('users.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
+    <a href={{route('users.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
              {{request()->routeIs('users.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">      <div class=" flex items-center gap-2.5">

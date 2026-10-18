@@ -25,8 +25,8 @@ class PatientIndexQuery
             ) {
                 $query->where('blood_group', $blood_group);
             })
-           
-            ->orderBy('id');
+
+            ->latest();
     }
 }
 

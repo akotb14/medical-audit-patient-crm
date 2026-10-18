@@ -9,9 +9,7 @@ use function Termwind\render;
 Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->name('dashboard.index');
-Route::get('/appointments', function () {
-    return view('dashboard.index');
-})->name('appointments.index');
+
 Route::get('/followups', function () {
     return view('followups.index');
 })->name('followups.index');
@@ -26,3 +24,4 @@ require __DIR__ . '/users.php';
 require __DIR__ . '/patients.php';
 require __DIR__ . '/clinics.php';
 require __DIR__ . '/doctors.php';
+require __DIR__ . '/visits.php';

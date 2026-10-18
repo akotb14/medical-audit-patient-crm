@@ -14,12 +14,13 @@ class PatientController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index(PatientIndexRequest $request ,PatientIndexQuery $patientIndexQuery )
     {
         //
 
         $patients = $patientIndexQuery->build($request->validated())->where('status', 'active')
-                ->cursorPaginate(10)->withQueryString();;
+                ->paginate(20)->withQueryString();
         return view('patients.index', compact('patients'));
     }
 

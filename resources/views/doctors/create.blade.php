@@ -4,7 +4,6 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
-    <x-alerts />
     <!-- Breadcrumb & Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -38,8 +37,8 @@
                     class="w-full px-3 py-2 text-xs bg-white border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-800 font-medium">
                     <option value="">-- اختر العيادة الطبية التابع لها --</option>
                     @foreach($clinics ?? [] as $clinic)
-                    <option value="{{ $clinic['id'] }}" {{ old('clinic_id') == $clinic['id'] ? 'selected' : ''}}>
-                        🏥 {{ $clinic['name'] }}
+                    <option value="{{ $clinic->id }}" {{ old('clinic_id') == $clinic->id ? 'selected' : ''}}>
+                        🏥 {{ $clinic->name }}
                     </option>
                     @endforeach
                 </select>

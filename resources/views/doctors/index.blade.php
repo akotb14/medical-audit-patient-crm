@@ -30,7 +30,7 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Filter & Search Bar with One-to-Many Clinic Filter -->
     <form action={{route(('doctors.index'))}} method="GET"
         class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
@@ -47,15 +47,15 @@
         <!-- Clinic One-to-Many Filter -->
         <div class="flex items-center gap-3 text-xs">
             <span class="text-slate-500 font-medium">العيادة التابع لها :</span>
-            <select id="doctorClinicFilter" name="clinic_id" 
+            <select id="doctorClinicFilter" name="clinic_id"
                 class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
                 <option value="">كافة العيادات</option>
                 <!-- Populated with Clinics for One-to-Many selection -->
                 @foreach ($clinics ??[] as $clinic)
 
-                <option value="{{$clinic['id']}}" 
-                 @selected((string) request('clinic_id') === (string) $clinic['id'])
-                >{{ $clinic['name'] }}</option>
+                <option value="{{$clinic->id}}"
+                 @selected((string) request('clinic_id') === (string) $clinic->id)
+                >{{ $clinic->name }}</option>
                 @endforeach
 
             </select>

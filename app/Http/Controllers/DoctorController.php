@@ -8,29 +8,37 @@ use App\Http\Requests\DoctorRequests\UpdateDoctorRequest;
 use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Queries\DoctorIndexQuery;
+use App\Services\ClinicService;
+use App\Services\DoctorService;
 use Illuminate\Support\Facades\Cache;
 
 class DoctorController extends Controller
 {
     //
-    public function index(DoctorIndexRequest $request,
-    DoctorIndexQuery $doctorIndexQuery)
+    public function __construct(private ClinicService $clinicService ,private DoctorIndexQuery $doctorIndexQuery , private DoctorService $doctor_service)
     {
-        $doctors = $doctorIndexQuery
+    }
+    public function index(DoctorIndexRequest $request)
+    {
+        $clinics = $this->clinicService->getClinics();
+        $doctors_counts = $this->doctor_service->getDoctorsCounts();
+
+        $doctors = $this->doctorIndexQuery
         ->build($request->validated())
-        ->cursorPaginate(12)
+        ->paginate(12)
         ->withQueryString();
-        
-        return view('doctors.index', compact('doctors'));
+        return view('doctors.index', compact('doctors' ,'clinics' , 'doctors_counts'));
     }
     public function show(Doctor $doctor)
     {
+        $doctor->load(['visits.patient','visits.creator']);
         return view('doctors.show', compact('doctor'));
     }
 
     public function create()
     {
-        return view('doctors.create');
+        $clinics = $this->clinicService->getClinics();
+        return view('doctors.create',compact('clinics'));
     }
 
     public function store(CreateDoctorRequest $request)
@@ -42,8 +50,8 @@ class DoctorController extends Controller
     }
     public function edit(Doctor $doctor)
     {
-
-        return view('doctors.edit', compact('doctor'));
+        $clinics = $this->clinicService->getClinics();
+        return view('doctors.edit', compact('doctor','clinics'));
     }
     public function update(UpdateDoctorRequest $request,  Doctor $doctor)
     {
