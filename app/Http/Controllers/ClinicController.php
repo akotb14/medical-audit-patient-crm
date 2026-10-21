@@ -16,7 +16,7 @@ class ClinicController extends Controller
     {
         $doctors_counts = $this->doctor_service->getDoctorsCounts();
         $doctors_counts_by_clinic = $this->doctor_service->getDoctorsCountsByClinic();
-        
+
         $clinics = Clinic::all();
         return view('clinics.index', compact('clinics' , 'doctors_counts' , 'doctors_counts_by_clinic'));
     }
@@ -35,7 +35,6 @@ class ClinicController extends Controller
     {
         Clinic::create($request->validated());
         Cache::forget('clinics.all');
-        Cache::forget('doctors_counts');
         return redirect()->route('clinics.index')->with('success', 'تم اضافة العيادة بنجاح');
     }
     public function edit(Clinic $clinic)
@@ -46,16 +45,12 @@ class ClinicController extends Controller
     {
         $clinic->update($request->validated());
         Cache::forget('clinics.all');
-        Cache::forget('doctors_counts');
-
         return redirect()->route('clinics.index')->with('success', 'تم تحديث العيادة بنجاح');
     }
     public function destroy(Clinic $clinic)
     {
         $clinic->delete();
         Cache::forget('clinics.all');
-        Cache::forget('doctors_counts');
-
         return redirect()->route('clinics.index')->with('success', 'تم حذف العيادة بنجاح');
     }
 }

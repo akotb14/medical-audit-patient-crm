@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DoctorRequests\CreateDoctorRequest;
 use App\Http\Requests\DoctorRequests\DoctorIndexRequest;
 use App\Http\Requests\DoctorRequests\UpdateDoctorRequest;
-use App\Models\Clinic;
 use App\Models\Doctor;
 use App\Queries\DoctorIndexQuery;
 use App\Services\ClinicService;
@@ -57,6 +56,7 @@ class DoctorController extends Controller
     {
         $doctor->update($request->validated());
         Cache::forget('doctors_counts');
+        Cache::forget('doctors_counts_by_clinic');
         return redirect()->route('doctors.index')->with('success', 'تم تعديل الطبيب بنجاح');
     }
     public function destroy(Doctor $doctor)

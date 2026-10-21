@@ -4,28 +4,13 @@
 
 @section('content')
 <div class="space-y-6">
-    {{-- Alerts Component --}}
-    @if(view()->exists('components.alerts'))
-        <x-alerts />
-    @elseif(session('success'))
-        <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 font-bold">×</button>
-        </div>
-    @endif
 
-    @php
-        $isOverdue = ($followup->status ?? '') === 'scheduled' && $followup->due_date && $followup->due_date->isPast();
-    @endphp
 
     <!-- Breadcrumb & Back Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <nav class="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                <a href="{{ route('followups.index') }}" class="hover:text-teal-700 transition">سجل المتابعات السريرية</a>
+                <a href="{{ route('follow_ups.index') }}" class="hover:text-teal-700 transition">سجل المتابعات السريرية</a>
                 <span>/</span>
                 <span class="text-slate-800 font-semibold">تفاصيل المتابعة #{{ $followup->id ?? '---' }}</span>
             </nav>
@@ -52,7 +37,7 @@
                     </span>
                 @endif
 
-                @if($isOverdue)
+                @if($followup->is_overdue)
                     <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
                         متأخرة عن الاستحقاق ⚠️
                     </span>
@@ -70,7 +55,7 @@
             @if(($followup->status ?? '') !== 'done')
                 <button
                     type="button"
-                    onclick="openCompleteModal({{ $followup->id ?? 1 }}, '{{ addslashes($followup->patient->name ?? 'المريض') }}')"
+                    onclick="document.getElementById('completeFollowupModal-{{$followup->id}}').classList.remove('hidden')"
                     class="px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition flex items-center gap-1.5"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -80,7 +65,7 @@
 
             {{-- Mark Missed Button --}}
             @if(($followup->status ?? '') === 'scheduled')
-                <form action="{{ route('followups.status', $followup ?? 1) }}" method="POST">
+                <form action="{{ route('follow_ups.status', $followup ?? 1) }}" method="POST">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="status" value="missed">
@@ -92,7 +77,7 @@
 
             {{-- Cancel Button --}}
             @if(($followup->status ?? '') !== 'cancelled' && ($followup->status ?? '') !== 'done')
-                <form action="{{ route('followups.status', $followup ?? 1) }}" method="POST">
+                <form action="{{ route('follow_ups.status', $followup ?? 1) }}" method="POST">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="status" value="cancelled">
@@ -102,12 +87,12 @@
                 </form>
             @endif
 
-            <a href="{{ route('followups.edit', $followup ?? 1) }}" class="px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5">
+            <a href="{{ route('follow_ups.edit', $followup ?? 1) }}" class="px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 <span>تعديل</span>
             </a>
 
-            <button type="button" onclick="openDeleteFollowupModal({{ $followup->id ?? 1 }}, '{{ addslashes($followup->patient->name ?? 'المريض') }}')" class="px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition">
+            <button type="button" onclick="document.getElementById('deleteFollowupModal-{{$followup->id}}').classList.remove('hidden')" class="px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition">
                 حذف
             </button>
 
@@ -211,21 +196,7 @@
                 @endif
             </div>
 
-            <!-- Database & Foreign Keys Architecture Note -->
-            <div class="bg-white rounded-2xl border border-teal-200 p-5 shadow-xs space-y-3 bg-teal-50/20">
-                <div class="flex items-center gap-2 text-teal-800 font-bold text-xs">
-                    <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>معمارية العلاقات والقيود في جدول follow_ups (Foreign Keys & nullOnDelete)</span>
-                </div>
-                <div class="text-xs text-slate-700 leading-relaxed space-y-1.5 font-mono text-[11px] bg-white p-3 rounded-lg border border-teal-100">
-                    <div>• <strong class="text-teal-900">visit_id (FK):</strong> {{ $followup->visit_id ?? 'null' }} (constrained to visits -> nullOnDelete)</div>
-                    <div>• <strong class="text-teal-900">patient_id (FK):</strong> {{ $followup->patient_id ?? 'null' }} (constrained to patients -> nullOnDelete)</div>
-                    <div>• <strong class="text-teal-900">due_date:</strong> {{ $followup->due_date ? $followup->due_date->format('Y-m-d H:i:s') : 'null' }}</div>
-                    <div>• <strong class="text-teal-900">status:</strong> enum('scheduled', 'done', 'missed', 'cancelled') = '{{ $followup->status }}'</div>
-                    <div>• <strong class="text-teal-900">completed_at:</strong> {{ $followup->completed_at ? $followup->completed_at->format('Y-m-d H:i:s') : 'null' }}</div>
-                    <div>• <strong class="text-teal-900">created_by (FK):</strong> {{ $followup->created_by ?? 'null' }} (constrained to users -> nullOnDelete)</div>
-                </div>
-            </div>
+
         </div>
 
         <!-- Right: Linked Patient & Visit Cards (5 Cols) -->
@@ -248,7 +219,7 @@
                     <div class="space-y-3 text-xs">
                         <div>
                             <span class="text-slate-400 block text-[11px]">اسم المريض:</span>
-                            <span class="font-bold text-sm text-[#0b1c30]">{{ $followup->patient->name }}</span>
+                            <span class="font-bold text-sm text-[#0b1c30]">{{ $followup->patient->fullname }}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
@@ -272,22 +243,18 @@
                             </div>
                         @endif
 
-                        @if(!empty($followup->patient->allergies) && is_array($followup->patient->allergies))
                             <div class="pt-2 border-t border-slate-100">
                                 <span class="text-rose-700 font-bold block text-[11px] mb-1">الحساسية الدوائية:</span>
                                 <div class="flex flex-wrap gap-1">
-                                    @foreach($followup->patient->allergies as $allergy)
                                         <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-800 text-[10px] border border-rose-200">
-                                            {{ $allergy }}
+                                            {{ $followup->patient->allergies }}
                                         </span>
-                                    @endforeach
                                 </div>
                             </div>
-                        @endif
                     </div>
                 @else
                     <div class="p-4 bg-slate-50 rounded-xl text-center text-slate-400 italic text-xs">
-                        لم يتم ربط هذه المتابعة بملف مريض محدد (patient_id = null)
+                        لم يتم ربط هذه المتابعة بملف مريض محدد
                     </div>
                 @endif
             </div>
@@ -328,7 +295,7 @@
                         @if($followup->visit->doctor)
                             <div class="p-3 bg-teal-50/40 rounded-xl border border-teal-100">
                                 <span class="text-slate-400 block text-[10px]">الطبيب المعالج والعيادة:</span>
-                                <span class="font-bold text-slate-900 block mt-0.5">{{ $followup->visit->doctor->name }}</span>
+                                <span class="font-bold text-slate-900 block mt-0.5">{{ $followup->visit->doctor->fullname }}</span>
                                 <span class="text-[11px] text-teal-800">{{ $followup->visit->doctor->clinic->name ?? 'عيادة تخصصية' }}</span>
                             </div>
                         @endif
@@ -377,7 +344,6 @@
     </div>
 </div>
 
-{{-- Complete & Delete Modals --}}
-@include('followups.complete-modal')
-@include('followups.delete-modal')
+<x-delete-followup-modal :followup="$followup" />
+<x-complete-followup-modal :followup="$followup" />
 @endsection

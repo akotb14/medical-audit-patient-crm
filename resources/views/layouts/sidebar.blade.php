@@ -47,9 +47,9 @@
         </span>
     </a>
 
-    <a href={{route('followups.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
+    <a href={{route('follow_ups.index')}} class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
             font-semibold transition text-right
-             {{request()->routeIs('followups.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
+             {{request()->routeIs('follow_ups.*') ?" bg-[#00685f] text-white shadow-xs" : " text-[#3d4947]
              hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">   <div class=" flex items-center gap-2.5">
         <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

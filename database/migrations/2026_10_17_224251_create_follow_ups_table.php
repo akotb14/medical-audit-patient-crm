@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('follow_ups', function (Blueprint $table) {
             $table->id();
-            $table->date('due_date');
+            $table->dateTime('due_date');
             $table->string('reason');
             $table->string('outcome_note')->nullable();
-            $table->date('completed_at')->nullable();
+            $table->dateTimeTz('completed_at')->nullable();
             $table->enum('status', ['scheduled','done','missed','cancelled'])->default('scheduled');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');

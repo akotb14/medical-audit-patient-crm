@@ -10,9 +10,6 @@ Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->name('dashboard.index');
 
-Route::get('/followups', function () {
-    return view('followups.index');
-})->name('followups.index');
 Route::get('/complaints', function () {
     return view('complaints.index');
 })->name('complaints.index');
@@ -25,3 +22,5 @@ require __DIR__ . '/patients.php';
 require __DIR__ . '/clinics.php';
 require __DIR__ . '/doctors.php';
 require __DIR__ . '/visits.php';
+require __DIR__ . '/followups.php';
+

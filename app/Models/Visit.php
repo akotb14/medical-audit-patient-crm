@@ -63,6 +63,19 @@ class Visit extends Model
     {
         return $query->where('visit_status', 'cancelled');
     }
+    public function scopeForPatient(Builder $query, int $patient): Builder
+    {
+        return $query->where('patient_id', $patient);
+    }
+
+    public function scopeForDoctor(Builder $query, int $doctor): Builder
+    {
+        return $query->where('doctor_id', $doctor);
+    }
+    public function scopeStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('visit_status', $status);
+    }
 
     public function scopeForDate(Builder $query, $date): Builder
     {

@@ -17,7 +17,7 @@ return new class extends Migration
             $table ->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete();
             $table->date('date');
             $table->string('reason',500);
-            $table->enum('visit_status',['created','completed','cancelled']);
+            $table->enum('visit_status',['c','completed','cancelled']);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
