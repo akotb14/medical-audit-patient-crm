@@ -20,6 +20,7 @@ class DashboardController extends Controller
         // 1. VISITS ANALYTICS
         // ==========================================
 
+    
         $visitStats = Visit::query()
             ->selectRaw("
                 COUNT(*) AS total,

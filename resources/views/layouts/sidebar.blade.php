@@ -16,24 +16,25 @@
         <div class="px-3 py-1.5 text-[11px] font-semibold text-[#64748b] uppercase tracking-wider">
             الوحدات التشغيلية
         </div>
-
-        <a href={{ route('dashboard.index') }}
-            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
-            font-semibold transition text-right
-             {{ request()->routeIs('dashboard.*')
-                 ? ' bg-[#00685f] text-white shadow-xs'
-                 : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
-            <div class=" flex items-center gap-2.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect width="7" height="9" x="3" y="3" rx="1" />
-                    <rect width="7" height="5" x="14" y="3" rx="1" />
-                    <rect width="7" height="9" x="14" y="12" rx="1" />
-                    <rect width="7" height="5" x="3" y="16" rx="1" />
-                </svg>
-                <span>نظرة عامة والفرز السريري</span>
-            </div>
-        </a>
+        @role('Admin')
+            <a href={{ route('dashboard.index') }}
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
+        font-semibold transition text-right
+        {{ request()->routeIs('dashboard.*')
+            ? ' bg-[#00685f] text-white shadow-xs'
+            : " text-[#3d4947]
+                         hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                <div class=" flex items-center gap-2.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect width="7" height="9" x="3" y="3" rx="1" />
+                        <rect width="7" height="5" x="14" y="3" rx="1" />
+                        <rect width="7" height="9" x="14" y="12" rx="1" />
+                        <rect width="7" height="5" x="3" y="16" rx="1" />
+                    </svg>
+                    <span>نظرة عامة والفرز السريري</span>
+                </div>
+            </a>
+        @endrole
 
         <a href={{ route('visits.index') }}
             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
@@ -41,7 +42,7 @@
              {{ request()->routeIs('visits.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -58,7 +59,7 @@
              {{ request()->routeIs('follow_ups.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -87,7 +88,7 @@
              {{ request()->routeIs('complaints.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -104,7 +105,7 @@
              {{ request()->routeIs('patients.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -124,7 +125,7 @@
              {{ request()->routeIs('clinics.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -141,7 +142,7 @@
              {{ request()->routeIs('doctors.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                       hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -163,7 +164,7 @@
     {{ request()->routeIs('users.*')
         ? ' bg-[#00685f] text-white shadow-xs'
         : " text-[#3d4947]
-                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                         hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
                 <div class=" flex items-center gap-2.5">
                     <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

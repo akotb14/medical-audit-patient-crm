@@ -15,19 +15,28 @@ class AuthController extends Controller
     }
 
     public function login(LoginRequest $request)
-    {
-        $user = $request->validated();
+{
+    $credentials = $request->validated();
 
-        if (Auth::attempt($user)) {
-            $request->session()->regenerate();
+    if (Auth::attempt($credentials)) {
 
-            return redirect()->intended('dashboard');
+        $request->session()->regenerate();
+
+        $user = Auth::user();
+
+        if ($user->hasRole('Admin')) {
+            return redirect()->route('dashboard');
         }
 
-        return back()->withErrors([
-            'username' => 'username or password is incorrect',
-        ])->onlyInput('username');
+        return redirect()->route('clinics.index');
     }
+
+    return back()
+        ->withErrors([
+            'username' => 'Username or password is incorrect.',
+        ])
+        ->onlyInput('username');
+}
 
     public function logout(Request $request): RedirectResponse
     {
