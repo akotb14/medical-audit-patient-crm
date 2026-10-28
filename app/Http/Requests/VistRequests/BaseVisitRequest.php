@@ -21,11 +21,6 @@ class BaseVisitRequest extends FormRequest
         return [
             'patient_id' => 'required|integer|exists:patients,id',
             'doctor_id' => 'required|integer|exists:doctors,id',
-            'date' => [
-                'required',
-                'date',
-                'after:now',
-            ],
             'reason' => 'required|string|max:500',
         ];
     }
@@ -42,10 +37,7 @@ class BaseVisitRequest extends FormRequest
             'doctor_id.integer' => 'رقم الطبيب غير صحيح.',
             'doctor_id.exists' => 'الطبيب المحدد غير موجود.',
 
-            'date.required' => 'يرجى تحديد تاريخ الزيارة.',
-            'date.date' => 'تاريخ الزيارة غير صحيح.',
-            'date.after' => 'تاريخ الزيارة يجب أن يكون بعد تاريخ اليوم.',
-
+            
             'reason.required' => 'يرجى إدخال سبب الزيارة.',
             'reason.string' => 'سبب الزيارة يجب أن يكون نصًا.',
             'reason.max' => 'سبب الزيارة يجب ألا يتجاوز 500 حرف.',

@@ -104,73 +104,7 @@
 
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Status Selection -->
-                <div class="space-y-1.5">
-                    <label for="status" class="block font-bold text-slate-700 text-xs">
-                        حالة الشكوى (Status): <span class="text-red-500">*</span>
-                    </label>
-                    <select
-                        name="status"
-                        id="status"
-                        required
-                        onchange="toggleResolutionRequirement(this.value)"
-                        class="w-full p-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 text-xs font-semibold @error('status') border-rose-500 @enderror"
-                    >
-                        <option value="new" @selected(old('status', $complaint->status) === 'new')>جديدة (new)</option>
-                        <option value="assigned" @selected(old('status', $complaint->status) === 'assigned')>مسندة (assigned)</option>
-                        <option value="investigating" @selected(old('status', $complaint->status) === 'investigating')>قيد التحقيق (investigating)</option>
-                        <option value="resolved" @selected(old('status', $complaint->status) === 'resolved')>تم الحل (resolved) - يتطلب ملاحظة حل</option>
-                        <option value="closed" @selected(old('status', $complaint->status) === 'closed')>مغلقة نهائياً (closed) - يتطلب ملاحظة حل</option>
-                    </select>
 
-                </div>
-
-                <!-- Assigned To -->
-                <div class="space-y-1.5">
-                    <label for="assigned_to" class="block font-bold text-slate-700 text-xs">
-                        المحقق / المسؤول المسند إليه (Assignee):
-                    </label>
-                    <select
-                        name="assigned_to"
-                        id="assigned_to"
-                        class="w-full p-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 text-xs @error('assigned_to') border-rose-500 @enderror"
-                    >
-                        <option value="">-- غير مسندة (Unassigned) --</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}" @selected(old('assigned_to', $complaint->assigned_to) == $user->id)>
-                                {{ $user->name }} ({{ $user->role ?? 'كادر الجودة' }})
-                            </option>
-                        @endforeach
-                    </select>
-
-                </div>
-            </div>
-
-            <!-- BR-7: Resolution Note (Mandatory for resolved & closed) -->
-            <div id="resolutionNoteContainer" class="p-4 rounded-xl border border-teal-200 bg-teal-50/40 space-y-2">
-                <div class="flex items-center justify-between">
-                    <label for="resolution_note" class="block font-bold text-slate-800 text-xs flex items-center gap-2">
-                        <span>ملاحظات وإجراءات الحل والإغلاق (Resolution Note):</span>
-                        <span id="resolutionRequiredAsterisk" class="text-rose-600 font-bold text-sm">*</span>
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 font-mono">BR-7 Enforced</span>
-                    </label>
-                    <span class="text-[11px] text-slate-500 font-mono" id="resolutionCounter">2000 حرف كحد أقصى</span>
-                </div>
-                <p class="text-[11px] text-slate-600">
-                    لا يمكن تحويل الشكوى إلى حالة <strong class="font-mono text-emerald-700">resolved</strong> أو <strong class="font-mono text-slate-700">closed</strong> دون توثيق بيان الحل والإجراء المتخذ لإرضاء المريض.
-                </p>
-                <textarea
-                    name="resolution_note"
-                    id="resolution_note"
-                    rows="4"
-                    maxlength="2000"
-                    placeholder="اكتب الإجراءات المتخذة لحل المشكلة، الاتصال بالمريض، التوصيات الإدارية أو الطبية لمنع تكرار الواقعة..."
-                    oninput="document.getElementById('resolutionCounter').textContent = (2000 - this.value.length) + ' حرف متبقٍ';"
-                    class="w-full p-3 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 text-xs leading-relaxed @error('resolution_note') border-rose-500 @enderror"
-                >{{ old('resolution_note', $complaint->resolution_note) }}</textarea>
-
-            </div>
 
             <!-- Action Buttons -->
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
@@ -186,31 +120,5 @@
     </div>
 </div>
 
-<script>
-    function toggleResolutionRequirement(status) {
-        const asterisk = document.getElementById('resolutionRequiredAsterisk');
-        const container = document.getElementById('resolutionNoteContainer');
-        const noteInput = document.getElementById('resolution_note');
 
-        if (status === 'resolved' || status === 'closed') {
-            asterisk.style.display = 'inline';
-            container.classList.remove('border-slate-200', 'bg-slate-50/50');
-            container.classList.add('border-teal-300', 'bg-teal-50/50');
-            noteInput.setAttribute('required', 'required');
-        } else {
-            asterisk.style.display = 'none';
-            container.classList.remove('border-teal-300', 'bg-teal-50/50');
-            container.classList.add('border-slate-200', 'bg-slate-50/50');
-            noteInput.removeAttribute('required');
-        }
-    }
-
-    // Run on load to set initial state
-    document.addEventListener('DOMContentLoaded', function() {
-        const statusSelect = document.getElementById('status');
-        if (statusSelect) {
-            toggleResolutionRequirement(statusSelect.value);
-        }
-    });
-</script>
 @endsection

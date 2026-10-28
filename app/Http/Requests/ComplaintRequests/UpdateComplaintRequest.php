@@ -22,9 +22,6 @@ class UpdateComplaintRequest extends FormRequest
             'patient_id' => 'required|integer|exists:patients,id',
             'title' => 'required|string|max:500',
             'description' => 'required|string',
-            'status' => 'required|in:new,assigned,investigating,resolved,closed',
-            'assigned_to' => 'nullable|integer|exists:users,id',
-            'resolution_note' => 'nullable|string',
         ];
     }
     public function messages(): array
@@ -42,11 +39,6 @@ class UpdateComplaintRequest extends FormRequest
             'description.required' => 'يجب ادخال وصف الشكوى',
             'description.string' => 'يجب ادخال وصف صالح',
 
-            'assigned_to.integer' => 'يجب اختيار محقق صالح',
-            'assigned_to.exists' => 'المحقق او الموظف غير موجود',
-
-            'status.in' => 'الحالة غير صحيحة',
-            'resolution_note.string' => 'يجب ادخال وصف صالح'
         ];
     }
 }

@@ -50,7 +50,7 @@ class VisitPolicy
      */
     public function delete(User $user, Visit $visit): bool
     {
-        return $user->can(PermissionEnum::VISITS_DELETE->value) && $visit->status == 'created';
+        return $user->can(PermissionEnum::VISITS_DELETE->value) && $visit->visit_status !== 'completed';
     }
 
     /**

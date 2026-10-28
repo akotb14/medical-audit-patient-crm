@@ -17,9 +17,8 @@ class UserController extends Controller
     {
         Gate::authorize('viewAny', User::class);
         $users = User::cursorPaginate(10);
-        $receptionCountRole = User::with('roles')->get()->filter(
-            fn ($user) => $user->roles->where('name', RoleEnum::RECEPTIONIST)->toArray()
-        )->count();
+        $receptionCountRole =  User::role(RoleEnum::RECEPTIONIST)->count();
+
 
         return view('users.index', compact('users', 'receptionCountRole'));
     }
@@ -48,10 +47,10 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'تم انشاء المستخدم بنجاح');
     }
 
-    public function edit(int $userId)
+    public function edit(User $user)
     {
-        Gate::authorize('update', User::class);
-        $user = User::findOrFail($userId);
+        Gate::authorize('update', $user);
+        $user = User::findOrFail($user->id);
         $roles = Role::all();
 
         return view('users.edit', compact('user', 'roles'));
@@ -59,8 +58,9 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        Gate::authorize('update', User::class);
+        Gate::authorize('update', $user);
         $user = User::findOrFail($user->id);
+
         $user->update($request->validated());
         $role = Role::findOrFail($request->role_id);
         $user->syncRoles([$role]);
@@ -68,10 +68,10 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'تم تحديث المستخدم بنجاح');
     }
 
-    public function destroy(int $userId)
+    public function destroy(User $user)
     {
-        Gate::authorize('delete', User::class);
-        $user = User::findOrFail($userId);
+        Gate::authorize('delete', $user);
+        $user = User::findOrFail($user->id);
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'تم حذف المستخدم بنجاح');

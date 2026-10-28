@@ -6,6 +6,7 @@ use App\Http\Requests\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
@@ -15,29 +16,33 @@ class AuthController extends Controller
     }
 
     public function login(LoginRequest $request)
-{
-    $credentials = $request->validated();
+    {
+        $request->ensureIsNotRateLimited();
 
-    if (Auth::attempt($credentials)) {
+        $credentials = $request->validated();
 
-        $request->session()->regenerate();
+        if (Auth::attempt($credentials)) {
 
-        $user = Auth::user();
+            RateLimiter::clear($request->throttleKey());
 
-        if ($user->hasRole('Admin')) {
-            return redirect()->route('dashboard');
+            $request->session()->regenerate();
+
+            $user = Auth::user();
+
+            return $user->hasRole('Admin')
+                ? redirect()->route('dashboard.index')
+                : redirect()->route('clinics.index');
         }
 
-        return redirect()->route('clinics.index');
+        RateLimiter::hit($request->throttleKey(), 60);
+        RateLimiter::hit($request->ipThrottleKey(), 60);
+
+        return back()
+            ->withErrors([
+                'username' => 'اسم المستخدم أو كلمة المرور غير صحيحة.',
+            ])
+            ->onlyInput('username');
     }
-
-    return back()
-        ->withErrors([
-            'username' => 'Username or password is incorrect.',
-        ])
-        ->onlyInput('username');
-}
-
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();

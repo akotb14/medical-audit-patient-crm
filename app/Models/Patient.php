@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Patient extends Model
 {
     /** @use HasFactory<PatientFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'fullname',
@@ -28,6 +29,7 @@ class Patient extends Model
         'mrn',
         'created_by',
         'updated_by',
+        'deleted_by',
     ];
 
     protected function casts(): array
@@ -52,6 +54,10 @@ class Patient extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function deleter()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
 
     public function scopeStats(Builder $query): object
     {
@@ -78,13 +84,13 @@ class Patient extends Model
             (
                 SELECT blood_group
                 FROM patients
-                WHERE blood_group IS NOT NULL
+                WHERE deleted_at IS NULL
+                  AND blood_group IS NOT NULL
                   AND blood_group != ''
                 GROUP BY blood_group
                 ORDER BY COUNT(*) DESC, blood_group ASC
                 LIMIT 1
             ) AS most_common_blood_group
-        ")
-        ;
+        ");
     }
 }

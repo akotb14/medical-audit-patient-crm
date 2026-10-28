@@ -35,9 +35,15 @@ class DoctorController extends Controller
     public function show(Doctor $doctor)
     {
         Gate::authorize('view', $doctor);
-        $doctor->load(['visits.patient', 'visits.creator']);
-
-        return view('doctors.show', compact('doctor'));
+       $visits = $doctor->visits()
+            ->with([
+                'doctor.clinic',
+                'creator',
+                'survey',
+            ])
+            ->latest()
+            ->paginate(20);
+        return view('doctors.show', compact('doctor' , 'visits'));
     }
 
     public function create()

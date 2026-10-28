@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\RoleEnum;
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +18,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -47,4 +50,62 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Seed the roles and the permission catalogue.
+ *
+ * The container is rebuilt for every test, so this guard lives for a single test
+ * and only stops the seeder from running twice inside it.
+ */
+function seedRolesAndPermissions(): void
+{
+    if (app()->has('tests.roles_seeded')) {
+        return;
+    }
+
+    test()->seed(RolePermissionSeeder::class);
+
+    app()->instance('tests.roles_seeded', true);
+}
+
+/**
+ * Create a user holding the given role without signing them in.
+ */
+function createUserWithRole(RoleEnum $role): User
+{
+    seedRolesAndPermissions();
+
+    $user = User::factory()->create();
+    $user->assignRole($role->value);
+
+    return $user;
+}
+
+/**
+ * Create a user holding the given role and sign them in for the next request.
+ */
+function actingAsUserWithRole(RoleEnum $role): User
+{
+    $user = createUserWithRole($role);
+
+    test()->actingAs($user);
+
+    return $user;
+}
+
+/**
+ * Create an administrator and sign them in for the next request.
+ */
+function actingAsAdmin(): User
+{
+    return actingAsUserWithRole(RoleEnum::ADMIN);
+}
+
+/**
+ * Create a receptionist and sign them in for the next request.
+ */
+function actingAsReceptionist(): User
+{
+    return actingAsUserWithRole(RoleEnum::RECEPTIONIST);
 }

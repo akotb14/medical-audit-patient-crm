@@ -23,7 +23,7 @@ class SurveyController extends Controller
         $search = $request['search'] ?? '';
         $rating = (int) $request['rating'] ?? 'all';
 
-        $query = Survey::query()->with('patient:id,fullname,mrn', 'visit:id,date', 'visit.doctor:id,fullname', 'creator:id,name');
+        $query = Survey::query()->with('patient:id,fullname,mrn,deleted_at', 'visit:id,date', 'visit.doctor:id,fullname', 'creator:id,name');
 
         $stats = (clone $query)->stats()->first();
 
@@ -35,12 +35,15 @@ class SurveyController extends Controller
         }
 
         $surveys = $query->latest()->paginate(20);
+
         return view('surveys.index', compact('surveys', 'stats'));
     }
+
     public function show(Survey $survey)
     {
         Gate::authorize('view', $survey);
-        $survey->load('patient:id,fullname,mrn', 'visit:id,date,visit_status', 'visit.doctor:id,fullname', 'creator:id,name');
+        $survey->load('patient:id,fullname,mrn,deleted_at', 'visit:id,date,visit_status', 'visit.doctor:id,fullname', 'creator:id,name');
+
         return view('surveys.show', compact('survey'));
     }
 
@@ -60,6 +63,7 @@ class SurveyController extends Controller
 
         if ($data['rating'] >= 3) {
             Survey::create($data);
+
             return back()->with('success', 'تم تسجيل الاستبيان بنجاح');
         } else {
             DB::transaction(function () use ($data) {
@@ -74,13 +78,16 @@ class SurveyController extends Controller
                     'created_by' => Auth::id(),
                 ]);
             });
+
             return back()->with('success', 'تم تسجيل الاستبيان بنجاح وفتح شكوي تلقائي بسبب استبيان المريض');
         }
     }
+
     public function destroy(Survey $survey)
     {
         Gate::authorize('delete', $survey);
         $survey->delete();
+
         return back()->with('success', 'تم حذف الاستبيان بنجاح');
     }
 }

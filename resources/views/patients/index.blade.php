@@ -24,8 +24,15 @@
                 </div>
             </div>
 
-            @can('create', App\Models\Patient::class)
-                <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
+                @can('restoreAny', App\Models\Patient::class)
+                    <a href="{{ route('patients.archived') }}"
+                        class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 hover:bg-amber-100 rounded-xl transition">
+                        <span>🗄️ الملفات المؤرشفة</span>
+                    </a>
+                @endcan
+
+                @can('create', App\Models\Patient::class)
                     <a href="{{ route('patients.create') }}"
                         class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-xl shadow-xs transition active:scale-[0.98]">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,8 +41,8 @@
                         </svg>
                         <span>+ فتح ملف مريض جديد (MRN)</span>
                     </a>
-                </div>
-            @endcan
+                @endcan
+            </div>
         </div>
 
         <!-- 2. Fast Clinical Summary Strip (Quick Glance Indicators) -->
@@ -266,7 +273,7 @@
                                             <button type="button"
                                                 onclick="document.getElementById('deletePatientModal-{{ $patient->id }}').classList.remove('hidden')"
                                                 class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-md transition"
-                                                title="حذف الملف السريري">
+                                                title="أرشفة الملف السريري">
                                                 🗑️
                                             </button>
                                         @endcan

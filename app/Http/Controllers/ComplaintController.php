@@ -73,29 +73,6 @@ class ComplaintController extends Controller
         Gate::authorize('update', $complaint);
         $data = $request->validated();
 
-        if ($data['status'] !== 'new' && empty($data['assigned_to'])) {
-            return back()->with('error', 'يجب اختيار منسق');
-        }
-
-        if (in_array($data['status'], ['resolved', 'closed'])) {
-            if (empty($data['resolution_note'])) {
-                return back()->with('error', 'يجب كتابة ملاحظة');
-            }
-
-            if ($data['status'] == 'resolved' && empty($complaint['resolved_at'])) {
-                $data['resolved_at'] = now();
-            } elseif ($data['status'] == 'closed' && empty($complaint['closed_at'])) {
-                $data['closed_at'] = now();
-                if (empty($complaint['resolved_at'])) {
-                    $data['resolved_at'] = now();
-                }
-            }
-        } else {
-            $data['resolved_at'] = null;
-            $data['closed_at'] = null;
-            $data['resolution_note'] = null;
-        }
-
         $data['updated_by'] = Auth::id();
         $complaint->update($data);
 
@@ -146,6 +123,7 @@ class ComplaintController extends Controller
             $complaint->update([
                 ...$data,
                 'status' => $nextStatus,
+                'updated_by' => Auth::id(),
             ]);
         });
 
@@ -166,6 +144,7 @@ class ComplaintController extends Controller
         $complaint->update([
             'assigned_to' => $validated['assigned_to'],
             'status' => $newStatus,
+            'updated_by' => Auth::id(),
         ]);
 
         return back()->with('success', "تم إسناد الشكوى إلى: {$complaint->assignee->name}");
@@ -184,6 +163,7 @@ class ComplaintController extends Controller
 
         $complaint->update([
             'status' => 'investigating',
+            'updated_by' => Auth::id(),
         ]);
 
         return back()->with(

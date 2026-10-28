@@ -39,7 +39,7 @@ class Complaint extends Model
     // relations
     public function patient()
     {
-        return $this->belongsTo(Patient::class, 'patient_id');
+        return $this->belongsTo(Patient::class, 'patient_id')->withTrashed();
     }
 
     public function survey()
@@ -76,7 +76,6 @@ class Complaint extends Model
         };
     }
 
-
     public function getStatusBadgeClassesAttribute(): string
     {
         return match ($this->status) {
@@ -88,6 +87,7 @@ class Complaint extends Model
             default => 'bg-slate-50 text-slate-700 border-slate-200',
         };
     }
+
     public function getSourceLabelAttribute(): string
     {
         return match ($this->source) {
@@ -106,7 +106,7 @@ class Complaint extends Model
         };
     }
 
-    //scopes
+    // scopes
 
     public function scopeStats(Builder $query)
     {
@@ -135,14 +135,15 @@ class Complaint extends Model
             SUM(CASE WHEN assigned_to IS NULL THEN 1 ELSE 0 END) , 0) AS unassigned
         ");
     }
+
     public function scopeFilter(Builder $query, array $filters)
     {
 
-        if (array_key_exists('status', $filters)  && $filters['status'] != 'all') {
+        if (array_key_exists('status', $filters) && $filters['status'] != 'all') {
             $query->where('status', $filters['status']);
         }
 
-        if (array_key_exists('source', $filters)  && $filters['source'] != 'all') {
+        if (array_key_exists('source', $filters) && $filters['source'] != 'all') {
             $query->where('source', $filters['source']);
         }
 
@@ -151,28 +152,31 @@ class Complaint extends Model
         }
         if (array_key_exists('search', $filters) && $filters['search'] != '') {
             $query->where(function ($query) use ($filters) {
-                $query->orWhere('title', 'like', '%' . $filters['search'] . '%')
+                $query->orWhere('title', 'like', '%'.$filters['search'].'%')
                     ->orWhereHas('patient', function ($query) use ($filters) {
-                        $query->orWhere('fullname', 'like', '%' . $filters['search'] . '%');
-                        $query->orWhere('phone', 'like', '%' . $filters['search'] . '%');
-                        $query->orWhere('mrn', 'like', '%' . $filters['search'] . '%');
+                        $query->orWhere('fullname', 'like', '%'.$filters['search'].'%');
+                        $query->orWhere('phone', 'like', '%'.$filters['search'].'%');
+                        $query->orWhere('mrn', 'like', '%'.$filters['search'].'%');
                     })->orWhereHas('assignee', function ($query) use ($filters) {
-                        $query->orWhere('name', 'like', '%' . $filters['search'] . '%');
+                        $query->orWhere('name', 'like', '%'.$filters['search'].'%');
                     });
             });
         }
+
         return $query;
     }
+
     public function nextStatus(): ?string
     {
         return match ($this->status) {
-            'new'           => 'assigned',
-            'assigned'      => 'investigating',
+            'new' => 'assigned',
+            'assigned' => 'investigating',
             'investigating' => 'resolved',
-            'resolved'      => 'closed',
-            default         => null,
+            'resolved' => 'closed',
+            default => null,
         };
     }
+
     public function canReopen(): bool
     {
         return in_array(

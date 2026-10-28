@@ -60,9 +60,9 @@
                 <!-- One-to-Many Summary Counter Badge -->
                 <div class="bg-teal-50/70 p-4 rounded-xl border border-teal-200/80 flex items-center gap-4">
                     <div class="text-right">
-                        <p class="text-[11px] font-bold text-teal-900 uppercase">الأطباء المعتمدون بالعيادة</p>
+                        <p class="text-[11px] font-bold text-teal-900 uppercase">إجمالي الأطباء بالعيادة</p>
                         <p class="text-2xl font-black text-teal-800 mt-0.5" id="clinicDoctorsCountBadge">
-                            {{ $clinic->doctors->count() ?? 0 }} <span
+                            {{ $doctors->total() }} <span
                                 class="text-xs font-medium text-teal-700">أطباء</span>
                         </p>
                     </div>

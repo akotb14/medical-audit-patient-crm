@@ -2,40 +2,65 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
-            'username' => 'required|exists:users,username',
-            'password' => 'required|min:6',
+            'username' => ['required', 'string'],
+            'password' => ['required', 'string'],
         ];
     }
 
-    public function messages()
+    public function messages(): array
     {
         return [
-            'username.required' => 'الاسم المستخدم مطلوب',
-            'username.exists' => 'اسم المستخدم غير موجود',
+            'username.required' => 'اسم المستخدم مطلوب',
             'password.required' => 'كلمة المرور مطلوبة',
-            'password.min' => 'كلمة المرور لا تقل عن 6 احرف',
         ];
+    }
+
+    public function throttleKey(): string
+    {
+        return 'login:user:' . Str::lower(
+            trim($this->input('username', ''))
+        ) . '|' . $this->ip();
+    }
+
+    public function ipThrottleKey(): string
+    {
+        return 'login:ip:' . $this->ip();
+    }
+
+    public function ensureIsNotRateLimited(): void
+    {
+        $userKey = $this->throttleKey();
+        $ipKey = $this->ipThrottleKey();
+
+        $userLimited = RateLimiter::tooManyAttempts($userKey, 5);
+        $ipLimited = RateLimiter::tooManyAttempts($ipKey, 20);
+
+        if (! $userLimited && ! $ipLimited) {
+            return;
+        }
+
+        $seconds = max(
+            $userLimited ? RateLimiter::availableIn($userKey) : 0,
+            $ipLimited ? RateLimiter::availableIn($ipKey) : 0
+        );
+
+        throw ValidationException::withMessages([
+            'username' => "محاولات تسجيل الدخول كثيرة جدًا. حاول مرة أخرى بعد {$seconds} ثانية.",
+        ]);
     }
 }

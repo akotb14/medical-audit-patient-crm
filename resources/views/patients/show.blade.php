@@ -123,7 +123,7 @@
                             class="py-4 border-b-2 border-[#00685f] text-[#00685f] flex items-center gap-1.5">
                             <span>🏥 سجل الزيارات السريرية (Visits)</span>
                             <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
-                                {{ count($patient->visits ?? []) > 0 ? count($patient->visits) : 0 }}
+                                {{ $visits->total() }}
                             </span>
                         </button>
                     </div>
@@ -143,31 +143,37 @@
                         <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
                             <span class="text-[11px] font-medium text-slate-500">إجمالي الزيارات</span>
                             <p class="text-lg font-black text-slate-800 mt-0.5" id="patientVisitsTotalCount">
-                                {{ count($patient->visits ?? []) > 0 ? count($patient->visits) : 0 }}</p>
+                                {{ $visits->total() }}</p>
                         </div>
                         <div class="p-3 bg-blue-50/60 rounded-lg border border-blue-200/80">
                             <span class="text-[11px] font-medium text-blue-800">قيد الانتظار (created)</span>
                             <p class="text-lg font-black text-blue-700 mt-0.5" id="patientVisitsCreatedCount">
-                                {{ isset($patient->visits) ? $patient->visits->where('visit_status', 'created')->count() : 0 }}
+                                {{ $visitCounts['created'] }}
                             </p>
                         </div>
                         <div class="p-3 bg-emerald-50/60 rounded-lg border border-emerald-200/80">
                             <span class="text-[11px] font-medium text-emerald-800">مكتملة (completed)</span>
                             <p class="text-lg font-black text-emerald-700 mt-0.5" id="patientVisitsCompletedCount">
-                                {{ isset($patient->visits) ? $patient->visits->where('visit_status', 'completed')->count() : 0 }}
+                                {{ $visitCounts['completed'] }}
                             </p>
                         </div>
                         <div class="p-3 bg-rose-50/60 rounded-lg border border-rose-200/80">
                             <span class="text-[11px] font-medium text-rose-800">ملغاة (cancelled)</span>
                             <p class="text-lg font-black text-rose-700 mt-0.5" id="patientVisitsCancelledCount">
-                                {{ isset($patient->visits) ? $patient->visits->where('visit_status', 'cancelled')->count() : 0 }}
+                                {{ $visitCounts['cancelled'] }}
                             </p>
                         </div>
                     </div>
                     @can('viewAny', App\Models\visit::class)
                         <!-- Visits CRUD Table -->
-                        <x-visits.table :visits="$patient->visits" />
+                        <x-visits.table :visits="$visits" />
                     @endcan
+
+                    @if (isset($visits) && method_exists($visits, 'links'))
+                        <div class="p-4 border-t border-slate-100 bg-[#f8fafc]">
+                            {{ $visits->links() }}
+                        </div>
+                    @endif
 
                 </div>
             </div>

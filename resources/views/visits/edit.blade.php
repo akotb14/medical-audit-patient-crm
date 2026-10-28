@@ -69,7 +69,7 @@
                                 @endforeach
                             @endif
                         </select>
-                 
+
                     </div>
 
                     <!-- doctor_id -->
@@ -87,7 +87,7 @@
                                 @endforeach
                             @endif
                         </select>
-                     
+
                     </div>
                 </div>
             </div>
@@ -116,28 +116,11 @@
 
                     </div>
 
-                    <!-- visit_status -->
-                    <div>
-                        <label for="visit_status" class="font-bold text-slate-700 block mb-1.5">
-                            حالة الزيارة (Visit Status): <span class="text-red-500">*</span>
-                        </label>
-                        <select name="visit_status" id="visit_status" required class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                            <option value="created" {{ old('visit_status', $visit->visit_status ?? '') == 'created' ? 'selected' : '' }}>
-                                🟦 تم الإنشاء / قيد الانتظار (created)
-                            </option>
-                            <option value="completed" {{ old('visit_status', $visit->visit_status ?? '') == 'completed' ? 'selected' : '' }}>
-                                🟩 مكتملة بنجاح (completed)
-                            </option>
-                            <option value="cancelled" {{ old('visit_status', $visit->visit_status ?? '') == 'cancelled' ? 'selected' : '' }}>
-                                🟥 ملغاة (cancelled)
-                            </option>
-                        </select>
-                    
-                    </div>
+                 
                 </div>
 
                 <!-- created_by -->
-             
+
             </div>
 
             <!-- Reason: max 500 characters -->
@@ -157,7 +140,7 @@
                     class="w-full p-3 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 leading-relaxed"
                     oninput="document.getElementById('editReasonCounter').textContent = (500 - this.value.length) + ' حرف متبقٍ';"
                 >{{ old('reason', $visit->reason ?? '') }}</textarea>
-         
+
             </div>
 
             <!-- Action Buttons -->

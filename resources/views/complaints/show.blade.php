@@ -315,7 +315,7 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <span class="font-bold text-slate-800">بيانات المريض الشاكي (Patient)</span>
                         @can('show', $complaint->patient)
-                            @if ($complaint->patient)
+                            @if ($complaint->patient && ! $complaint->patient->trashed())
                                 <a href="{{ route('patients.show', $complaint->patient) }}"
                                     class="text-[#00685f] hover:underline font-bold text-[11px]">
                                     عرض الملف الطبي ➜
@@ -333,6 +333,7 @@
                                 </div>
                                 <div>
                                     <div class="font-bold text-sm text-slate-900">{{ $complaint->patient->fullname }}
+                                        <x-archived-badge :patient="$complaint->patient" />
                                     </div>
                                     <div class="font-mono text-slate-500 text-[11px]">MRN: {{ $complaint->patient->mrn }}
                                     </div>

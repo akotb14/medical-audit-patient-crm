@@ -98,7 +98,7 @@
                             <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider">بيانات المريض (Patient)
                             </h4>
                         </div>
-                        @if ($visit->patient)
+                        @if ($visit->patient && ! $visit->patient->trashed())
                             <a href="{{ route('patients.show', $visit->patient) }}"
                                 class="text-xs font-bold text-[#00685f] hover:underline">
                                 عرض الملف الطبي ➜
@@ -114,7 +114,8 @@
                                     {{ mb_substr($visit->patient->fullname, 0, 1) }}
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-sm text-slate-900">{{ $visit->patient->fullname }}</h4>
+                                    <h4 class="font-bold text-sm text-slate-900">{{ $visit->patient->fullname }}
+                                        <x-archived-badge :patient="$visit->patient" /></h4>
                                     <span
                                         class="font-mono text-teal-700 font-bold text-xs">{{ $visit->patient->mrn }}</span>
                                 </div>

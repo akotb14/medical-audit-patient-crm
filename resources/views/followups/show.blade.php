@@ -226,7 +226,7 @@
                             <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider">بيانات المريض (Patient)
                             </h4>
                         </div>
-                        @if ($followup->patient)
+                        @if ($followup->patient && ! $followup->patient->trashed())
                             <a href="{{ route('patients.show', $followup->patient) }}"
                                 class="text-xs font-bold text-[#00685f] hover:underline">
                                 عرض الملف الكامل ➜
@@ -238,7 +238,8 @@
                         <div class="space-y-3 text-xs">
                             <div>
                                 <span class="text-slate-400 block text-[11px]">اسم المريض:</span>
-                                <span class="font-bold text-sm text-[#0b1c30]">{{ $followup->patient->fullname }}</span>
+                                <span class="font-bold text-sm text-[#0b1c30]">{{ $followup->patient->fullname }}
+                                    <x-archived-badge :patient="$followup->patient" /></span>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>

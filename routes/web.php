@@ -14,9 +14,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index')->middleware(['role:Admin']);
 
-    Route::get('/complaints', function () {
-        return view('complaints.index');
-    })->name('complaints.index');
     require __DIR__.'/users.php';
     require __DIR__.'/patients.php';
     require __DIR__.'/clinics.php';

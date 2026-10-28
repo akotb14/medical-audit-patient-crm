@@ -15,8 +15,8 @@
                     ⚠️
                 </div>
                 <div>
-                    <h3 class="font-bold text-base text-red-900">تأكيد حذف الملف السريري</h3>
-                    <p class="text-xs text-red-700">إجراء غير قابل للتراجع</p>
+                    <h3 class="font-bold text-base text-red-900">تأكيد أرشفة الملف السريري</h3>
+                    <p class="text-xs text-red-700">يمكن استعادته من الملفات المؤرشفة</p>
                 </div>
             </div>
             <button type="button"
@@ -27,15 +27,15 @@
         <!-- Body -->
         <div class="p-5 space-y-3 text-xs text-slate-700 leading-relaxed">
             <p>
-                هل أنت متأكد من رغبتك في حذف ملف المريض <strong class="text-slate-900 font-bold">{{ $patient->fullname
+                هل أنت متأكد من رغبتك في أرشفة ملف المريض <strong class="text-slate-900 font-bold">{{ $patient->fullname
                     ??
                     'المريض' }}</strong>
                 {{-- (رقم الملف: <span class="font-mono text-teal-800 font-bold">{{ $patient->mrn ??
                     'MRN' }}</span>)؟ --}}
             </p>
             <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-amber-900 text-[11px]">
-                <strong>تنبيه طبي وأمني:</strong> حذف الملف سيؤدي إلى أرشفة سجل المواعيد السابقة، ونتائج التحاليل،
-                وتنبيهات الحساسية وفق متطلبات التوثيق الصحي.
+                <strong>تنبيه طبي وأمني:</strong> أرشفة الملف تخفي المريض من الدليل ومن قوائم اختيار المريض، وتمنع
+                تسجيل زيارات أو شكاوى جديدة عليه. تبقى الزيارات والمتابعات والاستبيانات والشكاوى السابقة كاملة ومقروءة.
             </div>
         </div>
 
@@ -51,7 +51,7 @@
                 @method('DELETE')
                 <button type="submit"
                     class="px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition">
-                    نعم، حذف الملف نهائياً
+                    نعم، أرشفة الملف
                 </button>
             </form>
         </div>

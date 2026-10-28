@@ -133,7 +133,7 @@
                                 <a class="text-xs text-[#00685f] hover:underline font-semibold"
                                     href={{route('users.edit', $user->id)}}>تعديل</a>
                                 <span class="text-slate-300">|</span>
-                                <form method="POST" action={{route('users.destroy', $user->id)}}>
+                                <form method="POST" action={{route('users.destroy', $user)}}>
                                     @csrf
                                     @method('DELETE')
                                     <button class="text-xs text-rose-600 hover:underline">حذف</button>

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class Survey extends Model
 {
@@ -20,7 +20,8 @@ class Survey extends Model
     ];
 
     // relationship
-    public function complaint(){
+    public function complaint()
+    {
         return $this->hasOne(Complaint::class);
     }
 
@@ -31,7 +32,7 @@ class Survey extends Model
 
     public function patient()
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(Patient::class)->withTrashed();
     }
 
     public function creator()
@@ -43,10 +44,11 @@ class Survey extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
-    //scopes
+
+    // scopes
     public function scopeStats(Builder $query): Builder
     {
-        return  $query->selectRaw("
+        return $query->selectRaw("
             count(*) AS total,
             AVG(rating) AS average_rating,
             COALESCE(SUM(CASE WHEN rating >= 3 THEN 1 ELSE 0 END),0 ) AS postive_ratings,
@@ -54,18 +56,19 @@ class Survey extends Model
             (
                 SELECT COUNT(*)
                 FROM complaints
-                WHERE source = 'new'
+                WHERE source = 'survey'
             ) AS complaints_count
         ");
     }
 
-    public function scopeSearch(Builder $query, string $search): Builder{
-        return $query->where(function($query) use ($search){
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        return $query->where(function ($query) use ($search) {
             $query
-            ->orWhereHas('patient', function($query) use ($search){
-                $query->where('fullname', 'LIKE', '%'.$search.'%')
-                ->orWhere('mrn' , 'like' , '%'.$search.'%');
-            });
+                ->orWhereHas('patient', function ($query) use ($search) {
+                    $query->where('fullname', 'LIKE', '%'.$search.'%')
+                        ->orWhere('mrn', 'like', '%'.$search.'%');
+                });
         });
     }
 
@@ -74,8 +77,8 @@ class Survey extends Model
         return $query->where('rating', '<', 3);
     }
 
-    //attribute
-     public function getRatingLabelAttribute(): string
+    // attribute
+    public function getRatingLabelAttribute(): string
     {
         return match ((int) $this->rating) {
             5 => 'ممتاز جداً (5/5)',
@@ -83,7 +86,7 @@ class Survey extends Model
             3 => 'مقبول (3/5)',
             2 => 'غير راضٍ (2/5) - تنبيه جودة',
             1 => 'سيء جداً (1/5) - شكوى حرجة',
-            default => $this->rating . '/5',
+            default => $this->rating.'/5',
         };
     }
 
@@ -98,5 +101,4 @@ class Survey extends Model
             default => 'bg-slate-100 text-slate-700 border-slate-200',
         };
     }
-
 }

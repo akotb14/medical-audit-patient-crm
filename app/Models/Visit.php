@@ -30,9 +30,12 @@ class Visit extends Model
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Archived patients stay readable on the visit, the history outlives the file.
+     */
     public function patient()
     {
-        return $this->belongsTo(Patient::class, 'patient_id');
+        return $this->belongsTo(Patient::class, 'patient_id')->withTrashed();
     }
 
     public function doctor()
@@ -54,10 +57,12 @@ class Visit extends Model
     {
         return $this->hasOne(FollowUp::class);
     }
+
     public function survey(): HasOne
     {
         return $this->hasOne(Survey::class);
     }
+
     /**
      * Scopes لتصفية الحالات
      */

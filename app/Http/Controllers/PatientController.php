@@ -8,6 +8,7 @@ use App\Http\Requests\PatientRequests\UpdatePatientRequest;
 use App\Models\Patient;
 use App\Queries\PatientIndexQuery;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
@@ -24,9 +25,23 @@ class PatientController extends Controller
 
         $stats = (clone $query)->stats()->first();
         $patients = $query->paginate(20)->withQueryString();
-        //count of all patients
 
         return view('patients.index', compact('patients', 'stats'));
+    }
+
+    /**
+     * Display the archived (soft deleted) patient files.
+     */
+    public function archived()
+    {
+        Gate::authorize('restoreAny', Patient::class);
+
+        $patients = Patient::onlyTrashed()
+            ->with('deleter')
+            ->latest('deleted_at')
+            ->paginate(20);
+
+        return view('patients.archived', compact('patients'));
     }
 
     /**
@@ -48,7 +63,7 @@ class PatientController extends Controller
         $data = $request->validated();
 
         do {
-            $mrn = 'MRN-' . strtoupper(Str::random(8));
+            $mrn = 'MRN-'.strtoupper(Str::random(8));
         } while (Patient::where('mrn', $mrn)->exists());
 
         $data['mrn'] = $mrn;
@@ -66,7 +81,36 @@ class PatientController extends Controller
     {
         Gate::authorize('view', $patient);
 
-        return view('patients.show', compact('patient'));
+        $visitsQuery = $patient->visits();
+
+        /*
+        | The visit tiles describe the patient's whole history, so they cannot be
+        | read off the paginator. One grouped aggregate keeps them independent of
+        | the page being displayed.
+        */
+        $countsByStatus = (clone $visitsQuery)
+            ->toBase()
+            ->selectRaw('visit_status, COUNT(*) as aggregate')
+            ->groupBy('visit_status')
+            ->pluck('aggregate', 'visit_status');
+
+        /** @var array{created: int, completed: int, cancelled: int} $visitCounts */
+        $visitCounts = [
+            'created' => (int) ($countsByStatus['created'] ?? 0),
+            'completed' => (int) ($countsByStatus['completed'] ?? 0),
+            'cancelled' => (int) ($countsByStatus['cancelled'] ?? 0),
+        ];
+
+        $visits = $visitsQuery
+            ->with([
+                'doctor.clinic',
+                'creator',
+                'survey',
+            ])
+            ->latest()
+            ->paginate(20);
+
+        return view('patients.show', compact('patient', 'visits', 'visitCounts'));
     }
 
     /**
@@ -88,7 +132,7 @@ class PatientController extends Controller
         Gate::authorize('update', $patient);
         $data = $request->validated();
         $data['updated_by'] = Auth::id();
-        Patient::where('id', $patient->id)->update($request->validated());
+        $patient->update($data);
 
         return redirect()->route('patients.index')->with('success', 'تم تحديث المريض بنجاح');
     }
@@ -99,8 +143,31 @@ class PatientController extends Controller
     public function destroy(Patient $patient)
     {
         Gate::authorize('delete', $patient);
-        Patient::where('id', $patient->id)->update(['status' => 'inactive']);
 
-        return redirect()->back()->with('success', 'تم حذف المريض بنجاح');
+        /*
+        | Archiving is two writes: `runSoftDelete()` only persists deleted_at and
+        | updated_at, so the audit column is stored on its own first. Both inside
+        | one transaction, or a patient ends up archived with nobody attributed.
+        */
+        DB::transaction(function () use ($patient): void {
+            $patient->forceFill(['deleted_by' => Auth::id()])->save();
+            $patient->delete();
+        });
+
+        return redirect()->back()->with('success', 'تم أرشفة المريض بنجاح');
+    }
+
+    /**
+     * Restore an archived patient file.
+     */
+    public function restore(Patient $patient)
+    {
+        Gate::authorize('restore', $patient);
+
+        // `restore()` runs a single UPDATE, so both columns clear together.
+        $patient->forceFill(['deleted_by' => null]);
+        $patient->restore();
+
+        return redirect()->route('patients.archived')->with('success', 'تم استعادة المريض بنجاح');
     }
 }

@@ -254,6 +254,7 @@
                                         class="font-mono text-[11px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                                         {{ $flw->patient->mrn ?? 'MRN' }}
                                     </span>
+                                    <x-archived-badge :patient="$flw->patient ?? null" />
                                     @if ($flw->visit)
                                         <span class="text-[10px] text-slate-400 font-mono">زيارة
                                             #{{ $flw->visit->id }}</span>
@@ -387,11 +388,18 @@
                                 </td>
                                 <td class="py-3.5 px-3.5">
                                     @if ($v->patient)
-                                        <a href="{{ route('patients.show', $v->patient) }}"
-                                            class="font-bold text-slate-900 hover:text-[#00685f] transition block">
-                                            {{ $v->patient->fullname }}
-                                        </a>
-                                        <span class="text-[11px] font-mono text-slate-500">{{ $v->patient->mrn }}</span>
+                                        @if ($v->patient->trashed())
+                                            <span class="font-bold text-slate-900 block">
+                                                {{ $v->patient->fullname }}
+                                            </span>
+                                        @else
+                                            <a href="{{ route('patients.show', $v->patient) }}"
+                                                class="font-bold text-slate-900 hover:text-[#00685f] transition block">
+                                                {{ $v->patient->fullname }}
+                                            </a>
+                                        @endif
+                                        <span class="text-[11px] font-mono text-slate-500">{{ $v->patient->mrn }}
+                                            <x-archived-badge :patient="$v->patient" /></span>
                                     @else
                                         <span class="text-slate-400 italic">غير محدد</span>
                                     @endif

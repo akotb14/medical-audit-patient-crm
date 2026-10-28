@@ -27,12 +27,20 @@
                                         {{ mb_substr($visit->patient->fullname, 0, 1) }}
                                     </div>
                                     <div>
-                                        <a href="{{ route('patients.show', $visit->patient) }}"
-                                            class="font-bold text-slate-900 hover:text-teal-700 block">
-                                            {{ $visit->patient->fullname }}
-                                        </a>
-                                        <span
-                                            class="text-[11px] font-mono text-slate-500">{{ $visit->patient->mrn }}</span>
+                                        @if ($visit->patient->trashed())
+                                            <span class="font-bold text-slate-900 block">
+                                                {{ $visit->patient->fullname }}
+                                            </span>
+                                        @else
+                                            <a href="{{ route('patients.show', $visit->patient) }}"
+                                                class="font-bold text-slate-900 hover:text-teal-700 block">
+                                                {{ $visit->patient->fullname }}
+                                            </a>
+                                        @endif
+                                        <span class="text-[11px] font-mono text-slate-500">
+                                            {{ $visit->patient->mrn }}
+                                            <x-archived-badge :patient="$visit->patient" />
+                                        </span>
                                     </div>
                                 </div>
                             @else

@@ -33,7 +33,9 @@ class VisitController extends Controller
 
         $query = Visit::query()
             ->with([
-                'patient:id,fullname,mrn',
+                // `deleted_at` has to travel with the partial select: the row is
+                // marked archived (and unlinked) from the model, not from a query.
+                'patient:id,fullname,mrn,deleted_at',
                 'doctor:id,fullname,clinic_id',
                 'doctor.clinic:id,name',
                 'creator:id,name',
@@ -124,13 +126,7 @@ class VisitController extends Controller
     public function updateStatus(Visit $visit, Request $request)
     {
         Gate::authorize('updateStatus', $visit);
-        // منع التعامل مع زيارة مكتملة أو ملغاة
-        if ($visit->visit_status !== 'created') {
-            return back()->with(
-                'error',
-                'لا يمكن تنفيذ الإجراء؛ الزيارة ليست في حالة مجدولة.'
-            );
-        }
+
         $validated = $request->validate([
             'action' => [
                 'required',
@@ -153,56 +149,78 @@ class VisitController extends Controller
         ], [
             'due_date.required_if' => 'يجب تحديد تاريخ المتابعة',
             'reason.required_if' => 'يجب تحديد سبب المتابعة',
-
         ]);
-        if ($validated['action'] === 'complete_only') {
-            $visit->update([
-                'visit_status' => 'completed',
-                'updated_by' => Auth::id(),
-            ]);
 
-            return back()->with('success', 'تم إتمام الزيارة بنجاح')->with('open_survey_modal', $visit->id);
-        }
-
-        // 2. إلغاء الزيارة
-        if ($validated['action'] === 'cancel' && $visit->visit_status !== 'completed') {
-            $visit->update([
-                'visit_status' => 'cancelled',
-                'updated_by' => Auth::id(),
-
-            ]);
-
-            return back()->with('success', 'تم إلغاء الزيارة بنجاح');
-        }
-
-        // 3. إتمام الزيارة وإنشاء متابعة
         DB::transaction(function () use ($visit, $validated) {
-            if (FollowUp::where('visit_id', $visit->id)->exists()) {
+
+            // 1. Lock the visit row
+            $lockedVisit = Visit::query()
+                ->whereKey($visit->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // 2. Check current status AFTER acquiring the lock
+            if ($lockedVisit->visit_status !== 'created') {
                 throw ValidationException::withMessages([
-                    'followup' => 'توجد متابعة مسجلة لهذه الزيارة بالفعل.',
+                    'visit' => 'لا يمكن تنفيذ الإجراء؛ الزيارة ليست في حالة مجدولة.',
                 ]);
             }
 
-            $visit->update([
+            // 3. Cancel visit
+            if ($validated['action'] === 'cancel') {
+                $lockedVisit->update([
+                    'visit_status' => 'cancelled',
+                    'updated_by' => Auth::id(),
+                ]);
+
+                return;
+            }
+
+            // 4. Complete visit
+            if ($validated['action'] === 'complete_with_followup') {
+
+                if (
+                    FollowUp::query()
+                        ->where('visit_id', $lockedVisit->id)
+                        ->exists()
+                ) {
+                    throw ValidationException::withMessages([
+                        'followup' => 'توجد متابعة مسجلة لهذه الزيارة بالفعل.',
+                    ]);
+                }
+
+                FollowUp::create([
+                    'visit_id' => $lockedVisit->id,
+                    'patient_id' => $lockedVisit->patient_id,
+                    'status' => 'scheduled',
+                    'due_date' => $validated['due_date'],
+                    'reason' => $validated['reason'],
+                    'created_by' => Auth::id(),
+                ]);
+            }
+
+            // 5. Mark visit as completed
+            $lockedVisit->update([
                 'visit_status' => 'completed',
                 'updated_by' => Auth::id(),
-
-            ]);
-
-            FollowUp::create([
-                'visit_id' => $visit->id,
-                'patient_id' => $visit->patient_id,
-                'status' => 'scheduled',
-                'due_date' => $validated['due_date'],
-                'reason' => $validated['reason'],
-                'created_by' => Auth::id(),
             ]);
         });
 
-        return back()->with(
-            'success',
-            'تم إتمام الزيارة وجدولة المتابعة بنجاح'
-        )->with('open_survey_modal', $visit->id);
+        // 6. Response after successful transaction
+        return match ($validated['action']) {
+            'cancel' => back()->with(
+                'success',
+                'تم إلغاء الزيارة بنجاح'
+            ),
+
+            'complete_only' => back()
+                ->with('success', 'تم إتمام الزيارة بنجاح')
+                ->with('open_survey_modal', $visit->id),
+
+            'complete_with_followup' => back()
+                ->with('success', 'تم إتمام الزيارة وجدولة المتابعة بنجاح')
+                ->with('open_survey_modal', $visit->id),
+        };
     }
 
     public function destroy(Visit $visit)

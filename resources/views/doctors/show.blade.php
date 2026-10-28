@@ -72,7 +72,7 @@
                     </div>
                 </div>
 
-                
+
             </div>
 
             <!-- LINKED CLINIC (BELONGSTO RELATIONSHIP) CARD -->
@@ -119,6 +119,12 @@
             </div>
         </div>
 
-        <x-visits.table :visits="$doctor->visits" />
+        <x-visits.table :visits="$visits" />
+
+        @if (isset($visits) && method_exists($visits, 'links'))
+            <div class="p-4 border-t border-slate-100 bg-[#f8fafc]">
+                {{ $visits->links() }}
+            </div>
+        @endif
 
     @endsection

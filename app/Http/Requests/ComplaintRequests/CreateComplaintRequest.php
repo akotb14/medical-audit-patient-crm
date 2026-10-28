@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\ComplaintRequests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreateComplaintRequest extends FormRequest
 {
@@ -15,19 +15,22 @@ class CreateComplaintRequest extends FormRequest
         return true;
     }
 
-        
-
-
     public function rules(): array
     {
         return [
             //
-            'patient_id' => 'required|integer|exists:patients,id',
+            // Archived patients are refused here, not only hidden from the dropdown.
+            'patient_id' => [
+                'required',
+                'integer',
+                Rule::exists('patients', 'id')->whereNull('deleted_at'),
+            ],
             'title' => 'required|string|max:500',
             'description' => 'required|string',
             'assigned_to' => 'nullable|integer|exists:users,id',
         ];
     }
+
     public function messages(): array
     {
         return [
@@ -39,14 +42,13 @@ class CreateComplaintRequest extends FormRequest
             'title.string' => 'يجب ادخال عنوان صالح',
             'title.max' => 'عنوان الشكوى يجب ان لا يزيد عن 500 حرف',
 
-
             'description.required' => 'يجب ادخال وصف الشكوى',
             'description.string' => 'يجب ادخال وصف صالح',
 
             'assigned_to.integer' => 'يجب اختيار محقق صالح',
             'assigned_to.exists' => 'المحقق او الموظف غير موجود',
 
-            ];
+        ];
 
     }
 }

@@ -49,11 +49,19 @@ class PatientPolicy
     }
 
     /**
+     * Determine whether the user can browse the archived patient files.
+     */
+    public function restoreAny(User $user): bool
+    {
+        return $user->can(PermissionEnum::PATIENTS_DELETE->value);
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Patient $patient): bool
     {
-        return false;
+        return $user->can(PermissionEnum::PATIENTS_DELETE->value);
     }
 
     /**

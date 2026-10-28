@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
-            $table->foreignId('visit_id')->constrained('visits')->onDelete('cascade');
+            $table->foreignId('visit_id')->unique()->constrained('visits')->onDelete('cascade');
             $table->timestamps();
         });
     }

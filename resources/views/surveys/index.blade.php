@@ -182,12 +182,19 @@
                                     <td class="py-3.5 px-3.5">
                                         @if ($survey->patient)
                                             <div>
-                                                <a href="{{ route('patients.show', $survey->patient) }}"
-                                                    class="font-bold text-slate-900 hover:text-[#00685f] transition block">
-                                                    {{ $survey->patient->fullname }}
-                                                </a>
+                                                @if ($survey->patient->trashed())
+                                                    <span class="font-bold text-slate-900 block">
+                                                        {{ $survey->patient->fullname }}
+                                                    </span>
+                                                @else
+                                                    <a href="{{ route('patients.show', $survey->patient) }}"
+                                                        class="font-bold text-slate-900 hover:text-[#00685f] transition block">
+                                                        {{ $survey->patient->fullname }}
+                                                    </a>
+                                                @endif
                                                 <span class="text-[11px] text-slate-500 font-mono">MRN:
-                                                    {{ $survey->patient->mrn }}</span>
+                                                    {{ $survey->patient->mrn }}
+                                                    <x-archived-badge :patient="$survey->patient" /></span>
                                             </div>
                                         @else
                                             <span class="text-slate-400 italic">غير محدد</span>
@@ -324,14 +331,6 @@
                                     <p class="font-bold text-slate-700 text-sm">لا توجد استبيانات رضا مسجلة حتى الآن</p>
                                     <p class="text-xs text-slate-400 mt-1">ابدأ بقياس تجربة المراجعين بعد الزيارات السريرية
                                         لرفع جودة الرعاية الطبية</p>
-                                    <button type="button" onclick="openCreateSurveyModal('createSurveyModal')"
-                                        class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        <span>+ تسجيل استبيان جديد</span>
-                                    </button>
                                 </td>
                             </tr>
                         @endif
@@ -346,7 +345,5 @@
             @endif
         </div>
 
-        <!-- Reusable Create Survey Component Modal (FR-5, BR-4, BR-5, BR-6) -->
-        <x-create-survey-modal id="createSurveyModal" :available-visits="$availableVisits ?? []" />
     </div>
 @endsection

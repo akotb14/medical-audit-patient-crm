@@ -130,7 +130,7 @@
                         <span class="font-bold text-slate-800">بيانات المريض (Patient)</span>
                         @can('view', $survey->patient)
 
-                            @if ($survey->patient)
+                            @if ($survey->patient && ! $survey->patient->trashed())
                                 <a href="{{ route('patients.show', $survey->patient) }}"
                                     class="text-[#00685f] hover:underline font-bold text-[11px]">
                                     عرض الملف الطبي ➜
@@ -146,7 +146,8 @@
                                 {{ mb_substr($survey->patient->fullname, 0, 1) }}
                             </div>
                             <div>
-                                <div class="font-bold text-sm text-slate-900">{{ $survey->patient->fullname }}</div>
+                                <div class="font-bold text-sm text-slate-900">{{ $survey->patient->fullname }}
+                                    <x-archived-badge :patient="$survey->patient" /></div>
                                 <div class="font-mono text-slate-500 text-[11px]">رقم الملف: {{ $survey->patient->mrn }}
                                 </div>
                             </div>

@@ -177,10 +177,16 @@
                                     <td class="py-3.5 px-3.5">
                                         @if ($flw->patient)
                                             <div>
-                                                <a href="{{ route('patients.show', $flw->patient) }}"
-                                                    class="font-bold text-slate-900 hover:text-[#00685f] transition block">
-                                                    {{ $flw->patient->fullname }}
-                                                </a>
+                                                @if ($flw->patient->trashed())
+                                                    <span class="font-bold text-slate-900 block">
+                                                        {{ $flw->patient->fullname }}
+                                                    </span>
+                                                @else
+                                                    <a href="{{ route('patients.show', $flw->patient) }}"
+                                                        class="font-bold text-slate-900 hover:text-[#00685f] transition block">
+                                                        {{ $flw->patient->fullname }}
+                                                    </a>
+                                                @endif
                                                 <div
                                                     class="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono mt-0.5">
                                                     <span
@@ -189,6 +195,7 @@
                                                         class="text-teal-700 hover:underline">
                                                         {{ $flw->patient->phone }}
                                                     </a>
+                                                    <x-archived-badge :patient="$flw->patient" />
                                                 </div>
                                             </div>
                                         @else
