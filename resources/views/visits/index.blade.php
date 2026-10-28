@@ -24,13 +24,15 @@
                     </svg>
                     <span>طباعة السجل اليومي</span>
                 </button>
-                <a href="{{ route('visits.create') }}"
-                    class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>+ تسجيل زيارة جديدة</span>
-                </a>
+                @can('create', App\Models\Visit::class)
+                    <a href="{{ route('visits.create') }}"
+                        class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>+ تسجيل زيارة جديدة</span>
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -142,9 +144,10 @@
                     </div>
                 </div>
             </form>
-
-            <!-- Table Grid -->
-            <x-visits.table :visits="$visits" />
+            @can('viewAny', App\Models\Visit::class)
+                <!-- Table Grid -->
+                <x-visits.table :visits="$visits" />
+            @endcan
         </div>
         @if (isset($visits) && method_exists($visits, 'links'))
             <div class="p-4 border-t border-slate-100 bg-[#f8fafc]">
@@ -153,4 +156,20 @@
         @endif
 
     </div>
+    <x-create-survey-modal  />
+
+    @if (session()->has('open_survey_modal'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const visitId = @json(session('open_survey_modal'));
+
+                console.log(visitId);
+                window.openCreateSurveyModal(
+                    'createSurveyModal',
+                    visitId,
+                    true
+                );
+            });
+        </script>
+    @endif
 @endsection

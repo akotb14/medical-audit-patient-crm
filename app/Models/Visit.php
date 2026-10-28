@@ -12,7 +12,6 @@ class Visit extends Model
     //
     use HasFactory;
 
-
     protected $table = 'visits';
 
     protected $fillable = [
@@ -21,30 +20,43 @@ class Visit extends Model
         'date',
         'reason',
         'visit_status',
-        'created_by'
+        'created_by',
+        'updated_by',
     ];
-     protected $casts = [
-        'date' => 'date',
+
+    protected $casts = [
+        'date' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-
     public function patient()
     {
-        return $this->belongsTo(Patient::class , 'patient_id');
+        return $this->belongsTo(Patient::class, 'patient_id');
     }
+
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class , 'doctor_id');
+        return $this->belongsTo(Doctor::class, 'doctor_id');
     }
+
     public function creator()
     {
-        return $this->belongsTo(User::class , 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
-    public function followUp() :HasOne
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function followUp(): HasOne
     {
         return $this->hasOne(FollowUp::class);
+    }
+    public function survey(): HasOne
+    {
+        return $this->hasOne(Survey::class);
     }
     /**
      * Scopes لتصفية الحالات
@@ -63,6 +75,7 @@ class Visit extends Model
     {
         return $query->where('visit_status', 'cancelled');
     }
+
     public function scopeForPatient(Builder $query, int $patient): Builder
     {
         return $query->where('patient_id', $patient);
@@ -72,6 +85,7 @@ class Visit extends Model
     {
         return $query->where('doctor_id', $doctor);
     }
+
     public function scopeStatus(Builder $query, string $status): Builder
     {
         return $query->where('visit_status', $status);
@@ -84,23 +98,24 @@ class Visit extends Model
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
-        if (!$term) {
+        if (! $term) {
             return $query;
         }
 
         return $query->where(function ($q) use ($term) {
             $q->where('reason', 'like', "%{$term}%")
-              ->orWhereHas('patient', function ($pq) use ($term) {
-                  $pq->where('fullname', 'like', "%{$term}%")
-                     ->orWhere('mrn', 'like', "%{$term}%");
-              })
-              ->orWhereHas('doctor', function ($dq) use ($term) {
-                  $dq->where('fullname', 'like', "%{$term}%");
-              })->orWhereHas('creator', function ($cq) use ($term){
-                  $cq->where('name', 'like', "%{$term}%");
-              });
+                ->orWhereHas('patient', function ($pq) use ($term) {
+                    $pq->where('fullname', 'like', "%{$term}%")
+                        ->orWhere('mrn', 'like', "%{$term}%");
+                })
+                ->orWhereHas('doctor', function ($dq) use ($term) {
+                    $dq->where('fullname', 'like', "%{$term}%");
+                })->orWhereHas('creator', function ($cq) use ($term) {
+                    $cq->where('name', 'like', "%{$term}%");
+                });
         });
     }
+
     // attributes
     public function getStatusLabelAttribute(): string
     {

@@ -36,21 +36,16 @@
 
             <!-- Action Controls -->
             <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
-                <a href="{{ route('patients.edit', $patient->id ?? 1) }}"
-                    class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    <span>تعديل الملف</span>
-                </a>
-                <button type="button" onclick="window.clinicalApp.openBookModal('{{ $patient->id ?? 'pat-1' }}')"
-                    class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>+ حجز موعد</span>
-                </button>
+                @can('update', $patient)
+                    <a href="{{ route('patients.edit', $patient->id ?? 1) }}"
+                        class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>تعديل الملف</span>
+                    </a>
+                @endcan
                 <button type="button" onclick="window.print()"
                     class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
                     title="طباعة التقرير الطبي الكامل">
@@ -132,12 +127,13 @@
                             </span>
                         </button>
                     </div>
-
-                    <!-- Quick Action in Tab -->
-                    <button type="button" onclick="openPatientNewVisitModal()"
-                        class="my-2 px-3.5 py-1.5 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-2xs transition flex items-center gap-1">
-                        <span>+ تسجيل زيارة جديدة</span>
-                    </button>
+                    @can('create', App\Models\Visit::class)
+                        <!-- Quick Action in Tab -->
+                        <a href="{{ route('visits.create', ['patient_id' => $patient->id]) }}"
+                            class="my-2 px-3.5 py-1.5 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg">
+                            + تسجيل زيارة جديدة
+                        </a>
+                    @endcan
                 </div>
 
                 <!-- Visits History & Edit Table Content -->
@@ -168,9 +164,10 @@
                             </p>
                         </div>
                     </div>
-
-                    <!-- Visits CRUD Table -->
-                    <x-visits.table :visits="$patient->visits" />
+                    @can('viewAny', App\Models\visit::class)
+                        <!-- Visits CRUD Table -->
+                        <x-visits.table :visits="$patient->visits" />
+                    @endcan
 
                 </div>
             </div>

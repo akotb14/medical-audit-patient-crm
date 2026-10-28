@@ -5,7 +5,7 @@ namespace App\Http\Requests\FollowUpsRequests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class BaseFollowUpRequest extends FormRequest
+class UpdateFollowUpRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,7 +20,7 @@ class BaseFollowUpRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-     public function rules(): array
+    public function rules(): array
     {
         return [
             'patient_id' => [

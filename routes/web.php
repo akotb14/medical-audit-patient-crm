@@ -1,26 +1,28 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Redirect;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-use function Termwind\render;
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('auth.login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+});
 
-Route::get('/dashboard', function () {
-    return view('dashboard.index');
-})->name('dashboard.index');
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/complaints', function () {
-    return view('complaints.index');
-})->name('complaints.index');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
-
-require __DIR__ . '/users.php';
-require __DIR__ . '/patients.php';
-require __DIR__ . '/clinics.php';
-require __DIR__ . '/doctors.php';
-require __DIR__ . '/visits.php';
-require __DIR__ . '/followups.php';
-
+    Route::get('/complaints', function () {
+        return view('complaints.index');
+    })->name('complaints.index');
+    require __DIR__.'/users.php';
+    require __DIR__.'/patients.php';
+    require __DIR__.'/clinics.php';
+    require __DIR__.'/doctors.php';
+    require __DIR__.'/visits.php';
+    require __DIR__.'/followups.php';
+    require __DIR__.'/surveys.php';
+    require __DIR__.'/complaints.php';
+});

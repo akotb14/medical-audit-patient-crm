@@ -7,6 +7,8 @@ use App\Http\Requests\PatientRequests\PatientIndexRequest;
 use App\Http\Requests\PatientRequests\UpdatePatientRequest;
 use App\Models\Patient;
 use App\Queries\PatientIndexQuery;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class PatientController extends Controller
@@ -14,14 +16,17 @@ class PatientController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-    public function index(PatientIndexRequest $request ,PatientIndexQuery $patientIndexQuery )
+    public function index(PatientIndexRequest $request, PatientIndexQuery $patientIndexQuery)
     {
         //
+        Gate::authorize('viewAny', Patient::class);
+        $query = $patientIndexQuery->build($request->validated())->where('status', 'active');
 
-        $patients = $patientIndexQuery->build($request->validated())->where('status', 'active')
-                ->paginate(20)->withQueryString();
-        return view('patients.index', compact('patients'));
+        $stats = (clone $query)->stats()->first();
+        $patients = $query->paginate(20)->withQueryString();
+        //count of all patients
+
+        return view('patients.index', compact('patients', 'stats'));
     }
 
     /**
@@ -29,6 +34,8 @@ class PatientController extends Controller
      */
     public function create()
     {
+        Gate::authorize('create', Patient::class);
+
         return view('patients.create');
     }
 
@@ -37,6 +44,7 @@ class PatientController extends Controller
      */
     public function store(CreatePatientRequest $request)
     {
+        Gate::authorize('create', Patient::class);
         $data = $request->validated();
 
         do {
@@ -44,8 +52,10 @@ class PatientController extends Controller
         } while (Patient::where('mrn', $mrn)->exists());
 
         $data['mrn'] = $mrn;
+        $data['created_by'] = Auth::id();
 
         Patient::create($data);
+
         return redirect()->route('patients.index')->with('success', 'تم اضافة المريض بنجاح');
     }
 
@@ -54,6 +64,7 @@ class PatientController extends Controller
      */
     public function show(Patient $patient)
     {
+        Gate::authorize('view', $patient);
 
         return view('patients.show', compact('patient'));
     }
@@ -64,6 +75,8 @@ class PatientController extends Controller
     public function edit(Patient $patient)
     {
         //
+        Gate::authorize('update', $patient);
+
         return view('patients.edit', compact('patient'));
     }
 
@@ -72,8 +85,11 @@ class PatientController extends Controller
      */
     public function update(UpdatePatientRequest $request, Patient $patient)
     {
-        //
+        Gate::authorize('update', $patient);
+        $data = $request->validated();
+        $data['updated_by'] = Auth::id();
         Patient::where('id', $patient->id)->update($request->validated());
+
         return redirect()->route('patients.index')->with('success', 'تم تحديث المريض بنجاح');
     }
 
@@ -82,8 +98,9 @@ class PatientController extends Controller
      */
     public function destroy(Patient $patient)
     {
-        //
+        Gate::authorize('delete', $patient);
         Patient::where('id', $patient->id)->update(['status' => 'inactive']);
+
         return redirect()->back()->with('success', 'تم حذف المريض بنجاح');
     }
 }

@@ -20,11 +20,12 @@
                 </p>
             </div>
             <div class="flex items-center gap-2.5">
-
-                <a href="{{ route('visits.index') }}"
-                    class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition">
-                    <span>سجل الزيارات ➜</span>
-                </a>
+                @can('viewAny', App\Models\Visit::class)
+                    <a href="{{ route('visits.index') }}"
+                        class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition">
+                        <span>سجل الزيارات ➜</span>
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -125,7 +126,7 @@
                     </div>
 
                     <!-- Date Filter -->
-                    
+
 
                     <button type="submit"
                         class="px-3.5 py-2 text-xs font-semibold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg transition">
@@ -290,33 +291,45 @@
                                     <!-- Actions -->
                                     <td class="py-3.5 px-3.5 text-center">
                                         <div class="inline-flex items-center gap-1 justify-center">
-                                            @if ($flw->status === 'scheduled')
+                                            @can('complete', $flw)
+                                                @if ($flw->status === 'scheduled')
+                                                    <button type="button"
+                                                        onclick="document.getElementById('completeFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
+                                                        title="إتمام وتوثيق المتابعة (Complete)"
+                                                        class="p-1.5 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition">
+                                                        ✓
+                                                    </button>
+                                                @endif
+                                            @endcan
+                                            @can('view', $flw)
+                                                <a href="{{ route('follow_ups.show', $flw) }}" title="عرض التفاصيل (Show)"
+                                                    class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition">
+                                                    👁️
+                                                </a>
+                                            @endcan
+                                            @can('update', $flw)
+                                                <a href="{{ route('follow_ups.edit', $flw) }}" title="تعديل (Edit)"
+                                                    class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-slate-200 transition">
+                                                    ✏️
+                                                </a>
+                                            @endcan
+                                            @can('delete', $flw)
                                                 <button type="button"
-                                                    onclick="document.getElementById('completeFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
-                                                    title="إتمام وتوثيق المتابعة (Complete)"
-                                                    class="p-1.5 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition">
-                                                    ✓
+                                                    onclick="document.getElementById('deleteFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
+                                                    title="حذف (Delete)"
+                                                    class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition">
+                                                    🗑️
                                                 </button>
-                                            @endif
-                                            <a href="{{ route('follow_ups.show', $flw) }}" title="عرض التفاصيل (Show)"
-                                                class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition">
-                                                👁️
-                                            </a>
-                                            <a href="{{ route('follow_ups.edit', $flw) }}" title="تعديل (Edit)"
-                                                class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-slate-200 transition">
-                                                ✏️
-                                            </a>
-                                            <button type="button"
-                                                onclick="document.getElementById('deleteFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
-                                                title="حذف (Delete)"
-                                                class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition">
-                                                🗑️
-                                            </button>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>
-                                <x-complete-followup-modal :followup="$flw" />
-                                <x-delete-followup-modal :followup="$flw" />
+                                @can('complete', $flw)
+                                    <x-complete-followup-modal :followup="$flw" />
+                                @endcan
+                                @can('delete', $flw)
+                                    <x-delete-followup-modal :followup="$flw" />
+                                @endcan
                             @endforeach
                         @endif
                     </tbody>

@@ -2,27 +2,41 @@
 
 namespace App\Models;
 
+use Database\Factories\FollowUpFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FollowUp extends Model
 {
+    /** @use HasFactory<FollowUpFactory> */
+    use HasFactory;
+
     protected $guarded = [];
+
     protected $table = 'follow_ups';
 
     public function visit(): BelongsTo
     {
         return $this->belongsTo(Visit::class);
     }
+
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
     }
-    public function creator(): BelongsTo
+
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
     protected function casts(): array
     {
         return [
@@ -92,7 +106,6 @@ class FollowUp extends Model
         return $query->where('status', 'scheduled')
             ->where('due_date', '<', now());
     }
-   
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {

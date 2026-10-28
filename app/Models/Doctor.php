@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use Database\Factories\DoctorFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Doctor extends Model
 {
-    //
+    /** @use HasFactory<DoctorFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'fullname',
         'email',
@@ -17,13 +21,28 @@ class Doctor extends Model
         'clinic_id',
         'schedule_days',
         'notes',
-        'status'
+        'status',
+        'created_by',
+        'updated_by',
     ];
+
     public function clinic(): BelongsTo
     {
         return $this->belongsTo(Clinic::class);
     }
-    public function visits() :HasMany{
+
+    public function visits(): HasMany
+    {
         return $this->hasMany(Visit::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

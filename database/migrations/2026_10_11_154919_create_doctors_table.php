@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('phone', 15)->nullable();
             $table->string('email', 255)->nullable()->unique();
             $table->string('specialty', 255)->nullable();
-
+            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('clinic_id')->nullable()
                 ->constrained('clinics')->nullOnDelete();
 

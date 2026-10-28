@@ -1,109 +1,459 @@
 @extends('layouts.app')
 
-@section('title', 'جدول المواعيد السريرية')
+@section('title', 'لوحة البيانات والتحليل السريري المتقدم (Clinical Dashboard)')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header with Operational Actions -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-[#0b1c30]">جدول المواعيد والزيارات السريرية</h1>
-            <p class="text-xs text-[#64748b] mt-1">تنسيق وتتبع تدفق المرضى اليومي لكافة التخصصات الطبية</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <button type="button" onclick="window.print()"
-                class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
-                تصدير السجل اليومي
-            </button>
-            <button type="button" onclick="window.clinicalApp.openModal('newAppointmentModal')"
-                class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition">
-                + تسجيل موعد جديد
-            </button>
-        </div>
-    </div>
+    <div class="space-y-6">
+        <!-- 1. Executive Operations Header Bar -->
+        <div
+            class="bg-gradient-to-l from-white via-white to-teal-50/40 rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs relative overflow-hidden">
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <span
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>التشغيل السريري: نشط ومستقر 100%</span>
+                        </span>
+                        <span
+                            class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-teal-50 text-[#00685f] border border-teal-200">
+                            وردية العيادات النهارية
+                        </span>
+                        <span class="text-xs text-slate-500 font-medium">
+                            {{ now()->locale('ar')->translatedFormat('l، d F Y') }}
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-[#0b1c30] tracking-tight">
+                        لوحة البيانات والعمليات السريرية (Clinical Care Dashboard)
+                    </h1>
+                    <p class="text-xs sm:text-sm text-[#64748b] max-w-3xl leading-relaxed">
+                        منظومة المراقبة اللحظية لتدفق الزيارات السريرية، المتابعات الحرجة، مؤشرات رضا المراجعين والجودة،
+                        وتوزيع أحمال العيادات التخصصية.
+                    </p>
+                </div>
 
-    <!-- Quick Stats Ribbon -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <x-kpi-card title="مواعيد اليوم الكلية" :value="$stats->todayTotalAppointments ?? 148" subtitle="مقارنة بالأمس"
-            trend="+12%" trendType="positive" />
-        <x-kpi-card title="حالات مكتملة" :value="$stats->todayCompleted ?? 82" subtitle="نسبة الحضور 84%" trend="مكتمل"
-            trendType="positive" />
-        <x-kpi-card title="مواعيد قادمة مجدولة" :value="$stats->todayScheduled ?? 42" subtitle="بالانتظار في الصالة"
-            trendType="neutral" />
-        <x-kpi-card title="حالات فائتة / تغيّب" :value="$stats->todayMissed ?? 16" subtitle="تحتاج متابعة هاتفية"
-            trend="مطلوب تدقيق" trendType="danger" />
-    </div>
+                <!-- Quick Action Command Strip -->
+                <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+                    <a href="{{ route('visits.create') }}"
+                        class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-xl shadow-sm hover:shadow transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>+ تسجيل زيارة جديدة</span>
+                    </a>
 
-    <!-- Filament-Style Table Container -->
-    <div class="bg-white rounded-xl border border-[#e2e8f0] shadow-xs overflow-hidden">
-        <!-- Filter Bar -->
-        <div class="p-3.5 border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 bg-[#f8fafc]">
-            <!-- Status Tabs -->
-            <div class="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0" id="appointmentStatusTabs">
-                <button type="button" data-status="all"
-                    class="apt-status-tab px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#00685f] text-white shadow-xs">الكل
-                    (7)</button>
-                <button type="button" data-status="scheduled"
-                    class="apt-status-tab px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-200">مجدولة
-                    (3)</button>
-                <button type="button" data-status="done"
-                    class="apt-status-tab px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-200">مكتملة
-                    (2)</button>
-                <button type="button" data-status="missed"
-                    class="apt-status-tab px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-200">فائتة
-                    (1)</button>
-                <button type="button" data-status="cancelled"
-                    class="apt-status-tab px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-200">ملغاة
-                    (1)</button>
+                    {{-- <button type="button" onclick="openCreateSurveyModal('createSurveyModal')"
+                        class="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition cursor-pointer">
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <span>+ استبيان رضا </span>
+                    </button> --}}
+
+                    {{-- <a href="{{ route('follow_ups.create') }}"
+                        class="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-2xs transition">
+                        <span>+ جدولة متابعة</span>
+                    </a> --}}
+
+                    <button type="button" onclick="window.print()"
+                        class="p-2.5 text-slate-500 hover:text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs transition"
+                        title="طباعة تقرير العمليات السريرية">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <!-- Department & Date Select -->
-            <div class="flex items-center gap-2">
-                <input type="date" value="2026-10-08"
-                    class="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1 text-xs text-slate-700 font-mono" />
-                <select id="aptDeptSelect"
-                    class="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1 text-xs text-slate-700">
-                    <option value="جميع العيادات">جميع العيادات</option>
-                    <option value="عيادة الباطنية والقلب">عيادة الباطنية والقلب</option>
-                    <option value="عيادة طب وجراحة الأسنان">عيادة طب وجراحة الأسنان</option>
-                    <option value="عيادة العظام والمفاصل">عيادة العظام والمفاصل</option>
-                    <option value="عيادة الأطفال وحديثي الولادة">عيادة الأطفال وحديثي الولادة</option>
-                </select>
+            <!-- Decorative background glow -->
+            <div class="absolute -left-20 -bottom-20 w-64 h-64 rounded-full bg-teal-100/40 blur-3xl pointer-events-none">
             </div>
         </div>
 
-        <!-- Batch Bar -->
-        <div id="aptBatchBar"
-            class="hidden bg-[#eff4ff] border-b border-teal-200 px-4 py-2 flex items-center justify-between text-xs">
-            <span class="text-[#00685f] font-semibold">تم تحديد المواعيد</span>
-            <button type="button" onclick="window.clinicalApp.batchMarkDone()"
-                class="px-3 py-1 bg-[#047857] text-white rounded font-medium hover:bg-[#036045]">
-                تأكيد حضور المحددين
-            </button>
+        <!-- 2. Main Executive Clinical KPI Ribbon (6 Rich Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <!-- KPI 1: Visits Flow -->
+            <x-dashboard.kpi-card title="إجمالي الزيارات السريرية" :value="$totalVisits" subvalue="زيارة مسجلة" icon="🏥"
+                color="teal" trend="+12%" :trend-positive="true" :progress="$completionRate" :footer="$completedVisits . ' مكتمل · ' . $scheduledVisits . ' قادم'" :link="route('visits.index')" />
+
+            <!-- KPI 2: Critical Follow-ups (follow_ups schema) -->
+            <x-dashboard.kpi-card title="المتابعات السريرية الحرجة" :value="$scheduledFollowups" subvalue="حالة قيد المتابعة"
+                icon="🩺" color="amber" badge="أولوية سريرية" :footer="$doneFollowups . ' موثق · ' . $missedFollowups . ' فائت'" :link="route('follow_ups.index')" />
+
+            <!-- KPI 3: Satisfaction Index (FR-5, BR-5) -->
+            <x-dashboard.kpi-card title="مؤشر تجربة ورضا المرضى" :value="$avgRating . ' ★'" subvalue="من 5.0 نجوم" icon="⭐"
+                color="emerald" :trend="$positiveRate . '% إيجابي'" :trend-positive="true" :progress="$positiveRate" :footer="$rating5Count . ' ممتاز (5★) · ' . $lowRatingSurveysCount . ' تنبيه جودة'"
+                :link="route('surveys.index')" />
+
+            <!-- KPI 4: Complaints & Quality SLA (FR-6, BR-7) -->
+            <x-dashboard.kpi-card title="تذاكر الشكاوى والاعتراض" :value="$activeComplaintsCount" subvalue="تذكرة نشطة" icon="🚨"
+                color="rose" badge="SLA 24 ساعة" :footer="$autoComplaintsFromSurveys . ' ناتجة آلياً · ' . $resolvedComplaints . ' تم حلها'" :link="route('complaints.index')" />
+
+            <!-- KPI 5: Specialty Clinics & Capacity -->
+            <x-dashboard.kpi-card title="العيادات والأقسام التخصصية" :value="$activeClinics . '/' . $totalClinics" subvalue="أجنحة مشغلة"
+                icon="🏢" color="blue" badge="100% جاهزية" :footer="$activeDoctors . ' طبيب استشاري مسجل'" :link="route('clinics.index')" />
+
+            <!-- KPI 6: Patients MRN & Clinical Safety -->
+            <x-dashboard.kpi-card title="دليل وسجل المرضى (MRN)" :value="$totalPatients" subvalue="ملف طبي نشط" icon="👤"
+                color="purple" badge="أمان المريض" :footer="$allergyRiskPatients . ' حالات حساسية دوائية حرجة'" :link="route('patients.index')" />
         </div>
 
-        <!-- Table Grid -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-right text-sm">
-                <thead class="bg-[#f8fafc] text-[#64748b] text-xs font-semibold uppercase border-b border-[#e2e8f0]">
-                    <tr>
-                        <th class="py-3 px-4 w-10 text-center"><input type="checkbox" id="selectAllApt"
-                                class="rounded text-[#00685f]" /></th>
-                        <th class="py-3 px-4">المريض ورقم الملف (MRN)</th>
-                        <th class="py-3 px-4">الطبيب المعالج</th>
-                        <th class="py-3 px-4">العيادة</th>
-                        <th class="py-3 px-4">الوقت</th>
-                        <th class="py-3 px-4">نوع الزيارة</th>
-                        <th class="py-3 px-4">الحالة</th>
-                        <th class="py-3 px-4">الرسوم والفوترة</th>
-                        <th class="py-3 px-4 text-center">إجراءات سريعة</th>
-                    </tr>
-                </thead>
-                <tbody id="appointmentsTableBody" class="divide-y divide-[#e2e8f0]">
-                    <!-- Rows populated dynamically by native JS or Blade loop -->
-                </tbody>
-            </table>
+
+
+        <!-- 4. Quality Lifecycle Stepper & Specialty Clinics Load (2 Panels) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Visual Panel 3: Complaints 5-Stage Lifecycle Stepper (FR-6, BR-7) (6 Cols) -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                            <h3 class="font-bold text-base text-[#0b1c30]">دورة معالجة الشكاوى</h3>
+                        </div>
+                        <p class="text-xs text-[#64748b] mt-0.5">مراحل التدقيق الخماسية وإلزامية توثيق الحل للإغلاق </p>
+                    </div>
+                    <a href="{{ route('complaints.index') }}" class="text-xs font-bold text-[#00685f] hover:underline">
+                        فتح سجل الشكاوى ➜
+                    </a>
+                </div>
+
+                <!-- 5-Stage Horizontal Stepper Component -->
+                <div class="grid grid-cols-5 gap-2 text-center pt-2">
+                    <!-- Step 1: New -->
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-2xl space-y-1">
+                        <div
+                            class="w-6 h-6 rounded-full bg-red-600 text-white font-bold text-xs flex items-center justify-center mx-auto">
+                            1</div>
+                        <div class="text-[11px] font-bold text-red-900">جديدة</div>
+                        <div class="text-base font-extrabold font-mono text-red-800">{{ $newComplaints }}</div>
+                    </div>
+
+                    <!-- Step 2: Assigned -->
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl space-y-1">
+                        <div
+                            class="w-6 h-6 rounded-full bg-amber-600 text-white font-bold text-xs flex items-center justify-center mx-auto">
+                            2</div>
+                        <div class="text-[11px] font-bold text-amber-900">مسندة</div>
+                        <div class="text-base font-extrabold font-mono text-amber-800">{{ $assignedComplaints }}</div>
+                    </div>
+
+                    <!-- Step 3: Investigating -->
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-2xl space-y-1">
+                        <div
+                            class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center mx-auto">
+                            3</div>
+                        <div class="text-[11px] font-bold text-blue-900">تحقيق</div>
+                        <div class="text-base font-extrabold font-mono text-blue-800">{{ $investigatingComplaints }}</div>
+                    </div>
+
+                    <!-- Step 4: Resolved (BR-7 Note Required) -->
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
+                        <div
+                            class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center mx-auto">
+                            4</div>
+                        <div class="text-[11px] font-bold text-emerald-900">تم الحل</div>
+                        <div class="text-base font-extrabold font-mono text-emerald-800">{{ $resolvedComplaints }}</div>
+                    </div>
+
+                    <!-- Step 5: Closed -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                        <div
+                            class="w-6 h-6 rounded-full bg-slate-600 text-white font-bold text-xs flex items-center justify-center mx-auto">
+                            5</div>
+                        <div class="text-[11px] font-bold text-slate-800">مغلقة</div>
+                        <div class="text-base font-extrabold font-mono text-slate-700">{{ $closedComplaints }}</div>
+                    </div>
+                </div>
+
+                <!-- BR-7 Requirement Notice -->
+                <div
+                    class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+                    <span class="text-slate-600">
+                         لا يمكن إغلاق أي شكوى بدون تدوين ملاحظة الحل.
+                    </span>
+                    <span
+                        class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 font-mono">
+                        {{ $totalComplaints > 0 ? round((($resolvedComplaints + $closedComplaints) / $totalComplaints) * 100, 0) : 100 }}%
+                        نسبة الحل
+                    </span>
+                </div>
+            </div>
+
+            <!-- Visual Panel 4: Specialty Clinics Caseload & Doctor Ratio (6 Cols) -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#00685f]"></span>
+                            <h3 class="font-bold text-base text-[#0b1c30]">أحمال العيادات التخصصية والكوادر (Clinics Load)
+                            </h3>
+                        </div>
+                        <p class="text-xs text-[#64748b] mt-0.5">توزيع الأطباء الاستشاريين وحصص الكشف السريري</p>
+                    </div>
+                    <a href="{{ route('clinics.index') }}" class="text-xs font-bold text-[#00685f] hover:underline">
+                        دليل العيادات ➜
+                    </a>
+                </div>
+
+                <!-- Clinics Workload List -->
+                <div class="space-y-3 pt-1">
+                    @forelse($clinicsLoad as $clinic)
+                        <div
+                            class="p-3 bg-slate-50/70 hover:bg-slate-100/70 rounded-2xl transition border border-slate-200/60 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-900">{{ $clinic->name }}</span>
+                                    
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] text-teal-800 font-bold">{{ $clinic->doctors_count ?? 1 }}
+                                        أطباء</span>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    @empty
+                        <div class="p-4 text-center text-xs text-slate-400">
+                            لا توجد بيانات عيادات كافية لعرض الأحمال.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
         </div>
+
+        <!-- 5. Urgent Follow-ups & Live Clinical Activity Audit (2 Columns) -->
+        <div class=" lg:grid-cols-12 gap-6">
+            <!-- Urgent Follow-ups Feed (7 Cols) -->
+            <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <h3 class="font-bold text-base text-[#0b1c30]">المتابعات السريرية العاجلة
+                            </h3>
+                        </div>
+                        <p class="text-xs text-[#64748b] mt-0.5">الحالات التي تستدعي التواصل المباشر وتوثيق النتائج الحرجة
+                        </p>
+                    </div>
+                    <a href="{{ route('follow_ups.index') }}" class="text-xs font-bold text-amber-700 hover:underline">
+                        كافة المتابعات ➜
+                    </a>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    @forelse($urgentFollowups as $flw)
+                        <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="font-bold text-slate-900 text-xs">{{ $flw->patient->fullname ?? 'مريض' }}</span>
+                                    <span
+                                        class="font-mono text-[11px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                                        {{ $flw->patient->mrn ?? 'MRN' }}
+                                    </span>
+                                    @if ($flw->visit)
+                                        <span class="text-[10px] text-slate-400 font-mono">زيارة
+                                            #{{ $flw->visit->id }}</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-slate-600 line-clamp-1 max-w-md">
+                                    {{ $flw->reason }}
+                                </p>
+                                <div class="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                                    <span>موعد الاستحقاق: <strong
+                                            class="text-amber-800">{{ $flw->due_date ? $flw->due_date->format('Y-m-d H:i') : '-' }}</strong></span>
+                                    @if ($flw->visit && $flw->visit->doctor)
+                                        <span>الطبيب: د. {{ $flw->visit->doctor->fullname }}</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="shrink-0 flex items-center gap-2">
+                                <a href="{{ route('follow_ups.show', $flw) }}"
+                                    class="px-3 py-1.5 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition">
+                                    فحص وتوثيق
+                                </a>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-8 text-center text-slate-400 text-xs">
+                            لا توجد حالات متابعة حرجة متأخرة اليوم.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Live Clinical Activity Timeline (5 Cols) -->
+            {{-- <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
+                        <h3 class="font-bold text-base text-[#0b1c30]">سجل التدقيق والتحديثات اللحظية (Audit Feed)</h3>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">Real-time</span>
+                </div>
+
+                <!-- Activity Items -->
+                <div class="space-y-3.5 text-xs">
+                    <div class="flex items-start gap-3 p-3 bg-slate-50/70 rounded-2xl border border-slate-100">
+                        <span class="text-base shrink-0">✅</span>
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <strong class="text-slate-800">إتمام زيارة سريرية وتوثيق الخطة</strong>
+                                <span class="text-[10px] text-slate-400 font-mono">منذ 8 دقائق</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-0.5">تم توثيق الكشف لزيارة د. خالد المهيدب وجدولة
+                                المتابعة لـ (سليمان المنصور).</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3 bg-rose-50/60 rounded-2xl border border-rose-100">
+                        <span class="text-base shrink-0">🚨</span>
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <strong class="text-rose-900">إنشاء شكوى تلقائية بموجب </strong>
+                                <span class="text-[10px] text-rose-500 font-mono">منذ 25 دقيقة</span>
+                            </div>
+                            <p class="text-[11px] text-rose-700 mt-0.5">تم رصد استبيان بتقييم 2 نجوم للزيارة #4، وتوليد
+                                تذكرة الشكوى آلياً.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3 bg-teal-50/60 rounded-2xl border border-teal-100">
+                        <span class="text-base shrink-0">⭐</span>
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <strong class="text-teal-900">استبيان رضا ممتاز (5 نجوم)</strong>
+                                <span class="text-[10px] text-teal-600 font-mono">منذ 40 دقيقة</span>
+                            </div>
+                            <p class="text-[11px] text-teal-800 mt-0.5">سجل المريض "نورة الراجحي" تقييم 5 نجوم لعيادة طب
+                                الأسنان.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3 bg-amber-50/60 rounded-2xl border border-amber-100">
+                        <span class="text-base shrink-0">⚠️</span>
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <strong class="text-amber-900">تنبيه حساسية دوائية حرجة</strong>
+                                <span class="text-[10px] text-amber-600 font-mono">اليوم</span>
+                            </div>
+                            <p class="text-[11px] text-amber-800 mt-0.5">تأكيد حساسية البنسلين للمريض MRN-84920 قبل صرف
+                                الوصفة السريرية.</p>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
+        </div>
+
+        <!-- 6. Fast Triage & Recent Visits Table -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden space-y-4 p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="font-bold text-base text-[#0b1c30]">جدول فرز ومتابعة الزيارات السريرية الحديثة</h3>
+                    <p class="text-xs text-[#64748b] mt-0.5">متابعة فورية لحالات الزيارات، الطبيب المعالج، واستبيانات الرضا
+                        المرتبطة</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('visits.index') }}"
+                        class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-xl transition">
+                        عرض كافة الزيارات ➜
+                    </a>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead class="bg-[#f8fafc] text-[#64748b] text-[11px] font-bold border-b border-[#e2e8f0]">
+                        <tr>
+                            <th class="py-3 px-3.5 w-12 text-center font-mono">#</th>
+                            <th class="py-3 px-3.5 min-w-[170px]">المريض ورقم الملف (MRN)</th>
+                            <th class="py-3 px-3.5 min-w-[170px]">الطبيب المعالج والعيادة</th>
+                            <th class="py-3 px-3.5 min-w-[120px]">تاريخ الكشف</th>
+                            <th class="py-3 px-3.5 min-w-[200px]">سبب الزيارة السريرية</th>
+                            <th class="py-3 px-3.5 min-w-[120px]">حالة الزيارة</th>
+                            <th class="py-3 px-3.5 min-w-[130px]">استبيان الرضا </th>
+                            <th class="py-3 px-3.5 text-center w-24">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#e2e8f0]">
+                        @forelse($recentVisits as $v)
+                            <tr class="hover:bg-teal-50/20 transition">
+                                <td class="py-3.5 px-3.5 text-center font-mono font-bold text-slate-500">
+                                    #{{ $v->id }}
+                                </td>
+                                <td class="py-3.5 px-3.5">
+                                    @if ($v->patient)
+                                        <a href="{{ route('patients.show', $v->patient) }}"
+                                            class="font-bold text-slate-900 hover:text-[#00685f] transition block">
+                                            {{ $v->patient->fullname }}
+                                        </a>
+                                        <span class="text-[11px] font-mono text-slate-500">{{ $v->patient->mrn }}</span>
+                                    @else
+                                        <span class="text-slate-400 italic">غير محدد</span>
+                                    @endif
+                                </td>
+                                <td class="py-3.5 px-3.5">
+                                    @if ($v->doctor)
+                                        <div class="font-bold text-slate-800">{{ $v->doctor->fullname }}</div>
+                                        <span
+                                            class="text-[10px] text-slate-500 block">{{ $v->doctor->clinic->name ?? ($v->doctor->specialty ?? '') }}</span>
+                                    @else
+                                        <span class="text-slate-400 italic">طبيب مناوب</span>
+                                    @endif
+                                </td>
+                                <td class="py-3.5 px-3.5 font-mono text-slate-600">
+                                    {{ $v->date ? $v->date->format('Y-m-d') : '-' }}
+                                </td>
+                                <td class="py-3.5 px-3.5 text-slate-700 max-w-xs truncate" title="{{ $v->reason }}">
+                                    {{ $v->reason ?? 'مراجعة سريرية دورية' }}
+                                </td>
+                                <td class="py-3.5 px-3.5">
+                                    <span
+                                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $v->status_badge_classes ?? 'bg-slate-100 text-slate-700' }}">
+                                        {{ $v->status_label ?? 'تم الإنشاء' }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-3.5">
+                                    @if ($v->survey)
+                                        <span
+                                            class="inline-flex items-center gap-1 font-bold text-xs {{ $v->survey->rating >= 4 ? 'text-emerald-700' : ($v->survey->rating == 3 ? 'text-amber-700' : 'text-rose-700') }}">
+                                            <span>{{ $v->survey->rating }} ★</span>
+                                            <span
+                                                class="text-[10px] text-slate-400 font-normal">({{ $v->survey->rating_label }})</span>
+                                        </span>
+                                    @else
+                                        <button type="button"
+                                            onclick="openCreateSurveyModal('createSurveyModal', {{ $v->id }})"
+                                            class="text-[11px] font-bold text-teal-700 hover:underline cursor-pointer">
+                                            + تقييم الزيارة
+                                        </button>
+                                    @endif
+                                </td>
+                                <td class="py-3.5 px-3.5 text-center">
+                                    <a href="{{ route('visits.show', $v) }}"
+                                        class="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition inline-block"
+                                        title="فتح ملف الزيارة">
+                                        👁️
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="py-8 text-center text-slate-400">
+                                    لا توجد زيارات حديثة مسجلة.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reusable Component Modals -->
+        <x-create-survey-modal id="createSurveyModal" />
     </div>
-</div>
 @endsection

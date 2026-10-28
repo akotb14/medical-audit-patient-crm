@@ -16,10 +16,12 @@
                     class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition">
                     ← العودة لدليل الأطباء
                 </a>
-                <a href="{{ route('doctors.edit', $doctor) }}"
-                    class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition">
-                    ✏️ تعديل بيانات الطبيب
-                </a>
+                @can('update', $doctor)
+                    <a href="{{ route('doctors.edit', $doctor) }}"
+                        class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition">
+                        ✏️ تعديل بيانات الطبيب
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -70,13 +72,7 @@
                     </div>
                 </div>
 
-                <!-- Fee & Quick Booking Action -->
-                <div class="flex items-center gap-4">
-                    <button type="button" onclick="window.clinicalApp.openNewAppointmentModal()"
-                        class="px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition">
-                        + حجز موعد مع الطبيب
-                    </button>
-                </div>
+                
             </div>
 
             <!-- LINKED CLINIC (BELONGSTO RELATIONSHIP) CARD -->

@@ -108,7 +108,7 @@
                                 حالة المتابعة (status):
                                 <span class="text-red-500">*</span>
                             </label>
-                            <select name="status" id="status" required 
+                            <select name="status" id="status" required
                                 class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 text-xs"
                                 onchange="toggleOutcomeNoteSection(this.value)">
                                 <option value="scheduled" @selected(old('status', $followup->status) == 'scheduled')>
@@ -156,7 +156,7 @@
 
                         </div>
 
-                        
+
                     </div>
                 </div>
 

@@ -24,6 +24,9 @@ return new class extends Migration
             $table->string('emergency_name', 255)->nullable();
             $table->string('emergency_phone', 15)->nullable();
             $table->enum('status', ['active', 'inactive']);
+            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('restrict');
+
             $table->timestamps();
         });
     }

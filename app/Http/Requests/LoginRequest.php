@@ -12,7 +12,7 @@ class LoginRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -26,6 +26,16 @@ class LoginRequest extends FormRequest
             //
             'username' => 'required|exists:users,username',
             'password' => 'required|min:6',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'username.required' => 'الاسم المستخدم مطلوب',
+            'username.exists' => 'اسم المستخدم غير موجود',
+            'password.required' => 'كلمة المرور مطلوبة',
+            'password.min' => 'كلمة المرور لا تقل عن 6 احرف',
         ];
     }
 }

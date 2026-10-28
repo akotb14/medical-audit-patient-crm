@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('visits', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->nullable()->constrained('patients')->nullOnDelete();
-            $table ->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete();
-            $table->date('date');
-            $table->string('reason',500);
-            $table->enum('visit_status',['c','completed','cancelled']);
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete();
+            $table->dateTime('date');
+            $table->string('reason', 500);
+            $table->enum('visit_status', ['created', 'completed', 'cancelled']);
+            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('restrict');
             $table->timestamps();
         });
     }

@@ -6,18 +6,20 @@ use App\Http\Requests\FollowUpsRequests\FollowUpsIndexRequest;
 use App\Http\Requests\FollowUpsRequests\UpdateFollowUpRequest;
 use App\Models\FollowUp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class FollowUpsController extends Controller
 {
     //
     public function index(FollowUpsIndexRequest $request)
     {
+        Gate::authorize('viewAny', FollowUp::class);
         $filters = $request->validated();
 
         $status = $filters['status'] ?? 'all';
         $patientId = $filters['patient_id'] ?? null;
         $search = $filters['search'] ?? null;
-
 
         $query = FollowUp::with(['patient', 'visit.doctor.clinic', 'creator'])
             ->latest('due_date');
@@ -25,8 +27,6 @@ class FollowUpsController extends Controller
         if ($status && $status !== 'all') {
             $query->where('status', $status);
         }
-
-
 
         if ($patientId) {
             $query->where('patient_id', $patientId);
@@ -42,8 +42,6 @@ class FollowUpsController extends Controller
 
         $stats = $this->getFollowUpStats();
 
-
-
         return view('followups.index', [
             'followups' => $followups,
             'stats' => $stats,
@@ -57,6 +55,7 @@ class FollowUpsController extends Controller
 
     public function show(FollowUp $followup)
     {
+        Gate::authorize('view', $followup);
         $followup->load(['patient', 'visit.doctor.clinic', 'creator']);
 
         return view('followups.show', compact('followup'));
@@ -64,7 +63,9 @@ class FollowUpsController extends Controller
 
     public function edit(FollowUp $followup)
     {
+        Gate::authorize('update', $followup);
         $followup->load(['patient', 'visit.doctor.clinic', 'creator']);
+
         return view('followups.edit', compact('followup'));
     }
 
@@ -72,6 +73,8 @@ class FollowUpsController extends Controller
         UpdateFollowUpRequest $request,
         FollowUp $followup
     ) {
+        Gate::authorize('update', $followup);
+
         $data = $request->validated();
 
         if (($data['status'] ?? null) === 'done') {
@@ -79,15 +82,20 @@ class FollowUpsController extends Controller
         } else {
             $data['completed_at'] = null;
         }
-
+        $data['updated_by'] = Auth::id();
         $followup->update($data);
 
         return redirect()
             ->route('follow_ups.index')
             ->with('success', 'تم تحديث المتابعة بنجاح');
     }
+
     public function complete(Request $request, FollowUp $followup)
     {
+        Gate::authorize('complete', $followup);
+        if ($followup->status !== 'scheduled') {
+            return redirect()->route('follow_ups.index')->with('error', 'لا يمكن تغيير حالة المتابعة');
+        }
         $request->validate([
             'outcome_note' => 'nullable|max:2000',
         ], [
@@ -97,12 +105,18 @@ class FollowUpsController extends Controller
             'outcome_note' => $request->outcome_note,
             'status' => 'done',
             'completed_at' => now(),
+            'updated_by' => Auth::id(),
         ]);
+
         return redirect()->route('follow_ups.index')->with('success', 'تم إنجاز المتابعة بنجاح');
     }
 
     public function status(Request $request, FollowUp $followup)
     {
+        Gate::authorize('status', $followup);
+        if ($followup->status === 'done') {
+            return redirect()->route('follow_ups.index')->with('error', 'لا يمكن تغيير حالة المتابعة');
+        }
         $request->validate(
             [
                 'status' => 'required|in:scheduled,done,missed,cancelled',
@@ -112,16 +126,19 @@ class FollowUpsController extends Controller
                 'status.in' => 'حالة المتابعة المحددة غير صحيحة.',
             ]
         );
-        $followup->update(['status' => $request->status]);
+
+        $followup->update(['status' => $request->status, 'updated_by' => Auth::id()]);
+
         return redirect()->route('follow_ups.index')->with('success', 'تم تغيير حالة المتابعة بنجاح');
     }
 
     public function destroy(FollowUp $followup)
     {
+        Gate::authorize('delete', $followup);
         $followup->delete();
+
         return redirect()->route('follow_ups.index')->with('success', 'تم حذف المتابعة بنجاح');
     }
-
 
     private function getFollowUpStats()
     {

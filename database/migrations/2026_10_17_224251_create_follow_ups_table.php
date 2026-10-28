@@ -17,8 +17,9 @@ return new class extends Migration
             $table->string('reason');
             $table->string('outcome_note')->nullable();
             $table->dateTimeTz('completed_at')->nullable();
-            $table->enum('status', ['scheduled','done','missed','cancelled'])->default('scheduled');
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('status', ['scheduled', 'done', 'missed', 'cancelled'])->default('scheduled');
+            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
             $table->foreignId('visit_id')->constrained('visits')->onDelete('cascade');
             $table->timestamps();

@@ -11,16 +11,18 @@ use App\Models\Patient;
 use App\Models\Visit;
 use App\Queries\VisitIndexQuery;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class VisitController extends Controller
 {
     public function __construct(private VisitIndexQuery $visitIndexQuery) {}
 
-
     public function index(VisitIndexRequest $request)
     {
+        Gate::authorize('viewAny', Visit::class);
         $filters = $request->validated();
 
         $status = $filters['visit_status'] ?? 'all';
@@ -35,8 +37,11 @@ class VisitController extends Controller
                 'doctor:id,fullname,clinic_id',
                 'doctor.clinic:id,name',
                 'creator:id,name',
+                'survey',
             ])
             ->latest('date');
+        // إحصائيات سريعة للبطاقات العلوية
+        $stats = $this->visitIndexQuery->stats(clone $query);
 
         if ($status !== 'all') {
             $query->status($status);
@@ -58,22 +63,23 @@ class VisitController extends Controller
             $query->search($search);
         }
 
-
         $visits = $query->paginate(20)->withQueryString();
-
         $doctors = Doctor::with('clinic')->where('status', 'active')->get();
-        // إحصائيات سريعة للبطاقات العلوية
-        $stats = $this->visitIndexQuery->stats();
+
         return view('visits.index', compact('visits', 'doctors', 'stats'));
     }
 
     public function show(Visit $visit)
     {
+        Gate::authorize('view', $visit);
         $visit->load(['patient', 'doctor.clinic', 'creator']);
+
         return view('visits.show', compact('visit'));
     }
+
     public function create(Request $request)
     {
+        Gate::authorize('create', Visit::class);
         $patient_id = $request->query('patient_id');
         $patients = Patient::query()->select('id', 'fullname', 'mrn');
         $doctors = Doctor::with('clinic')->where('status', 'active')->get();
@@ -81,33 +87,43 @@ class VisitController extends Controller
             $patients->where('id', $patient_id);
         }
         $patients = $patients->get();
+
         return view('visits.create', compact('patients', 'doctors'));
     }
+
     public function store(CreateVisitRequest $request)
     {
-
+        Gate::authorize('create', Visit::class);
         $data = $request->validated();
         $data['visit_status'] = 'created';
-        $data['created_by'] = 1;
+        $data['created_by'] = Auth::id();
         Visit::create($data);
+
         return redirect()->route('visits.index')->with('success', 'تم انشاء زيارة جديد');
     }
 
     public function edit(Visit $visit)
     {
+        Gate::authorize('update', $visit);
         $patients = Patient::select('id', 'fullname', 'mrn')->get();
         $doctors = Doctor::with('clinic')->where('status', 'active')->get();
+
         return view('visits.edit', compact('visit', 'patients', 'doctors'));
     }
 
     public function update(Visit $visit, UpdateVisitRequest $request)
     {
+        Gate::authorize('update', $visit);
         $data = $request->validated();
+        $data['updated_by'] = Auth::id();
         $visit->update($data);
+
         return redirect()->route('visits.index')->with('success', 'تم تحديث بيانات الزيارة');
     }
+
     public function updateStatus(Visit $visit, Request $request)
     {
+        Gate::authorize('updateStatus', $visit);
         // منع التعامل مع زيارة مكتملة أو ملغاة
         if ($visit->visit_status !== 'created') {
             return back()->with(
@@ -134,19 +150,26 @@ class VisitController extends Controller
                 'string',
                 'max:1000',
             ],
+        ], [
+            'due_date.required_if' => 'يجب تحديد تاريخ المتابعة',
+            'reason.required_if' => 'يجب تحديد سبب المتابعة',
+
         ]);
         if ($validated['action'] === 'complete_only') {
             $visit->update([
                 'visit_status' => 'completed',
+                'updated_by' => Auth::id(),
             ]);
 
-            return back()->with('success', 'تم إتمام الزيارة بنجاح');
+            return back()->with('success', 'تم إتمام الزيارة بنجاح')->with('open_survey_modal', $visit->id);
         }
 
         // 2. إلغاء الزيارة
-        if ($validated['action'] === 'cancel') {
+        if ($validated['action'] === 'cancel' && $visit->visit_status !== 'completed') {
             $visit->update([
                 'visit_status' => 'cancelled',
+                'updated_by' => Auth::id(),
+
             ]);
 
             return back()->with('success', 'تم إلغاء الزيارة بنجاح');
@@ -162,27 +185,31 @@ class VisitController extends Controller
 
             $visit->update([
                 'visit_status' => 'completed',
+                'updated_by' => Auth::id(),
+
             ]);
 
             FollowUp::create([
-                'visit_id'   => $visit->id,
+                'visit_id' => $visit->id,
                 'patient_id' => $visit->patient_id,
-                'status'     => 'scheduled',
-                'due_date'   => $validated['due_date'],
-                'reason'     => $validated['reason'],
-                'created_by' => 1,
+                'status' => 'scheduled',
+                'due_date' => $validated['due_date'],
+                'reason' => $validated['reason'],
+                'created_by' => Auth::id(),
             ]);
         });
 
         return back()->with(
             'success',
             'تم إتمام الزيارة وجدولة المتابعة بنجاح'
-        );
+        )->with('open_survey_modal', $visit->id);
     }
 
     public function destroy(Visit $visit)
     {
+        Gate::authorize('delete', $visit);
         $visit->delete();
+
         return redirect()->route('visits.index')->with('success', 'تم حذف الزيارة بنجاح');
     }
 }

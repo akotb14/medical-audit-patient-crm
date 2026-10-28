@@ -10,6 +10,7 @@
                 <th class="py-3 px-4 w-[220px]">سبب الزيارة (Reason)</th>
                 <th class="py-3 px-4">حالة الزيارة (Status)</th>
                 <th class="py-3 px-4">مسجل الزيارة</th>
+                <th class="py-3 px-4">استبيان المريض</th>
                 <th class="py-3 px-4 text-center">إجراءات</th>
             </tr>
         </thead>
@@ -67,45 +68,75 @@
                             {{ $visit->creator->name ?? '' }}
                         </td>
                         <td class="py-3 px-4 text-center">
-                            <div class="inline-flex items-center gap-1.5">
-                                @if ($visit->visit_status !== 'completed' && $visit->visit_status !== 'cancelled')
-                                    <button type="button"
-                                        onclick="document.getElementById('completeVisitWithFollowupModal-{{ $visit->id }}').classList.remove('hidden')"
-                                        class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-slate-100 rounded-md transition">
-                                        ✓
-                                    </button>
-                                    <form action="{{ route('visits.status', $visit) }}" method="POST">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="visit_status" value="cancelled">
-                                        <button type="submit" name="action" value="cancel"
-                                            class="px-2 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition">
-                                            الغاء
-                                        </button>
-                                    </form>
-                                @endif
-                                <a href="{{ route('visits.show', $visit) }}"
-                                    class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-slate-100 rounded-md transition"
-                                    title="عرض التفاصيل">
-                                    👁️
-                                </a>
-                                <a href="{{ route('visits.edit', $visit) }}"
-                                    class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-md transition"
-                                    title="تعديل">
-                                    ✏️
-                                </a>
+                            @if ($visit->visit_status == 'completed' && isset($visit->survey))
+                                <a href="{{ route('surveys.show', $visit->survey) }}"
+                                    class="text-[13px] text-[#00685f] hover:underline font-bold block">
 
+                                    استبيان الزيارة <span class="font-black text-[16px]">←</span>
+                                </a>
+                            @elseif ($visit->visit_status == 'completed' && !isset($visit->survey))
                                 <button type="button"
-                                    onclick="document.getElementById('deleteVisitModal-{{ $visit->id }}').classList.remove('hidden')"
-                                    class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-md transition"
-                                    title="حذف">
-                                    🗑️
+                                    onclick={{"openCreateSurveyModal('createSurveyModal',$visit->id,true)"}}
+                                    class="text-[12px]  text-[#00685f] hover:underline font-bold block">
+
+                                    <span>+ تسجيل استبيان جديد </span>
                                 </button>
+                            @else
+                                <span class="text-xs text-slate-400 italic">لم يتم إنهاء الزيارة </span>
+                            @endif
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="inline-flex items-center gap-1.5">
+
+                                @can('updateStatus', $visit)
+                                    @if ($visit->visit_status !== 'completed' && $visit->visit_status !== 'cancelled')
+                                        <button type="button"
+                                            onclick="document.getElementById('completeVisitWithFollowupModal-{{ $visit->id }}').classList.remove('hidden')"
+                                            class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-slate-100 rounded-md transition">
+                                            ✓
+                                        </button>
+                                        <form action="{{ route('visits.status', $visit) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="visit_status" value="cancelled">
+                                            <button type="submit" name="action" value="cancel"
+                                                class="px-2 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition">
+                                                الغاء
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endcan
+                                @can('view', $visit)
+                                    <a href="{{ route('visits.show', $visit) }}"
+                                        class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-slate-100 rounded-md transition"
+                                        title="عرض التفاصيل">
+                                        👁️
+                                    </a>
+                                @endcan
+                                @can('update', $visit)
+                                    <a href="{{ route('visits.edit', $visit) }}"
+                                        class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-md transition"
+                                        title="تعديل">
+                                        ✏️
+                                    </a>
+                                @endcan
+                                @can('delete', $visit)
+                                    <button type="button"
+                                        onclick="document.getElementById('deleteVisitModal-{{ $visit->id }}').classList.remove('hidden')"
+                                        class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-md transition"
+                                        title="حذف">
+                                        🗑️
+                                    </button>
+                                @endcan
                             </div>
                         </td>
                     </tr>
-                    <x- <x-complete-visit-with-followup-modal :visit="$visit" />
-                    <x-delete-visit-modal :visit="$visit" />
+                    @can('updateStatus', $visit)
+                        <x-complete-visit-with-followup-modal :visit="$visit" />
+                    @endcan
+                    @can('delete', $visit)
+                        <x-delete-visit-modal :visit="$visit" />
+                    @endcan
                 @endforeach
             @endif
         </tbody>
