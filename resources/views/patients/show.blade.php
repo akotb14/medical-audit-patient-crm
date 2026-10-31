@@ -164,7 +164,7 @@
                             </p>
                         </div>
                     </div>
-                    @can('viewAny', App\Models\visit::class)
+                    @can('viewAny', App\Models\Visit::class)
                         <!-- Visits CRUD Table -->
                         <x-visits.table :visits="$visits" />
                     @endcan

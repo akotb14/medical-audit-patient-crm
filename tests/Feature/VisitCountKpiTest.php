@@ -16,6 +16,11 @@ use Illuminate\Pagination\LengthAwarePaginator;
 | A patient with 21 visits was shown 20, and the status tiles changed value
 | halfway through the history. With `status` counts the totals are now read from
 | a grouped aggregate, so the same numbers survive page 2.
+|
+| The history table under those tiles had its own defect: it asked the gate about
+| `App\Models\visit`, a class name this application does not use. The lower-case
+| spelling only resolves through a case-insensitive filesystem, so the table
+| rendering is pinned down here.
 |--------------------------------------------------------------------------
 */
 
@@ -154,5 +159,19 @@ describe('the clinic doctor KPI', function () {
         $response->assertSee('إجمالي الأطباء بالعيادة');
 
         expect(renderedKpiValue($response->getContent(), 'clinicDoctorsCountBadge'))->toBe(21);
+    });
+});
+
+describe('the visit history on the patient file', function () {
+    it('renders the history table below the tiles', function () {
+        $admin = actingAsAdmin();
+        $patient = Patient::factory()->create();
+        $doctor = Doctor::factory()->create();
+
+        createPatientVisitSpread($patient, $doctor, $admin);
+
+        $this->get(route('patients.show', $patient))
+            ->assertOk()
+            ->assertSee('visitsTableBody', false);
     });
 });

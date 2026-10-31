@@ -21,7 +21,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-2.5">
-                @can('create', App\Model\Complaint::class)
+                @can('create', App\Models\Complaint::class)
                     <a href="{{ route('complaints.create') }}"
                         class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg shadow-sm transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@
                         <span>+ تسجيل شكوى يدوية (Manual Complaint)</span>
                     </a>
                 @endcan
-                @can('viewAny', App\Model\Survey::class)
+                @can('viewAny', App\Models\Survey::class)
                     <a href="{{ route('surveys.index') }}"
                         class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition">
                         <span>استبيانات الرضا ➜</span>

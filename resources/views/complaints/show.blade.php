@@ -40,7 +40,7 @@
                         <span>✏️ تعديل</span>
                     </a>
                 @endcan
-                @can('viewAny', App\Model\Complaint::class)
+                @can('viewAny', App\Models\Complaint::class)
                     <a href="{{ route('complaints.index') }}"
                         class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs">
                         ← العودة للقائمة
@@ -314,7 +314,7 @@
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3 text-xs">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <span class="font-bold text-slate-800">بيانات المريض الشاكي (Patient)</span>
-                        @can('show', $complaint->patient)
+                        @can('view', $complaint->patient)
                             @if ($complaint->patient && ! $complaint->patient->trashed())
                                 <a href="{{ route('patients.show', $complaint->patient) }}"
                                     class="text-[#00685f] hover:underline font-bold text-[11px]">

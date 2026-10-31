@@ -20,7 +20,7 @@
                     قياس جودة الخدمة الطبية، استطلاع رأي المريض (1-5 نجوم)، وتفعيل الشكاوى التلقائية في حال تدني التقييم
                 </p>
             </div>
-            @can('create', App\Model\Complaint::class)
+            @can('create', App\Models\Complaint::class)
                 <div class="flex items-center gap-2.5">
 
                     <a href="{{ route('complaints.index') }}"

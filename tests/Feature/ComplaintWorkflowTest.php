@@ -5,13 +5,18 @@ use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
-| Regression cover for REVIEW-008 and REVIEW-015.
+| Regression cover for REVIEW-008, REVIEW-015 and REVIEW-NEW-011.
 |
 | REVIEW-008 — the update endpoint accepted `status` from the payload, so a
 | complaint could jump from `new` to `closed` without passing through the
 | workflow.
 | REVIEW-015 — `advance`, `assign` and `reopen` changed the complaint without
 | recording who did it, leaving `updated_by` untouched.
+| REVIEW-NEW-011 — the patient link was guarded by `show`, an ability
+| `PatientPolicy` never defines, so the link never rendered for anybody.
+| The complaint screens also asked the gate about `App\Model\Complaint`, a class
+| this application does not have; that one only worked because the gate falls
+| back to guessing the policy from the class name.
 |--------------------------------------------------------------------------
 */
 
@@ -114,5 +119,39 @@ describe('advancing a complaint', function () {
             'status' => 'new',
             'assigned_to' => null,
         ]);
+    });
+});
+
+/*
+| The link was guarded by `@can('show', $patient)`, but `PatientPolicy` only
+| defines `view`. The gate answered "no" for every user, so a complaint never
+| offered a way into the patient file. The archived patient stays unlinked: that
+| guard sits inside this one and is covered by PatientArchiveTest.
+*/
+describe('the patient file link on a complaint', function () {
+    it('opens the patient file for the staff who may read it', function () {
+        actingAsAdmin();
+        $complaint = Complaint::factory()->create();
+
+        $this->get(route('complaints.show', $complaint))
+            ->assertOk()
+            ->assertSee(route('patients.show', $complaint->patient));
+    });
+});
+
+/*
+| `App\Model\Complaint` is not a class in this application. The gate found the
+| policy anyway by guessing it from the class name, so the button renders today.
+| The test pins that behaviour down, because a rename would hide the button
+| silently.
+*/
+describe('the manual complaint button', function () {
+    it('is offered on the complaints index', function () {
+        actingAsAdmin();
+        Complaint::factory()->create();
+
+        $this->get(route('complaints.index'))
+            ->assertOk()
+            ->assertSee(route('complaints.create'));
     });
 });
