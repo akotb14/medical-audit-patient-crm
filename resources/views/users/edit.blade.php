@@ -15,7 +15,6 @@
             ← العودة للقائمة
         </a>
     </div>
-    <x-alerts />
 
     <!-- Form Container -->
     <form action="{{route('users.update',$user)}}" method="POST" class="space-y-6">

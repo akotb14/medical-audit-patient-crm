@@ -86,23 +86,23 @@
             </div>
         </form>
 
-        <!-- Doctors Grid Container -->
-        <div id="doctorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <!-- Rendered by Native JS prototype & Blade loop in backend -->
-            @forelse($doctors ?? [] as $doctor)
-                <div
-                    class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-                    <div>
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 rounded-full bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center font-bold text-base">
-                                    {{ mb_substr($doctor->fullname, 0, 1) }}
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-bold text-[#0b1c30]">{{ $doctor->fullname }}</h3>
-                                </div>
-                            </div>
+        <!-- Doctors Table (High-Density Clinical Table - Fast Eye-Scanning) -->
+        <div id="doctorsTableContainer" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs border-collapse">
+                    <thead class="bg-slate-50/90 text-slate-700 border-b border-slate-200">
+                        <tr>
+                            <th class="py-3 px-4 font-bold text-slate-800 min-w-[190px]">الطبيب</th>
+                            <th class="py-3 px-3 font-bold text-slate-800 min-w-[130px]">التخصص الدقيق</th>
+                            <th class="py-3 px-3 font-bold text-slate-800 min-w-[160px]">العيادة التابعة</th>
+                            <th class="py-3 px-3 font-bold text-slate-800 min-w-[150px]">أيام الكشف</th>
+                            <th class="py-3 px-3 font-bold text-slate-800 min-w-[110px]">الجوال</th>
+                            <th class="py-3 px-3 font-bold text-slate-800 text-center">الحالة</th>
+                            <th class="py-3 px-4 font-bold text-slate-800 text-center min-w-[150px]">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse ($doctors ?? [] as $doctor)
                             @php
                                 $status = match ($doctor->status) {
                                     'active' => [
@@ -123,63 +123,102 @@
                                     ],
                                 };
                             @endphp
+                            <tr class="hover:bg-teal-50/40 transition group">
+                                <!-- Doctor Name and Contact -->
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div
+                                            class="w-9 h-9 rounded-lg bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center font-bold text-sm shrink-0">
+                                            {{ mb_substr($doctor->fullname, 0, 1) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            @can('view', $doctor)
+                                                <a href="{{ route('doctors.show', $doctor) }}"
+                                                    class="font-bold text-slate-900 group-hover:text-[#00685f] hover:underline text-[13px] block transition">
+                                                    {{ $doctor->fullname }}
+                                                </a>
+                                            @else
+                                                <span class="font-bold text-slate-900 text-[13px] block">
+                                                    {{ $doctor->fullname }}
+                                                </span>
+                                            @endcan
+                                            @if ($doctor->email)
+                                                <span class="text-[10px] text-slate-400 block truncate">{{ $doctor->email }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
 
-                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $status['class'] }}">
-                                {{ $status['text'] }}
-                            </span>
-                        </div>
+                                <!-- Specialty -->
+                                <td class="py-3.5 px-3">
+                                    <span class="font-semibold text-slate-800">{{ $doctor->specialty ?: '—' }}</span>
+                                </td>
 
-                        <!-- Linked Clinic Badge (BelongsTo Clinic) -->
-                        <div class="mb-3">
-                            @if ($doctor->clinic)
-                                <a href="{{ route('clinics.show', $doctor->clinic) }}"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 transition">
-                                    <span>🏥 العيادة:</span>
-                                    <span class="text-[#00685f] font-bold">{{ $doctor->clinic->name }}</span>
-                                </a>
-                            @else
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200/80">
-                                    <span>🏥 العيادة:</span>
-                                    <span class="font-bold">لا يوجد</span>
-                                </span>
-                            @endif
-                        </div>
+                                <!-- Linked Clinic Badge (BelongsTo Clinic) -->
+                                <td class="py-3.5 px-3">
+                                    @if ($doctor->clinic)
+                                        <a href="{{ route('clinics.show', $doctor->clinic) }}"
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 transition">
+                                            <span>🏥</span>
+                                            <span class="text-[#00685f] font-bold">{{ $doctor->clinic->name }}</span>
+                                        </a>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200/80">
+                                            <span>🏥</span>
+                                            <span class="font-bold">لا يوجد</span>
+                                        </span>
+                                    @endif
+                                </td>
 
-                        <div class="bg-[#f8fafc] rounded-lg p-3 border border-slate-100 space-y-2 mb-4 text-xs">
-                            <div class="flex items-center justify-between text-slate-600">
-                                <span>التخصص الدقيق:</span>
-                                <span class="font-semibold text-slate-800">{{ $doctor->specialty }}</span>
-                            </div>
+                                <!-- Consultation Days -->
+                                <td class="py-3.5 px-3 text-slate-700">
+                                    {{ $doctor->schedule_days ?: '—' }}
+                                </td>
 
-                            <div class="flex items-center justify-between text-slate-600">
-                                <span>أيام الكشف:</span>
-                                <span class="text-slate-700">{{ $doctor->schedule_days }}</span>
-                            </div>
+                                <!-- Phone -->
+                                <td class="py-3.5 px-3 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                                    {{ $doctor->phone ?: '—' }}
+                                </td>
 
-                        </div>
-                    </div>
+                                <!-- Status -->
+                                <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                                    <span
+                                        class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold border {{ $status['class'] }}">
+                                        {{ $status['text'] }}
+                                    </span>
+                                </td>
 
-                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                        @can('view', $doctor)
-                            <a href="{{ route('doctors.show', $doctor) }}"
-                                class="flex-1 py-1.5 text-center text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg transition">
-                                الملف المهني ←
-                            </a>
-                        @endcan
-                        @can('update', $doctor)
-                            <a href="{{ route('doctors.edit', $doctor) }}"
-                                class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
-                                تعديل
-                            </a>
-                        @endcan
-                    </div>
-                </div>
-            @empty
-                <div class="col-span-full py-12 text-center text-slate-400">
-                    لا يوجد أطباء مسجلين
-                </div>
-            @endforelse
+                                <!-- Actions -->
+                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        @can('view', $doctor)
+                                            <a href="{{ route('doctors.show', $doctor) }}"
+                                                class="px-2.5 py-1 text-xs font-bold text-white bg-[#00685f] hover:bg-[#005049] rounded-lg transition shadow-2xs"
+                                                title="عرض الملف المهني">
+                                                الملف
+                                            </a>
+                                        @endcan
+                                        @can('update', $doctor)
+                                            <a href="{{ route('doctors.edit', $doctor) }}"
+                                                class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition"
+                                                title="تعديل بيانات الطبيب">
+                                                تعديل
+                                            </a>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="py-12 text-center text-slate-400">
+                                    لا يوجد أطباء مسجلين
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="mt-6">
             {{ $doctors->links() }}

@@ -1,8 +1,19 @@
 <?php
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    if (! auth()->check()) {
+        return redirect()->route('auth.login');
+    }
+
+    return auth()->user()->hasRole(RoleEnum::ADMIN->value)
+        ? redirect()->route('dashboard.index')
+        : redirect()->route('clinics.index');
+})->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('auth.login');

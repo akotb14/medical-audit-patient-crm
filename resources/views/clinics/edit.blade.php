@@ -5,8 +5,6 @@
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
     <!-- Breadcrumb & Header -->
-    <x-alerts />
-
     <div class="flex items-center justify-between">
         <div>
             <nav class="flex items-center gap-2 text-xs text-slate-500 mb-1">

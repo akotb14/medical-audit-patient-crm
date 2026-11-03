@@ -4,7 +4,6 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
-    <x-alerts />
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
         <div>

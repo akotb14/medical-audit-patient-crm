@@ -1,11 +1,16 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "akotb14/medical-audit-patient-crm",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Arabic-first (RTL) clinic operations CRM: patients, clinics, doctors, visits, follow-ups, satisfaction surveys, complaints, staff roles and an operations dashboard.",
     "keywords": [
         "laravel",
-        "framework"
+        "crm",
+        "healthcare",
+        "clinic",
+        "patient",
+        "arabic",
+        "rtl"
     ],
     "license": "MIT",
     "require": {

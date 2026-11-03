@@ -219,9 +219,9 @@
         </div>
 
         <!-- 5. Urgent Follow-ups & Live Clinical Activity Audit (2 Columns) -->
-        <div class=" lg:grid-cols-12 gap-6">
-            <!-- Urgent Follow-ups Feed (7 Cols) -->
-            <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="grid grid-cols-1 gap-6">
+            <!-- Urgent Follow-ups Feed -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div>
                         <div class="flex items-center gap-2">

@@ -2,17 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\Doctor;
-use App\Services\ClinicService;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
-  /**
      * Register any application services.
      */
     public function register(): void
@@ -26,8 +20,5 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-
-    }
+    public function boot(): void {}
 }

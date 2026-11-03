@@ -5,8 +5,6 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header with Operational Actions -->
-    <x-alerts />
-
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-[#0b1c30]">إدارة المستخدمين والكادر الطبي</h1>
@@ -76,10 +74,10 @@
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a class="text-xs text-[#00685f] hover:underline font-semibold"
-                                    href={{route('users.edit', $user->id)}}>تعديل</a>
+                                <a class="text-xs font-semibold text-[#00685f] hover:underline"
+                                    href="{{ route('users.edit', $user->id) }}">تعديل</a>
                                 <span class="text-slate-300">|</span>
-                                <form method="POST" action={{route('users.destroy', $user)}}>
+                                <form method="POST" action="{{ route('users.destroy', $user) }}">
                                     @csrf
                                     @method('DELETE')
                                     <button class="text-xs text-rose-600 hover:underline">حذف</button>

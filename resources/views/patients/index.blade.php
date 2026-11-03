@@ -168,7 +168,7 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-150">
+                    <tbody class="divide-y divide-slate-100">
                         @foreach ($patients ?? [] as $patient)
                             <tr class="hover:bg-teal-50/40 transition group">
                                 {{-- 1. MRN (Monospace, high-contrast, easily spotted by eye) --}}

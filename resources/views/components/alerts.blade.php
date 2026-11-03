@@ -1,5 +1,10 @@
+@php
+    $hasAlerts = session('error') || $errors->any() || session('success') || session('message');
+@endphp
+
 {{-- Notifications Container --}}
-<div class="space-y-3 mb-6" dir="rtl">
+@if ($hasAlerts)
+<div class="space-y-3" dir="rtl">
     {{-- General Error Message --}}
     @if (session('error'))
         <div id="errorAlert" role="alert"
@@ -170,3 +175,4 @@
     @endif
 
 </div>
+@endif

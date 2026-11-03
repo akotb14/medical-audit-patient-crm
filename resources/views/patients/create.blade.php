@@ -17,7 +17,6 @@
             <span>← العودة لدليل المرضى</span>
         </a>
     </div>
-    <x-alerts />
     <!-- Create Form -->
     <form action="{{ route('patients.store') }}" method="POST" class="space-y-6">
         @csrf
