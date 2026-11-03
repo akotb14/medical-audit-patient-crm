@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Models\Doctor;
+use App\Queries\DoctorIndexQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DoctorService
 {
@@ -21,6 +24,21 @@ class DoctorService
      * @var list<string>
      */
     private const OPTION_COLUMNS = ['id', 'fullname', 'clinic_id'];
+
+    public function __construct(private DoctorIndexQuery $doctorIndexQuery) {}
+
+    /**
+     * The doctor directory, filtered by the request.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function paginateIndex(array $filters): LengthAwarePaginator
+    {
+        return $this->doctorIndexQuery
+            ->build($filters)
+            ->paginate(12)
+            ->withQueryString();
+    }
 
     public function getDoctorsCounts()
     {
@@ -92,5 +110,76 @@ class DoctorService
                 ])
                 ->all()
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function create(array $data, ?int $actorId): Doctor
+    {
+        $doctor = Doctor::create([
+            ...$data,
+            'created_by' => $actorId,
+        ]);
+
+        $this->flushCountCaches();
+
+        return $doctor;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function update(Doctor $doctor, array $data, ?int $actorId): void
+    {
+        $doctor->update([
+            ...$data,
+            'updated_by' => $actorId,
+        ]);
+
+        $this->flushCountCaches();
+    }
+
+    /**
+     * Delete a doctor who has never seen a patient.
+     *
+     * The visits keep the clinical history of their patients, and the foreign key
+     * releases the doctor reference on each of them when the row goes. A doctor
+     * who has seen patients is deactivated instead of deleted, so the visits keep
+     * naming the doctor who saw them. The row is locked before the check, so a
+     * visit cannot be attached between the check and the delete.
+     *
+     * @return bool whether the doctor was deleted
+     */
+    public function delete(Doctor $doctor): bool
+    {
+        $hasVisits = DB::transaction(function () use ($doctor): bool {
+            $lockedDoctor = Doctor::query()
+                ->whereKey($doctor->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedDoctor->visits()->exists()) {
+                return true;
+            }
+
+            $lockedDoctor->delete();
+
+            return false;
+        });
+
+        if ($hasVisits) {
+            return false;
+        }
+
+        $this->flushCountCaches();
+
+        return true;
+    }
+
+    private function flushCountCaches(): void
+    {
+        Cache::forget('doctors_counts');
+        Cache::forget('doctors_counts_by_clinic');
     }
 }

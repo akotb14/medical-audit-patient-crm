@@ -3,40 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SurveyRequest\CreateSurveyRequest;
-use App\Models\Complaint;
+use App\Http\Requests\SurveyRequest\SurveyIndexRequest;
 use App\Models\Survey;
-use App\Models\Visit;
-use Illuminate\Http\Request;
+use App\Services\SurveyService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class SurveyController extends Controller
 {
-    //
-    public function index(Request $request)
+    public function __construct(private SurveyService $surveyService) {}
+
+    public function index(SurveyIndexRequest $request)
     {
         Gate::authorize('viewAny', Survey::class);
-        $request->validate([
-            'search' => 'nullable|string',
-        ]);
-        $search = $request['search'] ?? '';
-        $rating = (int) $request['rating'] ?? 'all';
 
-        $query = Survey::query()->with('patient:id,fullname,mrn,deleted_at', 'visit:id,date,doctor_id', 'visit.doctor:id,fullname', 'creator:id,name', 'complaint');
-
-        $stats = (clone $query)->stats()->first();
-
-        if ($search) {
-            $query->search($search);
-        }
-        if ($rating && $rating > 0 && $rating <= 5) {
-            $query->where('rating', $rating);
-        }
-
-        $surveys = $query->latest()->paginate(20)->withQueryString();
-
-        return view('surveys.index', compact('surveys', 'stats'));
+        return view('surveys.index', $this->surveyService->paginateIndex($request->validated()));
     }
 
     public function show(Survey $survey)
@@ -51,52 +32,26 @@ class SurveyController extends Controller
     {
         Gate::authorize('create', Survey::class);
 
-        $data = $request->validated();
-        $visit = Visit::query()
-            ->findOrFail($data['visit_id']);
+        $result = $this->surveyService->submit($request->validated(), Auth::id());
 
-        $data['patient_id'] = $visit->patient_id;
-        if ($visit['visit_status'] !== 'completed') {
+        if (! $result['recorded']) {
             return back()->with('error', 'لا يمكن تسجيل استبيان إلا بعد إنهاء الزيارة');
         }
-        $data['created_by'] = Auth::id();
 
-        if ($data['rating'] >= 3) {
-            Survey::create($data);
-
-            return back()->with('success', 'تم تسجيل الاستبيان بنجاح');
-        } else {
-            DB::transaction(function () use ($data) {
-                $survey = Survey::create($data);
-                Complaint::create([
-                    'patient_id' => $data['patient_id'],
-                    'survey_id' => $survey->id,
-                    'source' => 'survey',
-                    'title' => 'ملاحظات سلبية في استبيان رضا المرضى',
-                    'description' => $data['comment'] ?? 'لم يترك المريض تعليقًا نصيًا، والتقييم المنخفض هو سبب تسجيل الشكوى.',
-                    'status' => 'new',
-                    'created_by' => Auth::id(),
-                ]);
-            });
-
+        if ($result['complaint_opened']) {
             return back()->with('success', 'تم تسجيل الاستبيان بنجاح وفتح شكوي تلقائي بسبب استبيان المريض');
         }
+
+        return back()->with('success', 'تم تسجيل الاستبيان بنجاح');
     }
 
     public function destroy(Survey $survey)
     {
         Gate::authorize('delete', $survey);
 
-        /*
-        | The complaint raised from a survey is removed by the foreign key together
-        | with it, so a survey that produced one is refused instead of taking the
-        | complaint and its investigation with it.
-        */
-        if ($survey->complaint()->exists()) {
+        if (! $this->surveyService->delete($survey)) {
             return back()->with('error', 'لا يمكن حذف الاستبيان لوجود شكوى مرتبطة به.');
         }
-
-        $survey->delete();
 
         return back()->with('success', 'تم حذف الاستبيان بنجاح');
     }

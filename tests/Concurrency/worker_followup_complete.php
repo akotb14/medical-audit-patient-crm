@@ -9,6 +9,7 @@ declare(strict_types=1);
 require __DIR__.'/lib.php';
 
 use App\Http\Controllers\FollowUpsController;
+use App\Http\Requests\FollowUpsRequests\CompleteFollowUpRequest;
 use App\Models\FollowUp;
 
 conc_boot();
@@ -26,7 +27,7 @@ if ($waitFor !== '' && ! conc_wait_for($waitFor)) {
 }
 
 $followUp = FollowUp::query()->findOrFail($followUpId);
-$request = conc_plain_request('PATCH', "/follow_ups/{$followUpId}/complete", [
+$request = conc_form_request(CompleteFollowUpRequest::class, 'PATCH', "/follow_ups/{$followUpId}/complete", [
     'outcome_note' => $outcomeNote,
 ]);
 

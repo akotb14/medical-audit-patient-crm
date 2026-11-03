@@ -9,6 +9,7 @@ declare(strict_types=1);
 require __DIR__.'/lib.php';
 
 use App\Http\Controllers\ComplaintController;
+use App\Http\Requests\ComplaintRequests\AssignComplaintRequest;
 use App\Models\Complaint;
 
 conc_boot();
@@ -26,7 +27,7 @@ if ($waitFor !== '' && ! conc_wait_for($waitFor)) {
 }
 
 $complaint = Complaint::query()->findOrFail($complaintId);
-$request = conc_plain_request('PATCH', "/complaints/{$complaintId}/assign", [
+$request = conc_form_request(AssignComplaintRequest::class, 'PATCH', "/complaints/{$complaintId}/assign", [
     'assigned_to' => $assigneeId,
 ]);
 

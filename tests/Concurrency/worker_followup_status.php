@@ -11,6 +11,7 @@ declare(strict_types=1);
 require __DIR__.'/lib.php';
 
 use App\Http\Controllers\FollowUpsController;
+use App\Http\Requests\FollowUpsRequests\UpdateFollowUpStatusRequest;
 use App\Models\FollowUp;
 
 conc_boot();
@@ -28,7 +29,7 @@ if ($waitFor !== '' && ! conc_wait_for($waitFor)) {
 }
 
 $followUp = FollowUp::query()->findOrFail($followUpId);
-$request = conc_plain_request('PATCH', "/follow_ups/{$followUpId}/status", [
+$request = conc_form_request(UpdateFollowUpStatusRequest::class, 'PATCH', "/follow_ups/{$followUpId}/status", [
     'status' => $requestedStatus,
 ]);
 
