@@ -71,7 +71,7 @@
             <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
                 <span class="text-[11px] text-teal-700 font-medium block">فصيلة الدم الأكثر شيوعاً</span>
                 <div class="text-lg font-bold text-teal-800 font-mono mt-0.5 tabular-nums">
-                    {{$stats['most_common_blood_group'] ?? 'A+'}}
+                    {{ $stats['most_common_blood_group'] ?: 'لا يوجد' }}
                 </div>
             </div>
         </div>
@@ -211,13 +211,13 @@
                                 <td class="py-3 px-3 text-center whitespace-nowrap">
                                     <span
                                         class="font-mono font-bold text-xs bg-rose-50 text-rose-700 px-2 py-0.5 rounded border border-rose-200 inline-block shadow-2xs">
-                                        {{ $patient->blood_group ?? 'لا يوجد' }}
+                                        {{ $patient->blood_group }}
                                     </span>
                                 </td>
 
                                 {{-- 5. National ID & Phone --}}
                                 <td class="py-3 px-3.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                                    <div class="font-semibold text-slate-800">{{ $patient->phone ?? '---' }}</div>
+                                    <div class="font-semibold text-slate-800">{{ $patient->phone }}</div>
                                 </td>
 
                                 {{-- 6. Drug Allergies (High priority visual flag) --}}
@@ -226,7 +226,7 @@
                                     <span
                                         class="inline-flex items-center gap-1 font-bold text-[11px] bg-rose-50 text-rose-800 px-2 py-0.5 rounded-md border border-rose-200 shadow-2xs">
                                         <span>⚠️</span>
-                                        <span>{{ $patient->allergies ?? 'لا يوجد' }}</span>
+                                        <span>{{ $patient->allergies ?: 'لا يوجد' }}</span>
                                     </span>
                                 </td>
 
@@ -235,7 +235,7 @@
                                     <span
                                         class="inline-flex items-center gap-1 font-medium text-[11px] bg-amber-50 text-amber-900 px-2 py-0.5 rounded-md border border-amber-200">
                                         <span>🩺</span>
-                                        <span>{{ $patient->chronic_diseases ?? 'لا يوجد' }}</span>
+                                        <span>{{ $patient->chronic_diseases ?: 'لا يوجد' }}</span>
                                     </span>
 
                                 </td>

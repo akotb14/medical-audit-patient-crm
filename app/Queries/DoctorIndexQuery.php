@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Queries;
 
 use App\Models\Doctor;
@@ -9,13 +10,6 @@ class DoctorIndexQuery
     public function build(array $filters): Builder
     {
         return Doctor::query()
-            ->select([
-                'id',
-                'fullname',
-                'clinic_id',
-                'specialty',
-                'status',
-            ])
             ->with('clinic:id,name')
             ->when($filters['search'] ?? null, function (
                 Builder $query,
@@ -41,4 +35,3 @@ class DoctorIndexQuery
             ->orderBy('id');
     }
 }
-

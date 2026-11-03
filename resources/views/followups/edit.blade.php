@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل المتابعة السريرية #' . ($followup->id ?? '---'))
+@section('title', 'تعديل المتابعة السريرية #' . $followup->id)
 
 @section('content')
     <div class="max-w-3xl mx-auto space-y-6">
@@ -58,24 +58,22 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- patient_id -->
                         <div class="flex flex-col gap-2.5">
-                            <input type="hidden" name="patient_id" value="{{ $followup->patient_id }}">
                             <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
                                 المريض ورقم الملف (patient_id):
                             </label>
                             <span id="patient_id"
-                                class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">{{ $followup->patient->fullname ?? '---' }}</span>
+                                class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">{{ $followup->patient->fullname }}</span>
 
                         </div>
 
                         <!-- visit_id -->
                         <div class="flex flex-col gap-2.5">
-                            <input name="visit_id" value="{{ $followup->visit_id }}" type="hidden">
                             <label for="visit_id" class="font-bold text-slate-700 block mb-1.5">
                                 الزيارة السريرية المرتبطة (visit_id):
                             </label>
                             <span id="visit_id" class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">
-                                زيارة #{{ $followup->visit?->id }} - {{ $followup->patient?->fullname ?? 'مريض' }}
-                                ({{ $followup->visit->date ? $followup->visit->date->format('Y-m-d') : '' }})
+                                زيارة #{{ $followup->visit->id }} - {{ $followup->patient->fullname }}
+                                ({{ $followup->visit->date ? $followup->visit->date->format('Y-m-d') : 'بدون تاريخ' }})
                             </span>
 
                         </div>
@@ -187,8 +185,7 @@
             }
         }
 
-        function toggleOutcomeNoteSection(value) {
-            console.log(value);
+        function toggleOutcomeNoteSection() {
             const section = document.getElementById('outcomeNoteSection');
             const status = document.getElementById('status');
             if (section) {

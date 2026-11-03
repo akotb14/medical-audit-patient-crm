@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\VistRequests\CreateVisitRequest;
 use App\Http\Requests\VistRequests\UpdateVisitRequest;
 use App\Http\Requests\VistRequests\VisitIndexRequest;
-use App\Models\Doctor;
 use App\Models\FollowUp;
-use App\Models\Patient;
 use App\Models\Visit;
 use App\Queries\VisitIndexQuery;
+use App\Services\DoctorService;
+use App\Services\PatientService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +18,11 @@ use Illuminate\Validation\ValidationException;
 
 class VisitController extends Controller
 {
-    public function __construct(private VisitIndexQuery $visitIndexQuery) {}
+    public function __construct(
+        private VisitIndexQuery $visitIndexQuery,
+        private PatientService $patientService,
+        private DoctorService $doctorService
+    ) {}
 
     public function index(VisitIndexRequest $request)
     {
@@ -66,7 +70,7 @@ class VisitController extends Controller
         }
 
         $visits = $query->paginate(20)->withQueryString();
-        $doctors = Doctor::with('clinic')->where('status', 'active')->get();
+        $doctors = $this->doctorService->getDoctorOptions($doctorId === null ? null : (int) $doctorId);
 
         return view('visits.index', compact('visits', 'doctors', 'stats'));
     }
@@ -82,13 +86,13 @@ class VisitController extends Controller
     public function create(Request $request)
     {
         Gate::authorize('create', Visit::class);
-        $patient_id = $request->query('patient_id');
-        $patients = Patient::query()->select('id', 'fullname', 'mrn');
-        $doctors = Doctor::with('clinic')->where('status', 'active')->get();
-        if ($patient_id) {
-            $patients->where('id', $patient_id);
-        }
-        $patients = $patients->get();
+        $patientId = $request->query('patient_id');
+        $patients = is_numeric($patientId)
+            ? $this->patientService->getPatientOption((int) $patientId)
+            : $this->patientService->getPatientOptions();
+        $doctors = $this->doctorService->getDoctorOptions(
+            is_numeric($request->old('doctor_id')) ? (int) $request->old('doctor_id') : null
+        );
 
         return view('visits.create', compact('patients', 'doctors'));
     }
@@ -107,8 +111,8 @@ class VisitController extends Controller
     public function edit(Visit $visit)
     {
         Gate::authorize('update', $visit);
-        $patients = Patient::select('id', 'fullname', 'mrn')->get();
-        $doctors = Doctor::with('clinic')->where('status', 'active')->get();
+        $patients = $this->patientService->getPatientOptions($visit->patient_id);
+        $doctors = $this->doctorService->getDoctorOptions($visit->doctor_id);
 
         return view('visits.edit', compact('visit', 'patients', 'doctors'));
     }
@@ -117,8 +121,46 @@ class VisitController extends Controller
     {
         Gate::authorize('update', $visit);
         $data = $request->validated();
-        $data['updated_by'] = Auth::id();
-        $visit->update($data);
+
+        /*
+        | The status is re-read under the row lock. A visit can be completed or
+        | cancelled between binding the model and writing the update, and the
+        | request was validated against the status the row had at that moment.
+        */
+        DB::transaction(function () use ($visit, $data): void {
+            $lockedVisit = Visit::query()
+                ->whereKey($visit->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $wasClosed = in_array($visit->visit_status, ['completed', 'cancelled'], true);
+            $isClosed = in_array($lockedVisit->visit_status, ['completed', 'cancelled'], true);
+
+            /*
+            | The submitted date, doctor and reason were validated against an open
+            | visit. Writing them now would bypass the freeze that applies to a
+            | closed visit, so the request is rejected and the user retries on the
+            | fresh state.
+            */
+            if ($isClosed && ! $wasClosed) {
+                throw ValidationException::withMessages([
+                    'visit' => 'تم إغلاق الزيارة أثناء التعديل. يرجى إعادة المحاولة.',
+                ]);
+            }
+
+            /*
+            | The edit form submits the date without a time. Resubmitting it for a
+            | closed visit is allowed, but the stored time is part of the medical
+            | history: leaving the key out keeps the original timestamp instead of
+            | writing midnight over it.
+            */
+            if ($isClosed) {
+                unset($data['date']);
+            }
+
+            $data['updated_by'] = Auth::id();
+            $lockedVisit->update($data);
+        });
 
         return redirect()->route('visits.index')->with('success', 'تم تحديث بيانات الزيارة');
     }
@@ -144,7 +186,7 @@ class VisitController extends Controller
                 'required_if:action,complete_with_followup',
                 'nullable',
                 'string',
-                'max:1000',
+                'max:500',
             ],
         ], [
             'due_date.required_if' => 'يجب تحديد تاريخ المتابعة',
@@ -226,7 +268,32 @@ class VisitController extends Controller
     public function destroy(Visit $visit)
     {
         Gate::authorize('delete', $visit);
-        $visit->delete();
+
+        /*
+        | The status is re-checked under the row lock. A completed visit is part
+        | of the medical history and must not be removed even if it was open when
+        | the request started.
+        */
+        $deleted = DB::transaction(function () use ($visit): bool {
+            $lockedVisit = Visit::query()
+                ->whereKey($visit->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedVisit->visit_status === 'completed') {
+                return false;
+            }
+
+            $lockedVisit->delete();
+
+            return true;
+        });
+
+        if (! $deleted) {
+            return redirect()
+                ->route('visits.index')
+                ->with('error', 'لا يمكن حذف زيارة مكتملة.');
+        }
 
         return redirect()->route('visits.index')->with('success', 'تم حذف الزيارة بنجاح');
     }

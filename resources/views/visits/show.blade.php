@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تفاصيل الزيارة السريرية #' . ($visit->id ?? ''))
+@section('title', 'تفاصيل الزيارة السريرية #' . $visit->id)
 
 @section('content')
     <div class="space-y-6">
@@ -15,8 +15,8 @@
                 <div class="flex items-center gap-3">
                     <h1 class="text-2xl font-bold text-[#0b1c30]">سجل الزيارة الطبية </h1>
                     <span
-                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $visit->status_badge_classes ?? 'bg-slate-100 text-slate-700' }}">
-                        {{ $visit->status_label ?? 'قيد الإجراء' }}
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $visit->status_badge_classes }}">
+                        {{ $visit->status_label }}
                     </span>
                 </div>
                 <p class="text-xs text-[#64748b] mt-1">تاريخ المراجعة: <span
@@ -69,7 +69,7 @@
 
                     <div
                         class="bg-slate-50 border-r-4 border-[#00685f] p-4 rounded-lg text-slate-800 text-sm leading-relaxed">
-                        {{ $visit->reason ?? 'لم يتم تدوين سبب الزيارة.' }}
+                        {{ $visit->reason ?: 'لم يتم تدوين سبب الزيارة.' }}
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-600">
@@ -80,7 +80,7 @@
                         </div>
                         <div class="p-3 bg-white border border-slate-200 rounded-xl">
                             <span class="text-slate-400 block text-[11px] mb-1">حالة السجل الحالية:</span>
-                            <span class="font-bold text-teal-800">{{ $visit->status_label ?? 'تم الإنشاء' }}</span>
+                            <span class="font-bold text-teal-800">{{ $visit->status_label }}</span>
                         </div>
                     </div>
                 </div>
@@ -126,7 +126,7 @@
                                 <div>
                                     <span class="text-slate-400 block text-[11px]">رقم الهاتف:</span>
                                     <span
-                                        class="font-mono text-teal-800 font-bold">{{ $visit->patient->phone ?? '05XXXXXXXX' }}</span>
+                                        class="font-mono text-teal-800 font-bold">{{ $visit->patient->phone ?: 'غير مسجل' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -163,17 +163,20 @@
                                 <div>
                                     <h4 class="font-bold text-sm text-slate-900">{{ $visit->doctor->fullname }}</h4>
                                     <span
-                                        class="text-slate-500 text-xs">{{ $visit->doctor->specialty ?? 'استشاري' }}</span>
+                                        class="text-slate-500 text-xs">{{ $visit->doctor->specialty ?: 'التخصص غير مسجل' }}</span>
                                 </div>
                             </div>
 
-                            <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
-                                <div class="text-[11px] text-blue-700 font-semibold">العيادة التابعة:</div>
-                                <div class="font-bold text-slate-800">{{ $visit->doctor->clinic->name ?? 'عيادة عامة' }}
+                            @if ($visit->doctor->clinic)
+                                <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
+                                    <div class="text-[11px] text-blue-700 font-semibold">العيادة التابعة:</div>
+                                    <div class="font-bold text-slate-800">{{ $visit->doctor->clinic->name }}</div>
                                 </div>
-                                <div class="text-[11px] text-slate-500">{{ $visit->doctor->clinic->floor ?? '' }} - غرفة
-                                    {{ $visit->doctor->clinic->room_number ?? '101' }}</div>
-                            </div>
+                            @else
+                                <div class="text-center py-3 text-xs text-slate-400 italic">
+                                    لا توجد عيادة مرتبطة بهذا الطبيب.
+                                </div>
+                            @endif
                         </div>
                     @else
                         <div class="text-center py-4 text-xs text-slate-400 italic">
@@ -191,7 +194,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-400">أنشئ بواسطة (created_by):</span>
                                 <span
-                                    class="font-bold text-slate-800">{{ $visit->creator->name ?? 'المشرف العام (أدمن)' }}</span>
+                                    class="font-bold text-slate-800">{{ $visit->creator?->name ?? 'غير معروف' }}</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-400">تاريخ الإنشاء (created_at):</span>

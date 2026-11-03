@@ -170,7 +170,7 @@
                         @if (isset($surveys) && count($surveys) > 0)
                             @foreach ($surveys as $survey)
                                 @php
-                                    $isLow = $survey->isLowRating();
+                                    $isLow = $survey->is_low_rating;
                                 @endphp
                                 <tr class="hover:bg-teal-50/20 transition {{ $isLow ? 'bg-rose-50/20' : '' }}">
                                     <!-- ID -->
@@ -292,7 +292,7 @@
                                     <td class="py-3.5 px-3.5 text-slate-500 font-mono text-[11px]">
                                         <div>{{ $survey->created_at ? $survey->created_at->format('Y-m-d') : '-' }}</div>
                                         <div class="text-[10px] text-slate-400">
-                                            {{ $survey->recorder->name ?? 'موظف الاستقبال' }}</div>
+                                            {{ $survey->creator->name }}</div>
                                     </td>
 
                                     <!-- Actions -->

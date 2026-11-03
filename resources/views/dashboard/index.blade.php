@@ -11,13 +11,8 @@
                 <div class="space-y-2">
                     <div class="flex items-center gap-2.5 flex-wrap">
                         <span
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>التشغيل السريري: نشط ومستقر 100%</span>
-                        </span>
-                        <span
-                            class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-teal-50 text-[#00685f] border border-teal-200">
-                            وردية العيادات النهارية
+                            class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-[#00685f] border border-teal-200">
+                            منظومة إدارة الزيارات والمتابعات السريرية
                         </span>
                         <span class="text-xs text-slate-500 font-medium">
                             {{ now()->locale('ar')->translatedFormat('l، d F Y') }}
@@ -51,11 +46,6 @@
                         <span>+ استبيان رضا </span>
                     </button> --}}
 
-                    {{-- <a href="{{ route('follow_ups.create') }}"
-                        class="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-2xs transition">
-                        <span>+ جدولة متابعة</span>
-                    </a> --}}
-
                     <button type="button" onclick="window.print()"
                         class="p-2.5 text-slate-500 hover:text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs transition"
                         title="طباعة تقرير العمليات السريرية">
@@ -76,7 +66,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <!-- KPI 1: Visits Flow -->
             <x-dashboard.kpi-card title="إجمالي الزيارات السريرية" :value="$totalVisits" subvalue="زيارة مسجلة" icon="🏥"
-                color="teal" trend="+12%" :trend-positive="true" :progress="$completionRate" :footer="$completedVisits . ' مكتمل · ' . $scheduledVisits . ' قادم'" :link="route('visits.index')" />
+                color="teal" :progress="$completionRate" :footer="$completedVisits . ' مكتمل · ' . $scheduledVisits . ' قادم'" :link="route('visits.index')" />
 
             <!-- KPI 2: Critical Follow-ups (follow_ups schema) -->
             <x-dashboard.kpi-card title="المتابعات السريرية الحرجة" :value="$scheduledFollowups" subvalue="حالة قيد المتابعة"
@@ -89,11 +79,11 @@
 
             <!-- KPI 4: Complaints & Quality SLA (FR-6, BR-7) -->
             <x-dashboard.kpi-card title="تذاكر الشكاوى والاعتراض" :value="$activeComplaintsCount" subvalue="تذكرة نشطة" icon="🚨"
-                color="rose" badge="SLA 24 ساعة" :footer="$autoComplaintsFromSurveys . ' ناتجة آلياً · ' . $resolvedComplaints . ' تم حلها'" :link="route('complaints.index')" />
+                color="rose" :footer="$autoComplaintsFromSurveys . ' ناتجة آلياً · ' . $resolvedComplaints . ' تم حلها'" :link="route('complaints.index')" />
 
             <!-- KPI 5: Specialty Clinics & Capacity -->
             <x-dashboard.kpi-card title="العيادات والأقسام التخصصية" :value="$activeClinics . '/' . $totalClinics" subvalue="أجنحة مشغلة"
-                icon="🏢" color="blue" badge="100% جاهزية" :footer="$activeDoctors . ' طبيب استشاري مسجل'" :link="route('clinics.index')" />
+                icon="🏢" color="blue" :footer="$activeDoctors . ' طبيب مسجل'" :link="route('clinics.index')" />
 
             <!-- KPI 6: Patients MRN & Clinical Safety -->
             <x-dashboard.kpi-card title="دليل وسجل المرضى (MRN)" :value="$totalPatients" subvalue="ملف طبي نشط" icon="👤"
@@ -175,8 +165,12 @@
                     </span>
                     <span
                         class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 font-mono">
-                        {{ $totalComplaints > 0 ? round((($resolvedComplaints + $closedComplaints) / $totalComplaints) * 100, 0) : 100 }}%
-                        نسبة الحل
+                        @if ($totalComplaints > 0)
+                            {{ round((($resolvedComplaints + $closedComplaints) / $totalComplaints) * 100, 0) }}% نسبة
+                            الحل
+                        @else
+                            لا توجد شكاوى مسجلة
+                        @endif
                     </span>
                 </div>
             </div>
@@ -208,7 +202,7 @@
                                     
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[11px] text-teal-800 font-bold">{{ $clinic->doctors_count ?? 1 }}
+                                    <span class="text-[11px] text-teal-800 font-bold">{{ $clinic->doctors_count }}
                                         أطباء</span>
 
                                 </div>
@@ -249,12 +243,12 @@
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2">
                                     <span
-                                        class="font-bold text-slate-900 text-xs">{{ $flw->patient->fullname ?? 'مريض' }}</span>
+                                        class="font-bold text-slate-900 text-xs">{{ $flw->patient->fullname }}</span>
                                     <span
                                         class="font-mono text-[11px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                                        {{ $flw->patient->mrn ?? 'MRN' }}
+                                        {{ $flw->patient->mrn }}
                                     </span>
-                                    <x-archived-badge :patient="$flw->patient ?? null" />
+                                    <x-archived-badge :patient="$flw->patient" />
                                     @if ($flw->visit)
                                         <span class="text-[10px] text-slate-400 font-mono">زيارة
                                             #{{ $flw->visit->id }}</span>
@@ -287,67 +281,6 @@
                 </div>
             </div>
 
-            <!-- Live Clinical Activity Timeline (5 Cols) -->
-            {{-- <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
-                        <h3 class="font-bold text-base text-[#0b1c30]">سجل التدقيق والتحديثات اللحظية (Audit Feed)</h3>
-                    </div>
-                    <span class="text-[10px] font-mono text-slate-400">Real-time</span>
-                </div>
-
-                <!-- Activity Items -->
-                <div class="space-y-3.5 text-xs">
-                    <div class="flex items-start gap-3 p-3 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <span class="text-base shrink-0">✅</span>
-                        <div>
-                            <div class="flex items-center justify-between gap-2">
-                                <strong class="text-slate-800">إتمام زيارة سريرية وتوثيق الخطة</strong>
-                                <span class="text-[10px] text-slate-400 font-mono">منذ 8 دقائق</span>
-                            </div>
-                            <p class="text-[11px] text-slate-600 mt-0.5">تم توثيق الكشف لزيارة د. خالد المهيدب وجدولة
-                                المتابعة لـ (سليمان المنصور).</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 p-3 bg-rose-50/60 rounded-2xl border border-rose-100">
-                        <span class="text-base shrink-0">🚨</span>
-                        <div>
-                            <div class="flex items-center justify-between gap-2">
-                                <strong class="text-rose-900">إنشاء شكوى تلقائية بموجب </strong>
-                                <span class="text-[10px] text-rose-500 font-mono">منذ 25 دقيقة</span>
-                            </div>
-                            <p class="text-[11px] text-rose-700 mt-0.5">تم رصد استبيان بتقييم 2 نجوم للزيارة #4، وتوليد
-                                تذكرة الشكوى آلياً.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 p-3 bg-teal-50/60 rounded-2xl border border-teal-100">
-                        <span class="text-base shrink-0">⭐</span>
-                        <div>
-                            <div class="flex items-center justify-between gap-2">
-                                <strong class="text-teal-900">استبيان رضا ممتاز (5 نجوم)</strong>
-                                <span class="text-[10px] text-teal-600 font-mono">منذ 40 دقيقة</span>
-                            </div>
-                            <p class="text-[11px] text-teal-800 mt-0.5">سجل المريض "نورة الراجحي" تقييم 5 نجوم لعيادة طب
-                                الأسنان.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 p-3 bg-amber-50/60 rounded-2xl border border-amber-100">
-                        <span class="text-base shrink-0">⚠️</span>
-                        <div>
-                            <div class="flex items-center justify-between gap-2">
-                                <strong class="text-amber-900">تنبيه حساسية دوائية حرجة</strong>
-                                <span class="text-[10px] text-amber-600 font-mono">اليوم</span>
-                            </div>
-                            <p class="text-[11px] text-amber-800 mt-0.5">تأكيد حساسية البنسلين للمريض MRN-84920 قبل صرف
-                                الوصفة السريرية.</p>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
         </div>
 
         <!-- 6. Fast Triage & Recent Visits Table -->
@@ -408,21 +341,21 @@
                                     @if ($v->doctor)
                                         <div class="font-bold text-slate-800">{{ $v->doctor->fullname }}</div>
                                         <span
-                                            class="text-[10px] text-slate-500 block">{{ $v->doctor->clinic->name ?? ($v->doctor->specialty ?? '') }}</span>
+                                            class="text-[10px] text-slate-500 block">{{ $v->doctor->clinic?->name ?: ($v->doctor->specialty ?: 'غير مسجل') }}</span>
                                     @else
-                                        <span class="text-slate-400 italic">طبيب مناوب</span>
+                                        <span class="text-slate-400 italic">لم يتم تعيين طبيب</span>
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-3.5 font-mono text-slate-600">
                                     {{ $v->date ? $v->date->format('Y-m-d') : '-' }}
                                 </td>
                                 <td class="py-3.5 px-3.5 text-slate-700 max-w-xs truncate" title="{{ $v->reason }}">
-                                    {{ $v->reason ?? 'مراجعة سريرية دورية' }}
+                                    {{ $v->reason ?: 'غير مسجل' }}
                                 </td>
                                 <td class="py-3.5 px-3.5">
                                     <span
-                                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $v->status_badge_classes ?? 'bg-slate-100 text-slate-700' }}">
-                                        {{ $v->status_label ?? 'تم الإنشاء' }}
+                                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $v->status_badge_classes }}">
+                                        {{ $v->status_label }}
                                     </span>
                                 </td>
                                 <td class="py-3.5 px-3.5">

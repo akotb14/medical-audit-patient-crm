@@ -29,7 +29,7 @@
                 </div>
                 <p class="text-xs text-[#64748b] mt-1 font-mono">
                     تاريخ الفتح: {{ $complaint->created_at ? $complaint->created_at->format('Y-m-d H:i') : '-' }} بواسطة:
-                    {{ $complaint->creator->name ?? 'النظام الآلي' }}
+                    {{ $complaint->creator->name }}
                 </p>
             </div>
 
@@ -343,10 +343,14 @@
                             <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
                                 <div>
                                     <span class="text-slate-400 block">رقم الهاتف:</span>
-                                    <a href="tel:{{ $complaint->patient->phone }}"
-                                        class="font-mono font-bold text-teal-800 hover:underline">
-                                        {{ $complaint->patient->phone ?? 'غير مسجل' }}
-                                    </a>
+                                    @if ($complaint->patient->phone)
+                                        <a href="tel:{{ $complaint->patient->phone }}"
+                                            class="font-mono font-bold text-teal-800 hover:underline">
+                                            {{ $complaint->patient->phone }}
+                                        </a>
+                                    @else
+                                        <span class="text-slate-400 italic">غير مسجل</span>
+                                    @endif
                                 </div>
 
                             </div>
@@ -420,7 +424,7 @@
                             <div>
                                 <div class="font-bold text-sm text-slate-900">{{ $complaint->assignee->name }}</div>
                                 <div class="text-slate-500 text-[11px]">
-                                    {{ $complaint->assignee->role ?? 'محقق جودة وخدمة عملاء' }}</div>
+                                    {{ $complaint->assignee->roleNames() ?: 'محقق جودة وخدمة عملاء' }}</div>
                             </div>
                         </div>
                     @else

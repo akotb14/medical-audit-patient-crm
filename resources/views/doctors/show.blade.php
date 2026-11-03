@@ -31,13 +31,13 @@
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 rounded-full bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center font-bold text-2xl shadow-xs"
                         id="doctorShowAvatar">
-                        {{ mb_substr($doctor->fullname ?? 'د', 0, 1) }}
+                        {{ mb_substr($doctor->fullname, 0, 1) }}
                     </div>
                     <div>
                         <div class="flex items-center gap-3">
                             <h1 class="text-xl font-bold text-[#0b1c30]" id="doctorShowName">{{ $doctor->fullname }}</h1>
                             @php
-                                $status = $doctor->status ?? 'active';
+                                $status = $doctor->status;
 
                                 $statusConfig = match ($status) {
                                     'active' => [
@@ -66,7 +66,7 @@
                         </div>
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
                             <span class="text-slate-700 font-medium"
-                                id="doctorShowSpecialty">{{ $doctor->specialty }}</span>
+                                id="doctorShowSpecialty">{{ $doctor->specialty ?: 'التخصص غير مسجل' }}</span>
 
                         </div>
                     </div>
@@ -88,15 +88,17 @@
                             <span class="text-[11px] font-bold text-teal-900 uppercase">العيادة التابع لها :</span>
                         </div>
                         <h3 class="text-sm font-bold text-slate-800 mt-0.5" id="doctorClinicName">
-                            {{ $doctor->clinic?->name ?? 'لا يوجد عياده تابع ليه الان' }}</h3>
+                            {{ $doctor->clinic?->name ?: 'لا توجد عيادة مرتبطة' }}</h3>
 
                     </div>
                 </div>
-                <a href="{{ route('clinics.show', $doctor->clinic?->id) }}" id="doctorClinicLinkBtn"
-                    class="px-4 py-2 text-xs font-bold text-teal-900 bg-white hover:bg-teal-50 border border-teal-300 rounded-lg shadow-2xs transition flex items-center gap-1.5 justify-center">
-                    <span>معاينة العيادة وباقي أطبائها</span>
-                    <span>←</span>
-                </a>
+                @if ($doctor->clinic)
+                    <a href="{{ route('clinics.show', $doctor->clinic) }}" id="doctorClinicLinkBtn"
+                        class="px-4 py-2 text-xs font-bold text-teal-900 bg-white hover:bg-teal-50 border border-teal-300 rounded-lg shadow-2xs transition flex items-center gap-1.5 justify-center">
+                        <span>معاينة العيادة وباقي أطبائها</span>
+                        <span>←</span>
+                    </a>
+                @endif
             </div>
 
             <!-- Contact & Schedule Grid -->
@@ -104,17 +106,17 @@
                 <div class="p-3 bg-[#f8fafc] rounded-lg border border-slate-100">
                     <p class="text-slate-500 text-[11px]">الهاتف والتحويلة</p>
                     <p class="font-mono font-bold text-slate-800 text-xs mt-0.5" id="doctorShowPhone">
-                        {{ $doctor->phone ?? ' لا يوجد ' }}</p>
+                        {{ $doctor->phone ?: 'لا يوجد' }}</p>
                 </div>
                 <div class="p-3 bg-[#f8fafc] rounded-lg border border-slate-100">
                     <p class="text-slate-500 text-[11px]">البريد الإلكتروني المهني</p>
                     <p class="font-mono font-semibold text-slate-700 text-xs mt-0.5" id="doctorShowEmail">
-                        {{ $doctor->email ?? 'لا يوجد ' }}</p>
+                        {{ $doctor->email ?: 'لا يوجد' }}</p>
                 </div>
                 <div class="p-3 bg-[#f8fafc] rounded-lg border border-slate-100">
                     <p class="text-slate-500 text-[11px]">جدول الكشف الأسبوعي</p>
                     <p class="font-semibold text-slate-800 text-xs mt-0.5" id="doctorShowSchedule">
-                        {{ $doctor->schedule_days ?? 'لا يوجد مواعيد الان ' }}</p>
+                        {{ $doctor->schedule_days ?: 'لا توجد مواعيد مسجلة' }}</p>
                 </div>
             </div>
         </div>

@@ -131,11 +131,19 @@
 
                         <!-- Linked Clinic Badge (BelongsTo Clinic) -->
                         <div class="mb-3">
-                            <a href="{{ route('clinics.show', $doctor) }}"
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 transition">
-                                <span>🏥 العيادة:</span>
-                                <span class="text-[#00685f] font-bold">{{ $doctor->clinic->name ?? 'لا يوجد' }}</span>
-                            </a>
+                            @if ($doctor->clinic)
+                                <a href="{{ route('clinics.show', $doctor->clinic) }}"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 transition">
+                                    <span>🏥 العيادة:</span>
+                                    <span class="text-[#00685f] font-bold">{{ $doctor->clinic->name }}</span>
+                                </a>
+                            @else
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200/80">
+                                    <span>🏥 العيادة:</span>
+                                    <span class="font-bold">لا يوجد</span>
+                                </span>
+                            @endif
                         </div>
 
                         <div class="bg-[#f8fafc] rounded-lg p-3 border border-slate-100 space-y-2 mb-4 text-xs">

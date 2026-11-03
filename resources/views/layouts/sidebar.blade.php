@@ -1,29 +1,28 @@
-<aside class="w-64 bg-white border-l border-[#e2e8f0] flex flex-col shrink-0 min-h-[calc(100vh-4rem)]">
+<aside class="sidebar  bg-white border-l border-[#e2e8f0] flex flex-col shrink-0 min-h-[calc(100vh-4rem)]">
     <!-- System Badge -->
     <div class="p-4 border-b border-[#e2e8f0] bg-[#f8fafc]">
-        <div class="flex items-center gap-2 text-xs font-bold text-[#00685f]">
+        <div class="sidebar-toggle flex items-center gap-2 text-xs font-bold text-[#00685f] cursor-pointer">
             <svg class="w-4 h-4 text-[#00685f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <span>منظومة الرعاية السريرية </span>
+            <span class="sidebar-title">منظومة الرعاية السريرية </span>
         </div>
 
     </div>
 
     <!-- Navigation Items -->
-    <div class="p-3 space-y-1 flex-1 overflow-y-auto">
+    <div class="siderbar-nav w-64 p-3 space-y-1 flex-1 overflow-y-auto">
         <div class="px-3 py-1.5 text-[11px] font-semibold text-[#64748b] uppercase tracking-wider">
             الوحدات التشغيلية
         </div>
         @role('Admin')
             <a href={{ route('dashboard.index') }}
                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
-        font-semibold transition text-right
-        {{ request()->routeIs('dashboard.*')
-            ? ' bg-[#00685f] text-white shadow-xs'
-            : " text-[#3d4947]
-                         hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+            font-semibold transition text-right
+            {{ request()->routeIs('dashboard.*')
+                ? ' bg-[#00685f] text-white shadow-xs'
+                : " text-[#3d4947]
+                                                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
                 <div class=" flex items-center gap-2.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <rect width="7" height="9" x="3" y="3" rx="1" />
@@ -42,7 +41,7 @@
              {{ request()->routeIs('visits.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                                                                                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -59,7 +58,7 @@
              {{ request()->routeIs('follow_ups.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                                                                                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -88,7 +87,7 @@
              {{ request()->routeIs('complaints.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                                                                                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -105,7 +104,7 @@
              {{ request()->routeIs('patients.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                                                                                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -125,7 +124,7 @@
              {{ request()->routeIs('clinics.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                                                                                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -142,7 +141,7 @@
              {{ request()->routeIs('doctors.*')
                  ? ' bg-[#00685f] text-white shadow-xs'
                  : " text-[#3d4947]
-                                                    hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                                                                                                                     hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
             <div class=" flex items-center gap-2.5">
                 <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -159,12 +158,10 @@
             </div>
 
             <a href={{ route('users.index') }}
-                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs
-    font-semibold transition text-right
-    {{ request()->routeIs('users.*')
-        ? ' bg-[#00685f] text-white shadow-xs'
-        : " text-[#3d4947]
-                         hover:bg-[#f1f5f9] hover:text-[#0b1c30]" }} ">
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition text-right
+                {{ request()->routeIs('users.*')
+                    ? ' bg-[#00685f] text-white shadow-xs'
+                    : ' text-[#3d4947] hover:bg-[#f1f5f9] hover:text-[#0b1c30]' }} ">
                 <div class=" flex items-center gap-2.5">
                     <svg class="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -180,3 +177,15 @@
 
 
 </aside>
+
+<!-- Sidebar Toggle Button -->
+<script>
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    const sidebarClose = document.querySelector('.sidebar-close');
+    const nav = document.querySelector('.siderbar-nav');
+    const title = document.querySelector('.sidebar-title');
+    sidebarToggle.addEventListener('click', () => {
+        nav.classList.toggle('hidden');
+        title.classList.toggle('hidden');
+    });
+</script>

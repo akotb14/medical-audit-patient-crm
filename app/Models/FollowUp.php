@@ -13,7 +13,17 @@ class FollowUp extends Model
     /** @use HasFactory<FollowUpFactory> */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'visit_id',
+        'patient_id',
+        'status',
+        'due_date',
+        'reason',
+        'outcome_note',
+        'completed_at',
+        'created_by',
+        'updated_by',
+    ];
 
     protected $table = 'follow_ups';
 
@@ -37,12 +47,34 @@ class FollowUp extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    /**
+     * The statuses each status may move to. A status may always be resubmitted
+     * unchanged, and `done` is terminal.
+     *
+     * @var array<string, list<string>>
+     */
+    private const TRANSITIONS = [
+        'scheduled' => ['done', 'missed', 'cancelled'],
+        'missed' => ['scheduled', 'cancelled'],
+        'cancelled' => ['scheduled'],
+        'done' => [],
+    ];
+
     protected function casts(): array
     {
         return [
             'due_date' => 'datetime',
             'completed_at' => 'datetime',
         ];
+    }
+
+    public function canTransitionTo(string $status): bool
+    {
+        if ($status === $this->status) {
+            return true;
+        }
+
+        return in_array($status, self::TRANSITIONS[$this->status] ?? [], true);
     }
 
     public function getStatusLabelAttribute(): string

@@ -41,9 +41,9 @@
                 </div>
 
                 <div>
-                    <label for="address" class="font-bold text-slate-700 block mb-1"> العنوان: <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" id="address" name="address" required placeholder="مثال: شارع الملك فيصل" value="{{old('address')}}"
+                    <label for="address" class="font-bold text-slate-700 block mb-1"> العنوان:
+                        <span class="text-slate-400 font-normal">(اختياري)</span></label>
+                    <input type="text" id="address" name="address" placeholder="مثال: شارع الملك فيصل" value="{{old('address')}}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 

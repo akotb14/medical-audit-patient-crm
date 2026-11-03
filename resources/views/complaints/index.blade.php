@@ -318,7 +318,7 @@
                                                     <span
                                                         class="font-semibold text-slate-800 block text-xs">{{ $c->assignee->name }}</span>
                                                     <span
-                                                        class="text-[10px] text-slate-400 block">{{ $c->assignee->role ?? 'محقق جودة' }}</span>
+                                                        class="text-[10px] text-slate-400 block">{{ $c->assignee->roleNames() ?: 'بدون دور' }}</span>
                                                 </div>
                                             </div>
                                         @else
@@ -464,7 +464,7 @@
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-1 focus:ring-purple-600">
                         <option value="">-- اختر موظف الجودة --</option>
                         @foreach ($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->role ?? 'كادر سريري' }}
+                            <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->roleNames() ?: 'بدون دور' }}
                             </option>
                         @endforeach
                     </select>

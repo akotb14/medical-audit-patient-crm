@@ -52,7 +52,7 @@
                                 <div class="text-xs">
                                     <div class="font-bold text-slate-800">{{ $visit->doctor->fullname }}</div>
                                     <span
-                                        class="text-[11px] text-teal-700">{{ $visit->doctor->clinic->name ?? 'عيادة عامة' }}</span>
+                                        class="text-[11px] text-teal-700">{{ $visit->doctor->clinic?->name ?: 'بدون عيادة' }}</span>
                                 </div>
                             @else
                                 <span class="text-xs text-slate-400 italic">طبيب غير محدد </span>
@@ -68,12 +68,12 @@
                         </td>
                         <td class="py-3 px-4">
                             <span
-                                class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold {{ $visit->status_badge_classes ?? 'bg-slate-100 text-slate-700' }}">
-                                {{ $visit->status_label ?? 'قيد الإجراء' }}
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold {{ $visit->status_badge_classes }}">
+                                {{ $visit->status_label }}
                             </span>
                         </td>
                         <td class="py-3 px-4 text-xs text-slate-500">
-                            {{ $visit->creator->name ?? '' }}
+                            {{ $visit->creator->name }}
                         </td>
                         <td class="py-3 px-4 text-center">
                             @if ($visit->visit_status == 'completed' && isset($visit->survey))

@@ -78,6 +78,17 @@ class Survey extends Model
     }
 
     // attribute
+    /**
+     * Whether the rating has to be treated as a quality alert.
+     *
+     * The view cannot use the scope of the same name: a scope called on an
+     * instance returns a query builder, which is always truthy.
+     */
+    public function getIsLowRatingAttribute(): bool
+    {
+        return (int) $this->rating < 3;
+    }
+
     public function getRatingLabelAttribute(): string
     {
         return match ((int) $this->rating) {

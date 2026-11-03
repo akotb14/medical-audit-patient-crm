@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests\FollowUpsRequests;
 
+use App\Models\FollowUp;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class UpdateFollowUpRequest extends FormRequest
 {
@@ -23,38 +26,28 @@ class UpdateFollowUpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'patient_id' => [
-                'required',
-                'integer',
-                'exists:patients,id',
-            ],
-
-            'visit_id' => [
-                'required',
-                'integer',
-                'exists:visits,id',
-            ],
-
             'due_date' => [
                 'required',
                 'date',
-                'after:now',
+                $this->rescheduleRule(),
             ],
 
             'status' => [
                 'required',
                 'in:scheduled,done,missed,cancelled',
+                $this->transitionRule(),
             ],
 
             'outcome_note' => [
                 'nullable',
                 'string',
-                'max:2000',
+                'max:500',
             ],
 
             'reason' => [
                 'required',
                 'string',
+                'max:500',
             ],
         ];
     }
@@ -62,26 +55,59 @@ class UpdateFollowUpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'patient_id.required' => 'يرجى اختيار المريض.',
-            'patient_id.integer' => 'معرّف المريض غير صالح.',
-            'patient_id.exists' => 'المريض المحدد غير موجود.',
-
-            'visit_id.required' => 'يرجى اختيار الزيارة.',
-            'visit_id.integer' => 'معرّف الزيارة غير صالح.',
-            'visit_id.exists' => 'الزيارة المحددة غير موجودة.',
-
             'due_date.required' => 'يرجى تحديد موعد المتابعة.',
             'due_date.date' => 'موعد المتابعة يجب أن يكون تاريخًا ووقتًا صالحين.',
-            'due_date.after' => 'موعد المتابعة يجب أن يكون في المستقبل.',
 
             'status.required' => 'يرجى تحديد حالة المتابعة.',
             'status.in' => 'حالة المتابعة المحددة غير صحيحة.',
 
             'outcome_note.string' => 'ملاحظات النتيجة يجب أن تكون نصًا.',
-            'outcome_note.max' => 'ملاحظات النتيجة يجب ألا تتجاوز 2000 حرف.',
+            'outcome_note.max' => 'ملاحظات النتيجة يجب ألا تتجاوز 500 حرف.',
 
             'reason.required' => 'يرجى إدخال سبب المتابعة.',
             'reason.string' => 'سبب المتابعة يجب أن يكون نصًا.',
+            'reason.max' => 'سبب المتابعة يجب ألا يتجاوز 500 حرف.',
         ];
+    }
+
+    /**
+     * A follow-up that is already past its due date stays editable: the date only
+     * has to move forward when it is actually being rescheduled, otherwise
+     * correcting the outcome note of an overdue record would be impossible.
+     */
+    private function rescheduleRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            $followUp = $this->route('followup');
+            $submitted = Carbon::parse($value);
+
+            /*
+            | The form submits the date to the minute, so the comparison is made at
+            | the same precision the stored value is presented with.
+            */
+            $isUnchanged = $followUp instanceof FollowUp
+                && $followUp->due_date !== null
+                && $submitted->format('Y-m-d H:i') === $followUp->due_date->format('Y-m-d H:i');
+
+            if (! $isUnchanged && ! $submitted->isAfter(now())) {
+                $fail('موعد المتابعة يجب أن يكون في المستقبل.');
+            }
+        };
+    }
+
+    /**
+     * A follow-up moves through a fixed set of states: a scheduled one can be
+     * completed, missed or cancelled; a missed one can be rescheduled or
+     * cancelled; a cancelled one can only be rescheduled. `done` is terminal.
+     */
+    private function transitionRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            $followUp = $this->route('followup');
+
+            if ($followUp instanceof FollowUp && ! $followUp->canTransitionTo((string) $value)) {
+                $fail('لا يمكن نقل المتابعة من حالة «'.$followUp->status_label.'» إلى هذه الحالة.');
+            }
+        };
     }
 }

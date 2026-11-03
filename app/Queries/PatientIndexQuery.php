@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Queries;
 
 use App\Models\Patient;
@@ -15,8 +16,8 @@ class PatientIndexQuery
             ) {
                 $query->where(function (Builder $query) use ($search) {
                     $query->where('mrn', 'like', "%{$search}%")
-                    ->orwhere('fullname', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                        ->orwhere('fullname', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
             ->when($filters['blood_group'] ?? null, function (
@@ -26,7 +27,6 @@ class PatientIndexQuery
                 $query->where('blood_group', $blood_group);
             })
 
-            ->latest();
+            ->orderByDesc('id');
     }
 }
-

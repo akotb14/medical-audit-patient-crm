@@ -148,7 +148,11 @@ class Complaint extends Model
         }
 
         if (array_key_exists('assigned_to', $filters) && $filters['assigned_to'] != 'all') {
-            $query->where('assigned_to', $filters['assigned_to']);
+            if ($filters['assigned_to'] === 'unassigned') {
+                $query->whereNull('assigned_to');
+            } else {
+                $query->where('assigned_to', $filters['assigned_to']);
+            }
         }
         if (array_key_exists('search', $filters) && $filters['search'] != '') {
             $query->where(function ($query) use ($filters) {

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل بيانات الملف الطبي - ' . ($patient->fullname ?? 'المريض'))
+@section('title', 'تعديل بيانات الملف الطبي - ' . $patient->fullname)
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
@@ -12,7 +12,7 @@
                 <h1 class="text-2xl font-bold text-[#0b1c30]">تعديل بيانات الملف الطبي</h1>
                 <span
                     class="font-mono text-xs font-bold text-[#00685f] bg-[#eff4ff] px-2 py-0.5 rounded border border-teal-200">
-                    {{ $patient->mrn ?? 'MRN-84920' }}
+                    {{ $patient->mrn }}
                 </span>
             </div>
             <p class="text-xs text-[#64748b] mt-1">
@@ -20,7 +20,7 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('patients.show', $patient->id ?? 1) }}"
+            <a href="{{ route('patients.show', $patient) }}"
                 class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
                 معاينة الملف الشامل
             </a>
@@ -51,21 +51,21 @@
                     <label for="fullname" class="font-bold text-slate-700 block mb-1">الاسم الرباعي: <span
                             class="text-red-500">*</span></label>
                     <input type="text" id="fullname" name="fullname" required
-                        value="{{ old('fullname', $patient->fullname  ) }}"
+                        value="{{ old('fullname', $patient->fullname) }}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
                 <div>
-                    <label for="address" class="font-bold text-slate-700 block mb-1">العنوان: <span>
-                            class="text-red-500">*</span></label>
-                    <input type="text" id="address" name="address" required
-                        value="{{ old('address', $patient->address ) }}"
+                    <label for="address" class="font-bold text-slate-700 block mb-1">العنوان:
+                        <span class="text-slate-400 font-normal">(اختياري)</span></label>
+                    <input type="text" id="address" name="address"
+                        value="{{ old('address', $patient->address) }}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="birthdate" class="font-bold text-slate-700 block mb-1">العمر: <span
+                        <label for="birthdate" class="font-bold text-slate-700 block mb-1">تاريخ الميلاد: <span
                                 class="text-red-500">*</span></label>
                         <input type="date" id="birthdate" name="birthdate" min="1900-01-01"
                             max="{{now()->format('Y-m-d')}}" required
@@ -76,9 +76,9 @@
                         <label for="gender" class="font-bold text-slate-700 block mb-1">الجنس:</label>
                         <select id="gender" name="gender"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                            <option value="male" {{ ($patient->gender  === 'male')  ? 'selected' : '' }}>ذكر
+                            <option value="male" @selected(old('gender', $patient->gender) === 'male')>ذكر
                             </option>
-                            <option value="female" {{ ($patient->gender === 'female')  ? 'selected' : '' }}>أنثى
+                            <option value="female" @selected(old('gender', $patient->gender) === 'female')>أنثى
                             </option>
                         </select>
                     </div>
@@ -89,25 +89,18 @@
                         <label for="phone" class="font-bold text-slate-700 block mb-1">رقم الجوال: <span
                                 class="text-red-500">*</span></label>
                         <input type="tel" id="phone" name="phone" required
-                            value="{{ old('phone', $patient->phone  ) }}"
+                            value="{{ old('phone', $patient->phone) }}"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                     </div>
                     <div>
                         <label for="blood_group" class="font-bold text-slate-700 block mb-1">فصيلة الدم:</label>
                         <select id="blood_group" name="blood_group"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-bold text-rose-700 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                            <option value="A+" {{ ($patient->blood_group ?? 'A+') === 'A+' ? 'selected' : '' }}>A+
-                            </option>
-                            <option value="O+" {{ ($patient->blood_group ?? 'A+') === 'O+' ? 'selected' : '' }}>O+
-                            </option>
-                            <option value="B+" {{ ($patient->blood_group ?? 'A+') === 'B+' ? 'selected' : '' }}>B+
-                            </option>
-                            <option value="AB+" {{ ($patient->blood_group ?? 'A+') === 'AB+' ? 'selected' : '' }}>AB+
-                            </option>
-                            <option value="A-" {{ ($patient->blood_group ?? 'A+') === 'A-' ? 'selected' : '' }}>A-
-                            </option>
-                            <option value="O-" {{ ($patient->blood_group ?? 'A+') === 'O-' ? 'selected' : '' }}>O-
-                            </option>
+                            @foreach (['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $group)
+                                <option value="{{ $group }}"
+                                    @selected(old('blood_group', $patient->blood_group) === $group)>{{ $group }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -130,7 +123,7 @@
                         الحساسية الدوائية والغذائية (مفصولة بفواصل):
                     </label>
                     <input type="text" id="allergies" name="allergies"
-                        value="{{ old('allergies', is_array($patient->allergies ?? null) ? implode('، ', $patient->allergies) : 'البنسلين (Penicillin)، مركبات السلفا') }}"
+                        value="{{ old('allergies', $patient->allergies) }}"
                         class="w-full p-2.5 bg-white border border-rose-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-rose-500" />
                 </div>
 
@@ -139,7 +132,7 @@
                         الأمراض المزمنة (مفصولة بفواصل):
                     </label>
                     <input type="text" id="chronic_diseases" name="chronic_diseases"
-                        value="{{ old('chronic_diseases', is_array($patient->chronic_diseases ?? null) ? implode('، ', $patient->chronic_diseases) : 'ارتفاع ضغط الدم، السكري النوع الثاني') }}"
+                        value="{{ old('chronic_diseases', $patient->chronic_diseases) }}"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                 </div>
             </div>

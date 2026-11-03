@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\ComplaintRequests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\Complaint;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateComplaintRequest extends FormRequest
@@ -19,11 +20,16 @@ class UpdateComplaintRequest extends FormRequest
     {
         return [
             //
-            'patient_id' => 'required|integer|exists:patients,id',
-            'title' => 'required|string|max:500',
+            'patient_id' => [
+                'required',
+                'integer',
+                $this->immutablePatientRule(),
+            ],
+            'title' => 'required|string|max:255',
             'description' => 'required|string',
         ];
     }
+
     public function messages(): array
     {
         return [
@@ -33,12 +39,32 @@ class UpdateComplaintRequest extends FormRequest
 
             'title.required' => 'يجب ادخال عنوان الشكوى',
             'title.string' => 'يجب ادخال عنوان صالح',
-            'title.max' => 'عنوان الشكوى يجب ان لا يزيد عن 500 حرف',
-
+            'title.max' => 'عنوان الشكوى يجب ان لا يزيد عن 255 حرف',
 
             'description.required' => 'يجب ادخال وصف الشكوى',
             'description.string' => 'يجب ادخال وصف صالح',
 
         ];
+    }
+
+    /**
+     * The patient is the file the complaint was raised against and never moves
+     * afterwards, so a deliberate record can not split a clinical event across
+     * two patient histories. The edit form resubmits the stored id, and that is
+     * accepted even if the patient was archived after the complaint was raised.
+     */
+    private function immutablePatientRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            $complaint = $this->route('complaint');
+
+            if (! $complaint instanceof Complaint) {
+                return;
+            }
+
+            if ((int) $value !== (int) $complaint->patient_id) {
+                $fail('لا يمكن تغيير المريض بعد إنشاء الشكوى.');
+            }
+        };
     }
 }

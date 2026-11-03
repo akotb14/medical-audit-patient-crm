@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تفاصيل المتابعة السريرية #' . ($followup->id ?? '---'))
+@section('title', 'تفاصيل المتابعة السريرية #' . $followup->id)
 
 @section('content')
     <div class="space-y-6">
@@ -15,10 +15,10 @@
                             السريرية</a>
                     @endcan
                     <span>/</span>
-                    <span class="text-slate-800 font-semibold">تفاصيل المتابعة #{{ $followup->id ?? '---' }}</span>
+                    <span class="text-slate-800 font-semibold">تفاصيل المتابعة #{{ $followup->id }}</span>
                 </nav>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold text-[#0b1c30]">سجل المتابعة السريرية #{{ $followup->id ?? '---' }}</h1>
+                    <h1 class="text-2xl font-bold text-[#0b1c30]">سجل المتابعة السريرية #{{ $followup->id }}</h1>
 
                     <!-- Status Badge -->
                     @if (($followup->status ?? '') === 'scheduled')
@@ -74,7 +74,7 @@
                     @endcan
                     @can('status', $followup)
                         {{-- Mark Missed Button --}}
-                        <form action="{{ route('follow_ups.status', $followup ?? 1) }}" method="POST">
+                        <form action="{{ route('follow_ups.status', $followup) }}" method="POST">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="missed">
@@ -85,7 +85,7 @@
                         </form>
 
                         {{-- Cancel Button --}}
-                        <form action="{{ route('follow_ups.status', $followup ?? 1) }}" method="POST">
+                        <form action="{{ route('follow_ups.status', $followup) }}" method="POST">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="cancelled">
@@ -97,7 +97,7 @@
                     @endcan
                 @endif
                 @can('update', $followup)
-                    <a href="{{ route('follow_ups.edit', $followup ?? 1) }}"
+                    <a href="{{ route('follow_ups.edit', $followup) }}"
                         class="px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -146,7 +146,7 @@
 
                     <div
                         class="bg-slate-50 border-r-4 border-[#00685f] p-4 rounded-xl text-slate-800 text-sm leading-relaxed">
-                        {{ $followup->reason ?? 'لم يتم تدوين سبب للمتابعة.' }}
+                        {{ $followup->reason ?: 'لم يتم تدوين سبب للمتابعة.' }}
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-600">
@@ -159,7 +159,7 @@
                         <div class="p-3 bg-white border border-slate-200 rounded-xl">
                             <span class="text-slate-400 block text-[11px] mb-1">الحالة السريرية الحالية:</span>
                             <span class="font-bold text-teal-800">
-                                {{ $followup->status_label ?? $followup->status }}
+                                {{ $followup->status_label }}
                             </span>
                         </div>
                     </div>
@@ -308,7 +308,7 @@
                                         #{{ $followup->visit->id }}</span>
                                 </div>
                                 <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
-                                    {{ $followup->visit->visit_status ?? 'مكتملة' }}
+                                    {{ $followup->visit->status_label }}
                                 </span>
                             </div>
 
@@ -325,7 +325,7 @@
                                     <span
                                         class="font-bold text-slate-900 block mt-0.5">{{ $followup->visit->doctor->fullname }}</span>
                                     <span
-                                        class="text-[11px] text-teal-800">{{ $followup->visit->doctor->clinic->name ?? 'عيادة تخصصية' }}</span>
+                                        class="text-[11px] text-teal-800">{{ $followup->visit->doctor->clinic?->name ?: 'بدون عيادة' }}</span>
                                 </div>
                             @endif
 
@@ -353,7 +353,7 @@
                         <div class="space-y-2 text-slate-600">
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-400">أنشئ بواسطة (created_by):</span>
-                                <span class="font-bold text-slate-800">{{ $followup->creator->name ?? 'النظام الآلي' }}</span>
+                                <span class="font-bold text-slate-800">{{ $followup->creator->name }}</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-400">تاريخ وساعة الإنشاء:</span>

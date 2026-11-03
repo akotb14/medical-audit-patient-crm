@@ -7,10 +7,12 @@ use App\Http\Requests\PatientRequests\PatientIndexRequest;
 use App\Http\Requests\PatientRequests\UpdatePatientRequest;
 use App\Models\Patient;
 use App\Queries\PatientIndexQuery;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PatientController extends Controller
 {
@@ -23,7 +25,7 @@ class PatientController extends Controller
         Gate::authorize('viewAny', Patient::class);
         $query = $patientIndexQuery->build($request->validated())->where('status', 'active');
 
-        $stats = (clone $query)->stats()->first();
+        $stats = Patient::stats()->first();
         $patients = $query->paginate(20)->withQueryString();
 
         return view('patients.index', compact('patients', 'stats'));
@@ -62,16 +64,46 @@ class PatientController extends Controller
         Gate::authorize('create', Patient::class);
         $data = $request->validated();
 
-        do {
-            $mrn = 'MRN-'.strtoupper(Str::random(8));
-        } while (Patient::where('mrn', $mrn)->exists());
-
-        $data['mrn'] = $mrn;
         $data['created_by'] = Auth::id();
 
-        Patient::create($data);
+        /*
+        | `patients.status` has no database default and the create form does not
+        | submit one, so a newly registered file always starts active.
+        */
+        $data['status'] = 'active';
 
-        return redirect()->route('patients.index')->with('success', 'تم اضافة المريض بنجاح');
+        $attempts = 0;
+
+        while (true) {
+            $attempts++;
+
+            do {
+                $mrn = 'MRN-'.strtoupper(Str::random(8));
+            } while (Patient::withTrashed()->where('mrn', $mrn)->exists());
+
+            $data['mrn'] = $mrn;
+
+            try {
+                Patient::create($data);
+
+                return redirect()->route('patients.index')->with('success', 'تم اضافة المريض بنجاح');
+            } catch (UniqueConstraintViolationException $exception) {
+                /*
+                | Another registration can take the generated MRN between the
+                | check above and the insert. Only that collision is retried; a
+                | violation on another unique column is rethrown unchanged.
+                */
+                if (! Patient::withTrashed()->where('mrn', $mrn)->exists()) {
+                    throw $exception;
+                }
+
+                if ($attempts >= 5) {
+                    throw ValidationException::withMessages([
+                        'mrn' => 'تعذر توليد رقم ملف طبي فريد. يرجى إعادة المحاولة.',
+                    ]);
+                }
+            }
+        }
     }
 
     /**
@@ -103,6 +135,7 @@ class PatientController extends Controller
 
         $visits = $visitsQuery
             ->with([
+                'patient:id,fullname,mrn,deleted_at',
                 'doctor.clinic',
                 'creator',
                 'survey',

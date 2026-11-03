@@ -19,20 +19,6 @@
             </div>
         </div>
 
-        <!-- Center: Quick Search Bar for MRN or Patient Name -->
-        <div class="flex-1 max-w-md hidden md:block">
-            <div class="relative">
-                <input type="text" id="globalSearchInput"
-                    placeholder="بحث سريع برقم الملف (MRN)، الهوية، أو اسم المريض..."
-                    class="w-full pl-9 pr-9 py-2 text-sm bg-[#f8fafc] border border-[#cbd5e1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00685f] focus:bg-white text-right placeholder:text-slate-400 transition" />
-                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.3-4.3" />
-                </svg>
-            </div>
-        </div>
-
         <!-- Logout Button -->
         <form action="{{ route('logout') }}" method="POST" class="inline m-0">
             @csrf

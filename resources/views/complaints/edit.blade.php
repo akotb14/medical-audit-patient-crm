@@ -26,14 +26,14 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-[#0b1c30]">تعديل بيانات الشكوى #{{ $complaint->id }}</h1>
-                    <p class="text-xs text-[#64748b]">تحديث تفاصيل التحقيق، المسند إليه، حالة المعالجة وملاحظة الحل السريرية </p>
+                    <p class="text-xs text-[#64748b]">تحديث عنوان الشكوى وتفاصيلها </p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $complaint->source === 'survey' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-sky-50 text-sky-800 border border-sky-200' }} font-mono">
                     source: {{ $complaint->source }}
                 </span>
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border font-mono {{ $complaint->status_badge_class }}">
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border font-mono {{ $complaint->status_badge_classes }}">
                     {{ $complaint->status_label }}
                 </span>
             </div>
@@ -43,14 +43,15 @@
         <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs">
-                    {{ mb_substr($complaint->patient->fullname ?? 'م', 0, 1) }}
+                    {{ mb_substr($complaint->patient->fullname, 0, 1) }}
                 </div>
                 <div>
                     <div class="font-bold text-slate-900">
-                        {{ $complaint->patient->fullname ?? 'مريض غير محدد' }}
+                        {{ $complaint->patient->fullname }}
+                        <x-archived-badge :patient="$complaint->patient" />
                     </div>
                     <div class="text-[11px] text-slate-500 font-mono">
-                        الملف: <span class="text-slate-800 font-bold">{{ $complaint->patient->mrn ?? '-' }}</span> | الهاتف: {{ $complaint->patient->phone ?? '-' }}
+                        الملف: <span class="text-slate-800 font-bold">{{ $complaint->patient->mrn }}</span> | الهاتف: {{ $complaint->patient->phone }}
                     </div>
                 </div>
             </div>

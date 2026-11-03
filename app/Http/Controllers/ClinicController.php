@@ -8,6 +8,7 @@ use App\Models\Clinic;
 use App\Services\DoctorService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ClinicController extends Controller
@@ -21,7 +22,7 @@ class ClinicController extends Controller
         $doctors_counts = $this->doctor_service->getDoctorsCounts();
         $doctors_counts_by_clinic = $this->doctor_service->getDoctorsCountsByClinic();
 
-        $clinics = Clinic::all();
+        $clinics = Clinic::with('doctors:id,clinic_id,fullname')->get();
 
         return view('clinics.index', compact('clinics', 'doctors_counts', 'doctors_counts_by_clinic'));
     }
@@ -47,7 +48,7 @@ class ClinicController extends Controller
     {
         Gate::authorize('create', Clinic::class);
         $data = $request->validated();
-        $data['user_id'] = Auth::id();
+        $data['created_by'] = Auth::id();
         Clinic::create($data);
         Cache::forget('clinics.all');
 
@@ -75,7 +76,34 @@ class ClinicController extends Controller
     public function destroy(Clinic $clinic)
     {
         Gate::authorize('delete', $clinic);
-        $clinic->delete();
+
+        /*
+        | Deleting the clinic would release the clinic reference on every doctor
+        | it holds, and those doctors are what the historical visits hang from.
+        | A clinic that still has a staff is deactivated instead, the way the
+        | `inactive` status already allows. The row is locked before the check,
+        | so a doctor cannot be attached between the check and the delete.
+        */
+        $hasDoctors = DB::transaction(function () use ($clinic): bool {
+            $lockedClinic = Clinic::query()
+                ->whereKey($clinic->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedClinic->doctors()->exists()) {
+                return true;
+            }
+
+            $lockedClinic->delete();
+
+            return false;
+        });
+
+        if ($hasDoctors) {
+            return redirect()->route('clinics.index')
+                ->with('error', 'لا يمكن حذف العيادة لوجود أطباء أو سجلات مرتبطة بها. يمكن تعيين حالتها إلى غير نشط بدلًا من ذلك.');
+        }
+
         Cache::forget('clinics.all');
 
         return redirect()->route('clinics.index')->with('success', 'تم حذف العيادة بنجاح');

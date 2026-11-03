@@ -54,9 +54,22 @@
 
                 <div>
                     <label for="password" class="font-bold text-slate-700 block mb-1">كلمة المرور الأولية:</label>
-                    <input type="password" id="password" name="password" required placeholder="••••••••••••"
+                    <input type="password" id="password" name="password" required minlength="8"
+                        placeholder="••••••••••••" autocomplete="new-password"
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
+                    @error('password')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
 
+                <div>
+                    <label for="password_confirmation" class="font-bold text-slate-700 block mb-1">تأكيد كلمة المرور:</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" required
+                        minlength="8" placeholder="••••••••••••" autocomplete="new-password"
+                        class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
+                    @error('password_confirmation')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
 
@@ -87,6 +100,7 @@
                 <label
                     class="border border-slate-200 rounded-xl p-3.5 flex items-start gap-3 cursor-pointer hover:border-[#00685f] has-checked:border-[#00685f] has-checked:bg-[#eff4ff]">
                     <input type="radio" name="role_id" value="{{$role->id}}"
+                        @checked(old('role_id') == $role->id)
                         class="mt-0.5 text-[#00685f] focus:ring-[#00685f]" />
                     <div>
                         <div class="font-bold text-[#0b1c30]">{{$role->name}}</div>

@@ -23,7 +23,7 @@ class SurveyController extends Controller
         $search = $request['search'] ?? '';
         $rating = (int) $request['rating'] ?? 'all';
 
-        $query = Survey::query()->with('patient:id,fullname,mrn,deleted_at', 'visit:id,date', 'visit.doctor:id,fullname', 'creator:id,name');
+        $query = Survey::query()->with('patient:id,fullname,mrn,deleted_at', 'visit:id,date,doctor_id', 'visit.doctor:id,fullname', 'creator:id,name', 'complaint');
 
         $stats = (clone $query)->stats()->first();
 
@@ -34,7 +34,7 @@ class SurveyController extends Controller
             $query->where('rating', $rating);
         }
 
-        $surveys = $query->latest()->paginate(20);
+        $surveys = $query->latest()->paginate(20)->withQueryString();
 
         return view('surveys.index', compact('surveys', 'stats'));
     }
@@ -42,7 +42,7 @@ class SurveyController extends Controller
     public function show(Survey $survey)
     {
         Gate::authorize('view', $survey);
-        $survey->load('patient:id,fullname,mrn,deleted_at', 'visit:id,date,visit_status', 'visit.doctor:id,fullname', 'creator:id,name');
+        $survey->load('patient:id,fullname,mrn,deleted_at', 'visit:id,date,visit_status,doctor_id', 'visit.doctor:id,fullname', 'creator:id,name', 'complaint');
 
         return view('surveys.show', compact('survey'));
     }
@@ -86,6 +86,16 @@ class SurveyController extends Controller
     public function destroy(Survey $survey)
     {
         Gate::authorize('delete', $survey);
+
+        /*
+        | The complaint raised from a survey is removed by the foreign key together
+        | with it, so a survey that produced one is refused instead of taking the
+        | complaint and its investigation with it.
+        */
+        if ($survey->complaint()->exists()) {
+            return back()->with('error', 'لا يمكن حذف الاستبيان لوجود شكوى مرتبطة به.');
+        }
+
         $survey->delete();
 
         return back()->with('success', 'تم حذف الاستبيان بنجاح');

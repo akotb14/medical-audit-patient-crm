@@ -109,7 +109,7 @@
                     <option value="">-- بدون إسناد فوري (ستكون الحالة: جديدة new) --</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" @selected(old('assigned_to') == $user->id)>
-                            {{ $user->name }} - {{ $user->role ?? 'كادر الجودة' }}
+                            {{ $user->name }} - {{ $user->roleNames() ?: 'بدون دور' }}
                         </option>
                     @endforeach
                 </select>

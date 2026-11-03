@@ -273,7 +273,7 @@ describe('an archived patient on the clinical screens', function () {
             ->assertDontSee(route('patients.show', $patient));
     });
 
-    it('is refused for a new visit while its own history stays editable', function () {
+    it('is refused for a new visit while its own history stays writable', function () {
         actingAsAdmin();
         [$patient, $visit] = archivePatientWithHistory();
 
@@ -286,17 +286,23 @@ describe('an archived patient on the clinical screens', function () {
 
         $this->assertDatabaseCount('visits', 1);
 
+        /*
+        | The archive does not take the history away: the closed visit still
+        | accepts an update. Its doctor, date and reason are frozen by the
+        | closed-visit rule, so the stored values are resubmitted unchanged.
+        */
         $this->put(route('visits.update', $visit), [
             'patient_id' => $patient->id,
             'doctor_id' => $visit->doctor_id,
-            'reason' => 'تم تحديث سبب الزيارة بعد الأرشفة',
-            'date' => $visit->date->format('Y-m-d H:i'),
-        ])->assertRedirect(route('visits.index'));
+            'reason' => $visit->reason,
+            'date' => $visit->date->toDateTimeString(),
+        ])->assertRedirect(route('visits.index'))
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
             'patient_id' => $patient->id,
-            'reason' => 'تم تحديث سبب الزيارة بعد الأرشفة',
+            'reason' => $visit->reason,
         ]);
     });
 

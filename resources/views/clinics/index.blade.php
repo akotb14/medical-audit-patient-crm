@@ -16,7 +16,7 @@
                     </span>
                 </div>
                 <p class="text-xs text-[#64748b] mt-1">
-                    إدارة أجنحة وعيادات المجمع الطبي، توزيع الأطباء والاستشاريين، أرقام الغرف، والتحويلات الهاتفية الداخلية
+                    إدارة عيادات المجمع الطبي وأقسامه التخصصية، وتوزيع الأطباء على العيادات وحالة كل عيادة
                 </p>
             </div>
 
@@ -70,7 +70,8 @@
                 <div>
                     <p class="text-[11px] font-semibold text-slate-500">متوسط الأطباء لكل عيادة</p>
                     <p class="text-xl font-bold text-blue-700 mt-0.5">
-                        {{ number_format($doctors_counts / $clinics->count(), 1) ?? 0 }} طبيب / عيادة</p>
+                        {{-- An empty directory has no divisor: both averages read 0 instead. --}}
+                        {{ $clinics->count() > 0 ? number_format($doctors_counts / $clinics->count(), 1) : 0 }} طبيب / عيادة</p>
                 </div>
                 <div
                     class="w-10 h-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-lg">
@@ -81,7 +82,7 @@
                 <div>
                     <p class="text-[11px] font-semibold text-slate-500">جاهزية التشغيل السريري</p>
                     <p class="text-xl font-bold text-emerald-700 mt-0.5">
-                        {{ number_format(($clinics->where('status', 'active')->count() / $clinics->count()) * 100) ?? 0 }}%
+                        {{ $clinics->count() > 0 ? number_format(($clinics->where('status', 'active')->count() / $clinics->count()) * 100) : 0 }}%
                         جاهز للعمل</p>
                 </div>
                 <div

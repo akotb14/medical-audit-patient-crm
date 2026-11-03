@@ -21,7 +21,7 @@
                 </div>
                 <p class="text-xs text-[#64748b] mt-1 font-mono">
                     تاريخ التسجيل: {{ $survey->created_at ? $survey->created_at->format('Y-m-d H:i') : '-' }} بواسطة:
-                    {{ $survey->recorder->name ?? 'موظف النظام' }}
+                    {{ $survey->creator->name }}
                 </p>
             </div>
 
@@ -42,7 +42,7 @@
             class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
                 <div
-                    class="w-16 h-16 rounded-2xl {{ $survey->isLowRating() ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-teal-50 text-[#00685f] border border-teal-200' }} flex flex-col items-center justify-center font-bold">
+                    class="w-16 h-16 rounded-2xl {{ $survey->is_low_rating ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-teal-50 text-[#00685f] border border-teal-200' }} flex flex-col items-center justify-center font-bold">
                     <span class="text-2xl font-mono leading-none">{{ $survey->rating }}</span>
                     <span class="text-[10px] text-slate-500 font-mono">/ 5</span>
                 </div>
@@ -186,7 +186,7 @@
                             @if ($survey->visit->doctor)
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-500">الطبيب المعالج:</span>
-                                    <span class="font-bold text-slate-800">د. {{ $survey->visit->doctor->name }}</span>
+                                    <span class="font-bold text-slate-800">د. {{ $survey->visit->doctor->fullname }}</span>
                                 </div>
                             @endif
                             @if ($survey->visit->reason)

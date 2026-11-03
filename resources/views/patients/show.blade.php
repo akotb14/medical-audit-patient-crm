@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'الملف السريري الشامل - ' . ($patient->name ?? 'سليمان فهد المنصور'))
+@section('title', 'الملف السريري الشامل - ' . $patient->fullname)
 
 @section('content')
     <div class="space-y-6">
@@ -10,26 +10,32 @@
             <div class="flex items-center gap-4">
                 <div
                     class="w-16 h-16 rounded-2xl bg-[#00685f] text-white flex items-center justify-center font-bold text-2xl shadow-sm">
-                    {{ mb_substr($patient->fullname ?? 'س', 0, 1) }}
+                    {{ mb_substr($patient->fullname, 0, 1) }}
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <h1 class="text-2xl font-bold text-[#0b1c30]">{{ $patient->fullname ?? 'سليمان فهد المنصور' }}</h1>
+                        <h1 class="text-2xl font-bold text-[#0b1c30]">{{ $patient->fullname }}</h1>
                         <span
                             class="font-mono text-xs font-bold text-[#00685f] bg-[#eff4ff] px-2.5 py-1 rounded border border-teal-200">
-                            {{ $patient->mrn ?? 'MRN-84920' }}
+                            {{ $patient->mrn }}
                         </span>
                         <span
                             class="font-mono font-bold text-xs bg-rose-50 text-rose-700 px-2.5 py-1 rounded border border-rose-200">
-                            فصيلة الدم: {{ $patient->blood_group ?? 'A+' }}
+                            فصيلة الدم: {{ $patient->blood_group ?: 'غير محددة' }}
                         </span>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 text-xs text-[#64748b] mt-2 font-mono">
-                        <span>عنوان: {{ $patient->address ?? '1098234710' }}</span>
+                        <span>عنوان: {{ $patient->address ?: 'غير مسجل' }}</span>
                         <span>·</span>
-                        <span>العمر: {{ $patient->birthdate?->age ?? 58 }} سنة ({{ $patient->gender ?? 'ذكر' }})</span>
+                        <span>العمر:
+                            {{ $patient->birthdate ? $patient->birthdate->age.' سنة' : 'غير مسجل' }}
+                            ({{ match ($patient->gender) {
+                                'male', 'ذكر' => 'ذكر',
+                                'female', 'أنثى' => 'أنثى',
+                                default => 'غير محدد',
+                            } }})</span>
                         <span>·</span>
-                        <span class="text-teal-800 font-bold">هاتف: {{ $patient->phone ?? '0505123984' }}</span>
+                        <span class="text-teal-800 font-bold">هاتف: {{ $patient->phone ?: 'غير مسجل' }}</span>
                     </div>
                 </div>
             </div>
@@ -37,7 +43,7 @@
             <!-- Action Controls -->
             <div class="flex flex-wrap items-center gap-2 self-start md:self-auto">
                 @can('update', $patient)
-                    <a href="{{ route('patients.edit', $patient->id ?? 1) }}"
+                    <a href="{{ route('patients.edit', $patient) }}"
                         class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -85,16 +91,16 @@
                 <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                     <span class="font-bold text-xs text-[#0b1c30]">الأمراض والمتابعات المزمنة:</span>
                     <span class="text-[11px] text-slate-500 font-mono">طوارئ:
-                        {{ $patient->emergency_phone ?? 'لا يوجد' }}</span>
+                        {{ $patient->emergency_phone ?: 'لا يوجد' }}</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <span class="px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg">
-                        {{ $patient->chronic_diseases ?? 'لا يوجد' }}
+                        {{ $patient->chronic_diseases ?: 'لا يوجد' }}
                     </span>
                 </div>
                 <div class="pt-2 text-xs text-[#64748b]">
                     قريب الطوارئ: <span
-                        class="font-semibold text-slate-800">{{ $patient->emergency_name ?? 'لا يوجد' }}</span>
+                        class="font-semibold text-slate-800">{{ $patient->emergency_name ?: 'لا يوجد' }}</span>
                 </div>
             </div>
         </div>

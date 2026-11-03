@@ -281,7 +281,7 @@
                                             </div>
                                         @elseif($flw->status === 'scheduled')
                                             <button type="button"
-                                                onclick="openCompleteFollowupModal({{ $flw->id }}, '{{ addslashes($flw->patient->name ?? 'المريض') }}', '{{ addslashes($flw->outcome_note ?? '') }}')"
+                                                onclick="openCompleteFollowupModal({{ $flw->id }}, '{{ addslashes($flw->patient->fullname) }}', '{{ addslashes($flw->outcome_note ?? '') }}')"
                                                 class="text-[11px] text-[#00685f] hover:underline font-bold flex items-center gap-1">
                                                 <span>+ توثيق النتيجة</span>
                                             </button>
@@ -292,7 +292,7 @@
 
                                     <!-- Creator / Audit -->
                                     <td class="py-3.5 px-3.5 text-xs text-slate-500">
-                                        {{ $flw->creator ? $flw->creator->name : 'المشرف' }}
+                                        {{ $flw->creator->name }}
                                     </td>
 
                                     <!-- Actions -->

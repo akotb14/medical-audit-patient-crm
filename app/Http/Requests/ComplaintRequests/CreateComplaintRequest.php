@@ -25,7 +25,7 @@ class CreateComplaintRequest extends FormRequest
                 'integer',
                 Rule::exists('patients', 'id')->whereNull('deleted_at'),
             ],
-            'title' => 'required|string|max:500',
+            'title' => 'required|string|max:255',
             'description' => 'required|string',
             'assigned_to' => 'nullable|integer|exists:users,id',
         ];
@@ -40,7 +40,7 @@ class CreateComplaintRequest extends FormRequest
 
             'title.required' => 'يجب ادخال عنوان الشكوى',
             'title.string' => 'يجب ادخال عنوان صالح',
-            'title.max' => 'عنوان الشكوى يجب ان لا يزيد عن 500 حرف',
+            'title.max' => 'عنوان الشكوى يجب ان لا يزيد عن 255 حرف',
 
             'description.required' => 'يجب ادخال وصف الشكوى',
             'description.string' => 'يجب ادخال وصف صالح',

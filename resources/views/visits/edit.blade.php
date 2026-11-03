@@ -3,6 +3,10 @@
 @section('title', 'تعديل بيانات الزيارة السريرية')
 
 @section('content')
+@php
+    // The patient a visit is filed under is frozen once the visit leaves `created`.
+    $patientFrozen = in_array($visit->visit_status, ['completed', 'cancelled'], true);
+@endphp
 <div class="max-w-3xl mx-auto space-y-6">
     <!-- Breadcrumb & Header -->
     <div class="flex items-center justify-between">
@@ -10,7 +14,7 @@
             <nav class="flex items-center gap-2 text-xs text-slate-500 mb-1">
                 <a href="{{ route('visits.index') }}" class="hover:text-teal-700 transition">سجل الزيارات</a>
                 <span>/</span>
-                <span class="text-slate-800 font-semibold">تعديل الزيارة #{{ $visit->id ?? '---' }}</span>
+                <span class="text-slate-800 font-semibold">تعديل الزيارة #{{ $visit->id }}</span>
             </nav>
             <h1 class="text-2xl font-bold text-[#0b1c30]">تعديل بيانات الزيارة السريرية </h1>
             <p class="text-xs text-[#64748b] mt-0.5">تحديث سبب الكشف، حالة الزيارة، أو إعادة تعيين الطبيب المعالج</p>
@@ -34,11 +38,11 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-sm text-[#0b1c30]">تعديل حقول الزيارة </h3>
-                    <p class="text-[11px] text-[#64748b]">معرف السجل: #{{ $visit->id ?? '---' }}</p>
+                    <p class="text-[11px] text-[#64748b]">معرف السجل: #{{ $visit->id }}</p>
                 </div>
             </div>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $visit->status_badge_classes ?? 'bg-slate-100 text-slate-700' }}">
-                {{ $visit->status_label ?? 'قيد التحديث' }}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $visit->status_badge_classes }}">
+                {{ $visit->status_label }}
             </span>
         </div>
 
@@ -59,8 +63,9 @@
                         <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
                             المريض ورقم الملف (Patient):
                         </label>
-                        <select name="patient_id" id="patient_id" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800">
-                            <option value="">-- بدون تحديد مريض  --</option>
+                        <select name="{{ $patientFrozen ? '' : 'patient_id' }}" id="patient_id"
+                            @disabled($patientFrozen)
+                            class="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 {{ $patientFrozen ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white' }}">
                             @if(isset($patients))
                                 @foreach($patients as $patient)
                                     <option value="{{ $patient->id }}" {{ (old('patient_id', $visit->patient_id ?? '') == $patient->id) ? 'selected' : '' }}>
@@ -69,6 +74,13 @@
                                 @endforeach
                             @endif
                         </select>
+                        @if ($patientFrozen)
+                            {{-- A disabled control is not submitted, so the stored patient travels in a hidden field. --}}
+                            <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+                            <p class="text-[11px] text-amber-700 mt-1">
+                                لا يمكن تغيير المريض بعد إتمام الزيارة أو إلغائها.
+                            </p>
+                        @endif
 
                     </div>
 
@@ -82,7 +94,7 @@
                             @if(isset($doctors))
                                 @foreach($doctors as $doctor)
                                     <option value="{{ $doctor->id }}" {{ (old('doctor_id', $visit->doctor_id ?? '') == $doctor->id) ? 'selected' : '' }}>
-                                        {{ $doctor->fullname }} - {{ $doctor->clinic->name ?? 'عيادة عامة' }}
+                                        {{ $doctor->fullname }} - {{ $doctor->clinic?->name ?: 'بدون عيادة' }}
                                     </option>
                                 @endforeach
                             @endif
@@ -109,7 +121,7 @@
                             type="date"
                             name="date"
                             id="date"
-                            value="{{ old('date', isset($visit->date) ? (is_string($visit->date) ? $visit->date : $visit->date->format('Y-m-d')) : date('Y-m-d')) }}"
+                            value="{{ old('date', $visit->date->format('Y-m-d')) }}"
                             required
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono focus:outline-none focus:ring-1 focus:ring-[#00685f]"
                         />

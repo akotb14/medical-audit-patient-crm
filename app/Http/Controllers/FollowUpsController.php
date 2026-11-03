@@ -7,6 +7,7 @@ use App\Http\Requests\FollowUpsRequests\UpdateFollowUpRequest;
 use App\Models\FollowUp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class FollowUpsController extends Controller
@@ -77,13 +78,41 @@ class FollowUpsController extends Controller
 
         $data = $request->validated();
 
-        if (($data['status'] ?? null) === 'done') {
-            $data['completed_at'] = $followup->completed_at ?? now();
-        } else {
-            $data['completed_at'] = null;
+        /*
+        | `patient_id` and `visit_id` identify the association the follow-up was
+        | created with. They are permanent, so any submitted value is dropped
+        | before the row is written.
+        */
+        unset($data['patient_id'], $data['visit_id']);
+
+        /*
+        | The transition is re-checked after the row is locked: a concurrent
+        | completion must not slip between the request validation and the write.
+        */
+        $updated = DB::transaction(function () use ($followup, $data): bool {
+            $lockedFollowUp = FollowUp::query()
+                ->whereKey($followup->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $lockedFollowUp->canTransitionTo((string) $data['status'])) {
+                return false;
+            }
+
+            $data['completed_at'] = $data['status'] === 'done'
+                ? ($lockedFollowUp->completed_at ?? now())
+                : null;
+            $data['updated_by'] = Auth::id();
+            $lockedFollowUp->update($data);
+
+            return true;
+        });
+
+        if (! $updated) {
+            return redirect()
+                ->route('follow_ups.index')
+                ->with('error', 'لا يمكن تغيير حالة المتابعة');
         }
-        $data['updated_by'] = Auth::id();
-        $followup->update($data);
 
         return redirect()
             ->route('follow_ups.index')
@@ -93,20 +122,40 @@ class FollowUpsController extends Controller
     public function complete(Request $request, FollowUp $followup)
     {
         Gate::authorize('complete', $followup);
-        if ($followup->status !== 'scheduled') {
+        $request->validate([
+            'outcome_note' => 'nullable|string|max:500',
+        ], [
+            'outcome_note.max' => 'يجب أن لا يتجاوز ملاحظة النتيجة 500 حرف.',
+            'outcome_note.string' => 'ملاحظة النتيجة يجب أن تكون نصًا.',
+        ]);
+
+        /*
+        | The status is checked under the row lock, so two concurrent completions
+        | cannot both pass and overwrite the outcome and completion moment.
+        */
+        $completed = DB::transaction(function () use ($followup, $request): bool {
+            $lockedFollowUp = FollowUp::query()
+                ->whereKey($followup->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedFollowUp->status !== 'scheduled') {
+                return false;
+            }
+
+            $lockedFollowUp->update([
+                'outcome_note' => $request->input('outcome_note'),
+                'status' => 'done',
+                'completed_at' => now(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            return true;
+        });
+
+        if (! $completed) {
             return redirect()->route('follow_ups.index')->with('error', 'لا يمكن تغيير حالة المتابعة');
         }
-        $request->validate([
-            'outcome_note' => 'nullable|max:2000',
-        ], [
-            'outcome_note.max' => 'يجب أن لا يتجاوز ملاحظة النتيجة 2000 حرف.',
-        ]);
-        $followup->update([
-            'outcome_note' => $request->outcome_note,
-            'status' => 'done',
-            'completed_at' => now(),
-            'updated_by' => Auth::id(),
-        ]);
 
         return redirect()->route('follow_ups.index')->with('success', 'تم إنجاز المتابعة بنجاح');
     }
@@ -114,20 +163,57 @@ class FollowUpsController extends Controller
     public function status(Request $request, FollowUp $followup)
     {
         Gate::authorize('status', $followup);
-        if ($followup->status === 'done') {
-            return redirect()->route('follow_ups.index')->with('error', 'لا يمكن تغيير حالة المتابعة');
-        }
-        $request->validate(
+        $validated = $request->validate(
             [
-                'status' => 'required|in:scheduled,done,missed,cancelled',
+                'status' => 'required|string|in:scheduled,done,missed,cancelled',
             ],
             [
                 'status.required' => 'يرجى تحديد حالة المتابعة.',
+                'status.string' => 'حالة المتابعة المحددة غير صحيحة.',
                 'status.in' => 'حالة المتابعة المحددة غير صحيحة.',
             ]
         );
 
-        $followup->update(['status' => $request->status, 'updated_by' => Auth::id()]);
+        /*
+        | The current status is read after the row is locked, so two concurrent
+        | status changes cannot both pass the transition check. The completion
+        | moment is written with the status, exactly as the update and complete
+        | actions do.
+        */
+        $currentLabel = '';
+        $outcome = DB::transaction(function () use ($followup, $validated, &$currentLabel): string {
+            $lockedFollowUp = FollowUp::query()
+                ->whereKey($followup->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $currentLabel = $lockedFollowUp->status_label;
+
+            if ($lockedFollowUp->status === 'done') {
+                return 'done';
+            }
+
+            if (! $lockedFollowUp->canTransitionTo((string) $validated['status'])) {
+                return 'invalid';
+            }
+
+            $lockedFollowUp->update([
+                'status' => $validated['status'],
+                'completed_at' => $validated['status'] === 'done' ? ($lockedFollowUp->completed_at ?? now()) : null,
+                'updated_by' => Auth::id(),
+            ]);
+
+            return 'updated';
+        });
+
+        if ($outcome === 'done') {
+            return redirect()->route('follow_ups.index')->with('error', 'لا يمكن تغيير حالة المتابعة');
+        }
+
+        if ($outcome === 'invalid') {
+            return redirect()->route('follow_ups.index')
+                ->with('error', 'لا يمكن نقل المتابعة من حالة «'.$currentLabel.'» إلى هذه الحالة.');
+        }
 
         return redirect()->route('follow_ups.index')->with('success', 'تم تغيير حالة المتابعة بنجاح');
     }

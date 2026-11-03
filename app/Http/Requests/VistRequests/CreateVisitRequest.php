@@ -21,7 +21,12 @@ class CreateVisitRequest extends BaseVisitRequest
                 'integer',
                 Rule::exists('patients', 'id')->whereNull('deleted_at'),
             ],
-            'date' => 'required|date|after_or_equal:now',
+            /*
+            | A date submitted by the form carries no time, so it reads as the
+            | start of that day. Comparing against today accepts today's date
+            | for the whole day instead of from the current moment.
+            */
+            'date' => 'required|date|after_or_equal:today',
         ];
     }
 
@@ -31,7 +36,7 @@ class CreateVisitRequest extends BaseVisitRequest
             ...parent::messages(),
             'date.required' => 'يرجى تحديد تاريخ الزيارة.',
             'date.date' => 'تاريخ الزيارة غير صحيح.',
-            'date.after' => 'تاريخ الزيارة يجب أن يكون بعد تاريخ اليوم.',
+            'date.after_or_equal' => 'تاريخ الزيارة يجب أن يكون اليوم أو في المستقبل.',
         ];
     }
 }
