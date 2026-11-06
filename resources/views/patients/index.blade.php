@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <!-- 2. Fast Clinical Summary Strip (Quick Glance Indicators) -->
+        {{-- <!-- 2. Fast Clinical Summary Strip (Quick Glance Indicators) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-right">
             <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
                 <span class="text-[11px] text-slate-500 font-medium block">إجمالي ملفات المرضى</span>
@@ -74,7 +74,7 @@
                     {{ $stats['most_common_blood_group'] ?: 'لا يوجد' }}
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <!-- 3. Fast Filter & Search Toolbar -->
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">

@@ -56,15 +56,7 @@
 
 
             </div>
-            {{-- @if ($errors->any())
-            <div class="bg-red-800 w-fit p-2 rounded-lg text-white text-xs">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            @endif --}}
+         
         </div>
 
         <!-- Section 2: Role Selection -->
@@ -97,84 +89,7 @@
 
         </div>
 
-        <!-- Section 3: Granular Permissions Matrix -->
-        {{-- <div class="bg-white rounded-xl border border-[#e2e8f0] p-6 shadow-xs space-y-4">
-            <h2
-                class="text-sm font-bold text-[#0b1c30] flex items-center justify-between border-b border-slate-100 pb-2">
-                <span class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-[#00685f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <span>الصلاحيات الدقيقة المخصصة (Permissions Matrix)</span>
-                </span>
-                <span class="text-xs text-slate-500 font-normal">يمكن تخصيص صلاحيات إضافية للمستخدم</span>
-            </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                <!-- Appointments Module -->
-                <div class="border border-slate-200 rounded-lg p-3 bg-[#f8fafc] space-y-2">
-                    <div class="font-bold text-[#00685f] border-b border-slate-200 pb-1">وحدة المواعيد والزيارات</div>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="appointments.view" checked
-                            class="rounded text-[#00685f]" />
-                        <span>عرض جدول المواعيد (View)</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="appointments.create" checked
-                            class="rounded text-[#00685f]" />
-                        <span>حجز وتسجيل موعد جديد (Create)</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="appointments.update_status" checked
-                            class="rounded text-[#00685f]" />
-                        <span>تأكيد الحضور أو الإلغاء (Status)</span>
-                    </label>
-                </div>
-
-                <!-- Patients Module -->
-                <div class="border border-slate-200 rounded-lg p-3 bg-[#f8fafc] space-y-2">
-                    <div class="font-bold text-[#00685f] border-b border-slate-200 pb-1">وحدة المرضى والملفات السريرية
-                    </div>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="patients.view" checked
-                            class="rounded text-[#00685f]" />
-                        <span>معاينة سجلات المرضى (MRN)</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="patients.create" checked
-                            class="rounded text-[#00685f]" />
-                        <span>فتح ملف مريض جديد (Intake)</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="patients.edit_clinical"
-                            class="rounded text-[#00685f]" />
-                        <span>تعديل الحساسية والأمراض المزمنة</span>
-                    </label>
-                </div>
-
-                <!-- Complaints & Quality -->
-                <div class="border border-slate-200 rounded-lg p-3 bg-[#f8fafc] space-y-2">
-                    <div class="font-bold text-[#00685f] border-b border-slate-200 pb-1">وحدة الشكاوى والتحقيق (PX)
-                    </div>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="complaints.view" checked
-                            class="rounded text-[#00685f]" />
-                        <span>عرض تذاكر الاعتراضات والشكاوى</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="complaints.advance_stepper"
-                            class="rounded text-[#00685f]" />
-                        <span>نقل مراحل التحقيق في الشكوى</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-slate-700 cursor-pointer">
-                        <input type="checkbox" name="permissions[]" value="complaints.close"
-                            class="rounded text-[#00685f]" />
-                        <span>إغلاق وحل الشكوى نهائياً</span>
-                    </label>
-                </div>
-            </div>
-        </div> --}}
 
         <!-- Submit & Actions -->
         <div class="flex items-center justify-end gap-3 pt-2">

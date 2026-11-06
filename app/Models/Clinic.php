@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Clinic extends Model
 {
-    /** @use HasFactory<ClinicFactory> */
     use HasFactory;
 
     protected $table = 'clinics';
@@ -26,14 +25,14 @@ class Clinic extends Model
     {
         return $this->hasMany(Doctor::class);
     }
-    
+
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 }

@@ -25,10 +25,7 @@ class UpdateVisitRequest extends BaseVisitRequest
                 ...explode('|', parent::rules()['reason']),
                 $this->closedVisitRule(),
             ],
-            'patient_id' => [
-                ...explode('|', parent::rules()['patient_id']),
-                $this->frozenPatientRule(),
-            ],
+
         ];
     }
 
@@ -41,33 +38,7 @@ class UpdateVisitRequest extends BaseVisitRequest
         ];
     }
 
-    /**
-     * The patient a visit is filed under is frozen the moment the visit leaves
-     * `created`. A completed or cancelled visit belongs to one patient's medical
-     * history, and the survey, the complaint raised from it and the follow-up
-     * that may hang off it each store their own copy of that patient, so moving
-     * the visit afterwards would leave one clinical event naming two patients.
-     *
-     * Those records are only ever created for a completed visit, which is why the
-     * status alone carries the guarantee. A visit that is still open may still be
-     * moved to the patient it actually belongs to.
-     */
-    private function frozenPatientRule(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            $visit = $this->route('visit');
-
-            if (! $visit instanceof Visit || (int) $value === (int) $visit->patient_id) {
-                return;
-            }
-
-            if (! in_array($visit->visit_status, ['completed', 'cancelled'], true)) {
-                return;
-            }
-
-            $fail('لا يمكن تغيير المريض بعد إتمام الزيارة أو إلغائها.');
-        };
-    }
+  
 
     /**
      * An open visit can still be moved to today or to a later day, but not back

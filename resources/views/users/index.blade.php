@@ -9,7 +9,7 @@
         <div>
             <h1 class="text-2xl font-bold text-[#0b1c30]">إدارة المستخدمين والكادر الطبي</h1>
             <p class="text-xs text-[#64748b] mt-1">
-                التحكم في حسابات الكادر الطبي والإداري وتعيين الأدوار والصلاحيات السريرية (RBAC)
+                التحكم في حسابات الكادر الطبي والإداري
             </p>
         </div>
         <div class="flex items-center gap-3">
@@ -40,8 +40,7 @@
                 <thead class="bg-[#f8fafc] text-[#64748b] text-xs font-semibold uppercase border-b border-[#e2e8f0]">
                     <tr>
                         <th class="py-3.5 px-4">المستخدم واسم الدخول</th>
-                        <th class="py-3.5 px-4">الدور الوظيفي (Role)</th>
-                        <th class="py-3.5 px-4">الصلاحيات الممنوحة</th>
+                        <th class="py-3.5 px-4 text-center">الدور الوظيفي </th>
                         <th class="py-3.5 px-4 text-center">إجراءات</th>
                     </tr>
                 </thead>
@@ -60,22 +59,18 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="py-3.5 px-4">
+                        <td class="py-3.5 px-4 text-center">
                             <span
                                 class="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#eff4ff] text-[#00685f] border border-teal-200">
-                                {{ $user->roleNames() ?: 'بدون دور' }}
+                                {{ $user->roles->pluck('name')->implode(',') ?: 'بدون دور' }}
                             </span>
                         </td>
 
-                        <td class="py-3.5 px-4">
-                            <span class="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded font-mono">
-                                {{ $user->getAllPermissions()->count() }} صلاحيات
-                            </span>
-                        </td>
+
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 <a class="text-xs font-semibold text-[#00685f] hover:underline"
-                                    href="{{ route('users.edit', $user->id) }}">تعديل</a>
+                                    href="{{ route('users.edit', $user) }}">تعديل</a>
                                 <span class="text-slate-300">|</span>
                                 <form method="POST" action="{{ route('users.destroy', $user) }}">
                                     @csrf

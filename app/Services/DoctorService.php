@@ -6,7 +6,7 @@ use App\Models\Doctor;
 use App\Queries\DoctorIndexQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -27,28 +27,16 @@ class DoctorService
 
     public function __construct(private DoctorIndexQuery $doctorIndexQuery) {}
 
-    /**
-     * The doctor directory, filtered by the request.
-     *
-     * @param  array<string, mixed>  $filters
-     */
-    public function paginateIndex(array $filters): LengthAwarePaginator
+
+    public function paginateIndex(array $filters): Paginator
     {
         return $this->doctorIndexQuery
             ->build($filters)
-            ->paginate(12)
+            ->simplePaginate(15)
             ->withQueryString();
     }
 
-    public function getDoctorsCounts()
-    {
-        return Cache::remember(
-            'doctors_counts',
-            3600,
-            fn () => Doctor::where('status', 'active')->count()
-        );
 
-    }
 
     /**
      * The doctor options offered by a dropdown: the active directory, bounded and
@@ -95,26 +83,33 @@ class DoctorService
             ->orderBy('fullname');
     }
 
+    public function getDoctorsCounts()
+    {
+        return Cache::remember(
+            'doctors_counts',
+            3600,
+            fn() => Doctor::where('status', 'active')->count()
+        );
+    }
+
     public function getDoctorsCountsByClinic()
     {
         return Cache::remember(
             'doctors_counts_by_clinic',
             3600,
-            fn () => Doctor::query()
+            fn() => Doctor::query()
                 ->where('status', 'active')
                 ->groupBy('clinic_id')
                 ->selectRaw('clinic_id, COUNT(*) as count')
                 ->get()
-                ->mapWithKeys(fn ($item) => [
+                ->mapWithKeys(fn($item) => [
                     $item->clinic_id => $item->count,
                 ])
                 ->all()
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
+
     public function create(array $data, ?int $actorId): Doctor
     {
         $doctor = Doctor::create([
@@ -127,9 +122,7 @@ class DoctorService
         return $doctor;
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
+   
     public function update(Doctor $doctor, array $data, ?int $actorId): void
     {
         $doctor->update([
@@ -140,41 +133,15 @@ class DoctorService
         $this->flushCountCaches();
     }
 
-    /**
-     * Delete a doctor who has never seen a patient.
-     *
-     * The visits keep the clinical history of their patients, and the foreign key
-     * releases the doctor reference on each of them when the row goes. A doctor
-     * who has seen patients is deactivated instead of deleted, so the visits keep
-     * naming the doctor who saw them. The row is locked before the check, so a
-     * visit cannot be attached between the check and the delete.
-     *
-     * @return bool whether the doctor was deleted
-     */
-    public function delete(Doctor $doctor): bool
+
+    public function delete(Doctor $doctor)
     {
-        $hasVisits = DB::transaction(function () use ($doctor): bool {
-            $lockedDoctor = Doctor::query()
-                ->whereKey($doctor->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ($lockedDoctor->visits()->exists()) {
-                return true;
-            }
-
-            $lockedDoctor->delete();
-
-            return false;
+        DB::transaction(function () use ($doctor) {
+            $doctor->update(['status' => 'inactive']);
+            $doctor->delete();
         });
 
-        if ($hasVisits) {
-            return false;
-        }
-
         $this->flushCountCaches();
-
-        return true;
     }
 
     private function flushCountCaches(): void

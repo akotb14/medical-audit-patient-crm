@@ -46,47 +46,43 @@ class Patient extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 
     public function deleter()
     {
-        return $this->belongsTo(User::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deleted_by')->withTrashed();
     }
 
-    public function scopeStats(Builder $query): object
+    public function scopeStats(Builder $query): Builder
     {
         return $query
             ->selectRaw("
             COUNT(*) AS total,
 
-            COALESCE(SUM(
-                CASE
-                    WHEN allergies IS NOT NULL
-                         AND TRIM(allergies) != ''
-                    THEN 1 ELSE 0
-                END
-            ), 0) AS allergies_count,
+            COUNT(CASE
+                WHEN allergies IS NOT NULL
+                 AND TRIM(allergies) != ''
+                THEN 1
+            END) AS allergies_count,
 
-            COALESCE(SUM(
-                CASE
-                    WHEN chronic_diseases IS NOT NULL
-                         AND TRIM(chronic_diseases) != ''
-                    THEN 1 ELSE 0
-                END
-            ), 0) AS chronic_diseases_count,
+            COUNT(CASE
+                WHEN chronic_diseases IS NOT NULL
+                 AND TRIM(chronic_diseases) != ''
+                THEN 1
+            END) AS chronic_diseases_count
 
             (
                 SELECT blood_group
                 FROM patients
                 WHERE deleted_at IS NULL
                   AND blood_group IS NOT NULL
-                  AND blood_group != ''
+                  AND TRIM(blood_group) != ''
                 GROUP BY blood_group
                 ORDER BY COUNT(*) DESC, blood_group ASC
                 LIMIT 1

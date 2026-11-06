@@ -63,10 +63,10 @@ class VisitController extends Controller
     public function edit(Visit $visit)
     {
         Gate::authorize('update', $visit);
-        $patients = $this->patientService->getPatientOptions($visit->patient_id);
+        $patient = $this->patientService->getPatientOption($visit->patient_id);
         $doctors = $this->doctorService->getDoctorOptions($visit->doctor_id);
 
-        return view('visits.edit', compact('visit', 'patients', 'doctors'));
+        return view('visits.edit', compact('visit', 'patient', 'doctors'));
     }
 
     public function update(Visit $visit, UpdateVisitRequest $request)

@@ -2,12 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\RoleEnum;
-use App\Models\User;
-use Closure;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Spatie\Permission\Models\Role;
 
 class CreateUserRequest extends FormRequest
 {
@@ -31,35 +26,12 @@ class CreateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'username' => 'required|string|unique:users,username|max:255',
             'password' => 'required|string|min:8|confirmed',
-            'role_id' => ['required', 'exists:roles,id', $this->adminGrantRule()],
+            'role_id' => 'required|integer|exists:roles,id',
         ];
     }
 
-    /**
-     * Only an administrator may create another administrator. The dedicated
-     * authorization rules still decide who may manage users at all; this rule
-     * guards only the role being granted.
-     */
-    private function adminGrantRule(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            if (! is_numeric($value)) {
-                return;
-            }
 
-            $role = Role::query()->whereKey((int) $value)->first();
 
-            if ($role?->name !== RoleEnum::ADMIN->value) {
-                return;
-            }
-
-            $actor = $this->user();
-
-            if (! $actor instanceof User || ! $actor->hasRole(RoleEnum::ADMIN->value)) {
-                $fail('يملك المديرون فقط صلاحية منح أو سحب دور المدير.');
-            }
-        };
-    }
 
     public function messages(): array
     {
@@ -80,6 +52,7 @@ class CreateUserRequest extends FormRequest
             'password.confirmed' => 'تأكيد كلمة المرور لا يطابق كلمة المرور.',
 
             'role_id.required' => 'يرجى اختيار الدور.',
+            'role_id.integer' => 'يرجى اختيار الدور.',
             'role_id.exists' => 'الدور المحدد غير موجود.',
         ];
     }

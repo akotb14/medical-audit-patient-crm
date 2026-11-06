@@ -5,6 +5,7 @@ namespace App\Http\Requests\PatientRequests;
 use App\Models\Patient;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 class BasePatientRequest extends FormRequest
 {
@@ -29,7 +30,7 @@ class BasePatientRequest extends FormRequest
 
         return [
             'fullname' => 'required|string|max:255',
-            'phone' => ['required', 'string', 'max:15', $phoneRule],
+            'phone' => ['required', 'string', (new Phone)->international(), $phoneRule],
             'address' => 'nullable|string|max:255',
             'gender' => 'required|in:male,female',
             'birthdate' => [
@@ -42,7 +43,7 @@ class BasePatientRequest extends FormRequest
             'allergies' => 'nullable|string|max:255',
             'chronic_diseases' => 'nullable|string|max:255',
             'emergency_name' => 'nullable|string|max:255',
-            'emergency_phone' => 'nullable|string|max:15',
+            'emergency_phone' => ['nullable', 'string', (new Phone)->international()],
         ];
     }
 
@@ -55,8 +56,8 @@ class BasePatientRequest extends FormRequest
 
             'phone.required' => 'رقم الهاتف مطلوب.',
             'phone.string' => 'رقم الهاتف يجب أن يكون نصًا.',
-            'phone.max' => 'رقم الهاتف يجب ألا يتجاوز 15 حرفًا.',
             'phone.unique' => 'رقم الهاتف مسجل بالفعل لمريض آخر.',
+            'phone.phone' => 'رقم الهاتف غير صحيح.',
 
             'address.string' => 'العنوان يجب أن يكون نصًا.',
             'address.max' => 'العنوان يجب ألا يتجاوز 255 حرفًا.',
@@ -82,7 +83,7 @@ class BasePatientRequest extends FormRequest
             'emergency_name.max' => 'اسم جهة الاتصال في الطوارئ يجب ألا يتجاوز 255 حرفًا.',
 
             'emergency_phone.string' => 'رقم هاتف الطوارئ يجب أن يكون نصًا.',
-            'emergency_phone.max' => 'رقم هاتف الطوارئ يجب ألا يتجاوز 15 حرفًا.',
+            'emergency_phone.phone' => 'رقم هاتف الطوارئ غير صحيح.',
         ];
     }
 }

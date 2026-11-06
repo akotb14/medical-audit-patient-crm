@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('restrict');
             $table->foreignId('clinic_id')->nullable()
                 ->constrained('clinics')->nullOnDelete();
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

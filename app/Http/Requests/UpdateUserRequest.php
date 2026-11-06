@@ -30,43 +30,11 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'username')->ignore($this->route('user')),
             ],
-            'role_id' => ['required', 'exists:roles,id', $this->adminRoleChangeRule()],
+            'role_id' => 'required|integer|exists:roles,id',
         ];
     }
 
-    /**
-     * Granting or revoking the administrator role is reserved to administrators.
-     * The dedicated authorization rules still decide who may update users at
-     * all; this rule guards only the administrator role itself.
-     */
-    private function adminRoleChangeRule(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            if (! is_numeric($value)) {
-                return;
-            }
-
-            $role = Role::query()->whereKey((int) $value)->first();
-            $user = $this->route('user');
-
-            if ($role === null || ! $user instanceof User) {
-                return;
-            }
-
-            $submittedIsAdmin = $role->name === RoleEnum::ADMIN->value;
-            $currentIsAdmin = $user->hasRole(RoleEnum::ADMIN->value);
-
-            if ($submittedIsAdmin === $currentIsAdmin) {
-                return;
-            }
-
-            $actor = $this->user();
-
-            if (! $actor instanceof User || ! $actor->hasRole(RoleEnum::ADMIN->value)) {
-                $fail('يملك المديرون فقط صلاحية منح أو سحب دور المدير.');
-            }
-        };
-    }
+   
 
     public function messages(): array
     {

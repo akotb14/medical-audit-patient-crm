@@ -19,7 +19,6 @@ class BaseVisitRequest extends FormRequest
     public function rules()
     {
         return [
-            'patient_id' => 'required|integer|exists:patients,id',
             'doctor_id' => 'required|integer|exists:doctors,id',
             'reason' => 'required|string|max:500',
         ];
@@ -29,14 +28,9 @@ class BaseVisitRequest extends FormRequest
     {
 
         return [
-            'patient_id.required' => 'يرجى اختيار المريض.',
-            'patient_id.integer' => 'رقم المريض غير صحيح.',
-            'patient_id.exists' => 'المريض المحدد غير موجود.',
-
             'doctor_id.required' => 'يرجى اختيار الطبيب.',
             'doctor_id.integer' => 'رقم الطبيب غير صحيح.',
             'doctor_id.exists' => 'الطبيب المحدد غير موجود.',
-
             
             'reason.required' => 'يرجى إدخال سبب الزيارة.',
             'reason.string' => 'سبب الزيارة يجب أن يكون نصًا.',

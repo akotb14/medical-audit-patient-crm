@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,12 +25,12 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
 
             RateLimiter::clear($request->throttleKey());
+            RateLimiter::clear($request->ipThrottleKey());
 
             $request->session()->regenerate();
 
             $user = Auth::user();
-
-            return $user->hasRole('Admin')
+            return $user->hasRole(RoleEnum::ADMIN->value)
                 ? redirect()->route('dashboard.index')
                 : redirect()->route('clinics.index');
         }

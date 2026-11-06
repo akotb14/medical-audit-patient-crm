@@ -83,10 +83,7 @@ class DoctorController extends Controller
     {
         Gate::authorize('delete', $doctor);
 
-        if (! $this->doctorService->delete($doctor)) {
-            return redirect()->route('doctors.index')
-                ->with('error', 'لا يمكن حذف الطبيب لوجود زيارات مرتبطة به. يمكن تعيين حالته إلى غير نشط بدلًا من ذلك.');
-        }
+        $this->doctorService->delete($doctor);
 
         return redirect()->route('doctors.index')->with('success', 'تم حذف الطبيب بنجاح');
     }

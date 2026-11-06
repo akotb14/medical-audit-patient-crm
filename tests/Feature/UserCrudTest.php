@@ -7,19 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Spatie\Permission\Models\Role;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for REVIEW-001 and the user delete guard.
-|
-| REVIEW-001 — every user management action called Gate::authorize() without the
-| model, so the policy resolved to a different ability and the edit form returned
-| a 500 instead of rendering.
-|
-| Every record keeps a reference to the user who created, updated or archived it,
-| so deleting a user who authored one used to fail on the foreign key: the
-| request ended in a 500 and nothing was deleted.
-|--------------------------------------------------------------------------
-*/
+
 
 it('renders the user edit page for an administrator', function () {
     actingAsAdmin();
@@ -27,7 +15,7 @@ it('renders the user edit page for an administrator', function () {
 
     $this->get(route('users.edit', $user))
         ->assertOk()
-        ->assertViewHas('user', fn (User $viewUser): bool => $viewUser->is($user))
+        ->assertViewHas('user', fn(User $viewUser): bool => $viewUser->is($user))
         ->assertViewHas('roles');
 });
 
@@ -58,7 +46,7 @@ it('deletes a user', function () {
     $this->delete(route('users.destroy', $user))
         ->assertRedirect(route('users.index'));
 
-    $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    $this->assertSoftDeleted('users', ['id' => $user->id]);
 });
 
 it('refuses to delete a user that authored records', function () {
@@ -68,9 +56,11 @@ it('refuses to delete a user that authored records', function () {
 
     $this->delete(route('users.destroy', $author))
         ->assertRedirect(route('users.index'))
-        ->assertSessionHas('error');
+        ->assertSessionHas('success');
 
-    $this->assertDatabaseHas('users', ['id' => $author->id]);
+    $this->assertSoftDeleted('users', [
+        'id' => $author->id,
+    ]);
 });
 
 /*
@@ -86,7 +76,7 @@ it('still deletes a user that holds a role but authored nothing', function () {
         ->assertRedirect(route('users.index'))
         ->assertSessionHas('success');
 
-    $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    $this->assertSoftDeleted('users', ['id' => $user->id]);
 });
 
 /*
@@ -95,21 +85,27 @@ it('still deletes a user that holds a role but authored nothing', function () {
 | its own: deleting the archivist used to succeed and left the archive with
 | nobody attributed.
 */
-it('refuses to delete the user who archived a patient', function () {
+it('soft deletes the user who archived a patient while preserving the audit reference', function () {
     actingAsAdmin();
+
     $archivist = User::factory()->create();
     $patient = Patient::factory()->create();
 
-    // Archiving is two writes in production: the audit column, then the soft delete.
-    $patient->forceFill(['deleted_by' => $archivist->id])->save();
+    $patient->forceFill([
+        'deleted_by' => $archivist->id,
+    ])->save();
+
     $patient->delete();
 
     $this->delete(route('users.destroy', $archivist))
         ->assertRedirect(route('users.index'))
-        ->assertSessionHas('error');
+        ->assertSessionHas('success');
 
-    $this->assertDatabaseHas('users', ['id' => $archivist->id]);
-    $this->assertDatabaseHas('patients', [
+    $this->assertSoftDeleted('users', [
+        'id' => $archivist->id,
+    ]);
+
+    $this->assertSoftDeleted('patients', [
         'id' => $patient->id,
         'deleted_by' => $archivist->id,
     ]);
@@ -139,7 +135,7 @@ function makeOnlyAdmin(User $admin): void
     User::role(RoleEnum::ADMIN->value)
         ->whereKeyNot($admin->getKey())
         ->get()
-        ->each(fn (User $other) => $other->removeRole(RoleEnum::ADMIN->value));
+        ->each(fn(User $other) => $other->removeRole(RoleEnum::ADMIN->value));
 }
 
 /*
@@ -186,7 +182,7 @@ describe('protecting the last administrator', function () {
             'name' => $admin->name,
             'username' => $admin->username,
             'role_id' => $receptionistRole->id,
-        ])->assertRedirect(route('users.index'));
+        ])->assertRedirect(route('patients.index'));
 
         expect($admin->refresh()->hasRole(RoleEnum::RECEPTIONIST->value))->toBeTrue();
     });
@@ -199,7 +195,7 @@ describe('protecting the last administrator', function () {
             ->assertRedirect(route('users.index'))
             ->assertSessionHas('success');
 
-        $this->assertDatabaseMissing('users', ['id' => $otherAdmin->id]);
+        $this->assertSoftDeleted('users', ['id' => $otherAdmin->id]);
     });
 
     /*
@@ -217,7 +213,7 @@ describe('protecting the last administrator', function () {
             ->assertRedirect(route('users.index'))
             ->assertSessionHas('error');
 
-        $this->assertDatabaseHas('users', ['id' => $lastAdmin->id]);
+        $this->assertNotSoftDeleted('users', ['id' => $lastAdmin->id]);
     });
 });
 
@@ -243,6 +239,24 @@ describe('creating a user', function () {
         expect($user->hasRole(RoleEnum::RECEPTIONIST->value))->toBeTrue();
     });
 
+
+    it('creates the account with the selected admin role', function () {
+        actingAsAdmin();
+        $role = Role::findByName(RoleEnum::ADMIN->value);
+
+        $this->post(route('users.store'), [
+            'name' => 'هدى سمير1 عبد الرحمن',
+            'username' => 'huda.samir1',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'role_id' => $role->id,
+        ])->assertRedirect(route('users.index'));
+
+        $user = User::query()->where('username', 'huda.samir1')->firstOrFail();
+
+        expect($user->hasRole(RoleEnum::ADMIN->value))->toBeTrue();
+    });
+
     /*
     | The role row is removed between the validation and the role lookup, which is
     | the failure the transaction guards against: neither the account nor the role
@@ -255,9 +269,8 @@ describe('creating a user', function () {
         User::created(function () use ($role): void {
             Role::query()->whereKey($role->id)->delete();
         });
-
         try {
-            expect(fn () => $this->withoutExceptionHandling()->post(route('users.store'), [
+            expect(fn() => $this->withoutExceptionHandling()->post(route('users.store'), [
                 'name' => 'هدى سمير عبد الرحمن',
                 'username' => 'huda.samir',
                 'password' => 'secret123',

@@ -59,33 +59,16 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- patient_id -->
-                    <div>
+                    <div class="flex flex-col gap-2">
                         <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
                             المريض ورقم الملف (Patient):
                         </label>
-                        <select name="{{ $patientFrozen ? '' : 'patient_id' }}" id="patient_id"
-                            @disabled($patientFrozen)
-                            class="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 {{ $patientFrozen ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white' }}">
-                            @if(isset($patients))
-                                @foreach($patients as $patient)
-                                    <option value="{{ $patient->id }}" {{ (old('patient_id', $visit->patient_id ?? '') == $patient->id) ? 'selected' : '' }}>
-                                        {{ $patient->fullname }} - ({{ $patient->mrn }})
-                                    </option>
-                                @endforeach
-                            @endif
-                        </select>
-                        @if ($patientFrozen)
-                            {{-- A disabled control is not submitted, so the stored patient travels in a hidden field. --}}
-                            <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
-                            <p class="text-[11px] text-amber-700 mt-1">
-                                لا يمكن تغيير المريض بعد إتمام الزيارة أو إلغائها.
-                            </p>
-                        @endif
+                        <span name="patient_id" class="w-full p-2.5 bg-white border font-semibold border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800" >{{$patient?->fullname}}</span>
 
                     </div>
 
                     <!-- doctor_id -->
-                    <div>
+                    <div class="flex flex-col gap-2">
                         <label for="doctor_id" class="font-bold text-slate-700 block mb-1.5">
                             الطبيب المعالج والعيادة (Doctor):
                         </label>
@@ -128,7 +111,7 @@
 
                     </div>
 
-                 
+
                 </div>
 
                 <!-- created_by -->

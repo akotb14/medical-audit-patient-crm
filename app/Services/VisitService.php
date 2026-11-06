@@ -51,7 +51,7 @@ class VisitService
                 'creator:id,name',
                 'survey',
             ])
-            ->latest('date');
+            ->latest();
 
         // The tiles are one aggregate row: the relations the listing eager loads
         // have nothing to attach to and would only run discarded queries.

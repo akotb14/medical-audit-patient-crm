@@ -90,7 +90,6 @@ function actingAsUserWithRole(RoleEnum $role): User
     $user = createUserWithRole($role);
 
     test()->actingAs($user);
-
     return $user;
 }
 

@@ -33,7 +33,7 @@ class UserController extends Controller
     {
         Gate::authorize('create', User::class);
 
-        $user = $this->userService->create($request->validated(), (int) $request->role_id);
+        $user = $this->userService->create($request->validated());
 
         if ($user === null) {
             return back()->withErrors(['username' => 'الاسم المستخدم موجود بالفعل']);
@@ -53,9 +53,10 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         Gate::authorize('update', $user);
-
-        $this->userService->update($user, $request->validated(), (int) $request->role_id);
-
+        $this->userService->update($user, $request->validated());
+        if ($user->id === Auth::id() && !$this->userService->isAdmin($user)) {
+            return redirect()->route('patients.index')->with('success', 'تم تحويلك من مدير الي موظف');
+        }
         return redirect()->route('users.index')->with('success', 'تم تحديث المستخدم بنجاح');
     }
 
@@ -72,8 +73,6 @@ class UserController extends Controller
         return match ($this->userService->delete($user)) {
             'last_admin' => redirect()->route('users.index')
                 ->with('error', 'لا يمكن حذف آخر مدير في النظام.'),
-            'referenced' => redirect()->route('users.index')
-                ->with('error', 'لا يمكن حذف المستخدم لارتباطه بسجلات موجودة في النظام.'),
             default => redirect()->route('users.index')
                 ->with('success', 'تم حذف المستخدم بنجاح'),
         };

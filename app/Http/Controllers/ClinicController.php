@@ -29,7 +29,7 @@ class ClinicController extends Controller
     {
         Gate::authorize('view', $clinic);
         $doctors = $clinic->doctors()
-            ->orderBy('id')
+            ->orderBy('status')
             ->paginate(20);
 
         return view('clinics.show', compact('clinic', 'doctors'));

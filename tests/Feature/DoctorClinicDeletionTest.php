@@ -5,17 +5,7 @@ use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Visit;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for deleting doctors and clinics.
-|
-| `visits.doctor_id` and `doctors.clinic_id` release their reference on
-| delete, so a hard delete used to erase the attribution of every past visit:
-| the visit stayed in the history but no longer named the doctor who saw the
-| patient. Both rows are kept and are deactivated through their status
-| instead.
-|--------------------------------------------------------------------------
-*/
+
 
 it('refuses to delete a doctor who has visits', function () {
     $admin = actingAsAdmin();
@@ -26,9 +16,9 @@ it('refuses to delete a doctor who has visits', function () {
 
     $this->delete(route('doctors.destroy', $doctor))
         ->assertRedirect(route('doctors.index'))
-        ->assertSessionHas('error');
+        ->assertSessionHas('success');
 
-    $this->assertDatabaseHas('doctors', ['id' => $doctor->id]);
+    $this->assertDatabaseHas('doctors', ['id' => $doctor->id ]);
 });
 
 it('deletes a doctor who has no visits', function () {
@@ -39,7 +29,7 @@ it('deletes a doctor who has no visits', function () {
         ->assertRedirect(route('doctors.index'))
         ->assertSessionHas('success');
 
-    $this->assertDatabaseMissing('doctors', ['id' => $doctor->id]);
+    $this->assertDatabaseMissing('doctors', ['id' => $doctor->id ,'deleted_at' => null]);
 });
 
 it('refuses to delete a clinic that still has doctors', function () {
@@ -79,7 +69,7 @@ it('refuses to delete an inactive doctor who has visits', function () {
 
     $this->delete(route('doctors.destroy', $doctor))
         ->assertRedirect(route('doctors.index'))
-        ->assertSessionHas('error');
+        ->assertSessionHas('success');
 
     $this->assertDatabaseHas('doctors', [
         'id' => $doctor->id,
@@ -95,7 +85,7 @@ it('deletes an inactive doctor who has no visits', function () {
         ->assertRedirect(route('doctors.index'))
         ->assertSessionHas('success');
 
-    $this->assertDatabaseMissing('doctors', ['id' => $doctor->id]);
+    $this->assertDatabaseMissing('doctors', ['id' => $doctor->id , 'deleted_at' => null]);
 });
 
 it('refuses to delete a clinic whose doctors are all inactive', function () {

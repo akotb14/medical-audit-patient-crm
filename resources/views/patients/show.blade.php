@@ -107,18 +107,6 @@
 
         <!-- Clinical History & Care Tabs -->
         <div class="bg-white rounded-xl border border-[#e2e8f0] shadow-xs overflow-hidden">
-            <!-- Tabs Nav -->
-            <div class="border-b border-[#e2e8f0] bg-[#f8fafc] px-6 flex gap-6 text-xs font-semibold">
-                <button class="py-4 border-b-2 border-[#00685f] text-[#00685f]">
-                    سجل المواعيد والزيارات السريرية
-                </button>
-                <button class="py-4 border-b-2 border-transparent text-[#64748b] hover:text-slate-900">
-                    المتابعات الحرجة وما بعد الزيارة
-                </button>
-                <button class="py-4 border-b-2 border-transparent text-[#64748b] hover:text-slate-900">
-                    سجل الملاحظات والشكاوى
-                </button>
-            </div>
 
             <!-- Appointments History Table -->
             <div class="bg-white rounded-xl border border-[#e2e8f0] shadow-xs overflow-hidden">

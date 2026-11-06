@@ -69,7 +69,7 @@
                     <div>
                         <label for="phone" class="font-bold text-slate-700 block mb-1">رقم الجوال: <span
                                 class="text-red-500">*</span></label>
-                        <input type="tel" id="phone" name="phone" required placeholder="05XXXXXXXX" value="{{old('phone')}}"
+                        <input type="tel" id="phone" name="phone" required placeholder="+012XXXXXXXX" value="{{old('phone')}}"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
                     </div>
                     <div>
