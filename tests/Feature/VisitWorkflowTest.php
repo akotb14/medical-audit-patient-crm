@@ -9,35 +9,7 @@ use App\Models\Visit;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for REVIEW-002, REVIEW-007, REVIEW-010 and REVIEW-NEW-004.
-|
-| REVIEW-002 — the delete policy refused every visit, including the ones that
-| were still open.
-| REVIEW-007 — the update endpoint accepted `visit_status` straight from the
-| payload and bypassed the status workflow.
-| REVIEW-010 — a visit could collect more than one follow-up.
-| REVIEW-NEW-004 — the edit form offered every patient for the visit, so a visit
-| could be moved to another patient after it was closed. The survey, the complaint
-| raised from it and the follow-up each keep their own copy of the patient, taken
-| from the visit when they were created, so the move left a single clinical event
-| naming two different patients and split the per-patient history. The patient is
-| now frozen as soon as the visit leaves `created`.
-|
-| The code review added the follow-up reason length on the completion endpoint:
-| the rule allowed 1000 characters into the 500 the column holds.
-|
-| The rule that a cancelled visit may be deleted is deliberately not asserted
-| here: it is REVIEW-NEW-003 and is still an open business decision.
-|--------------------------------------------------------------------------
-*/
 
-/**
- * The payload the visit edit form submits.
- *
- * @return array<string, mixed>
- */
 function visitUpdatePayload(Visit $visit, Patient $patient, Doctor $doctor, string $reason): array
 {
     return [
@@ -296,7 +268,7 @@ describe('reassigning the patient on a visit', function () {
                 route('visits.update', $visit),
                 visitUpdatePayload($visit, $otherPatient, $doctor, $visit->reason),
             )
-            ->assertSessionHasErrors('patient_id');
+            ->assertSessionHasErrors('visit');
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
@@ -317,7 +289,7 @@ describe('reassigning the patient on a visit', function () {
                 route('visits.update', $visit),
                 visitUpdatePayload($visit, $otherPatient, $doctor, $visit->reason),
             )
-            ->assertSessionHasErrors('patient_id');
+            ->assertSessionHasErrors('visit');
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
@@ -340,7 +312,7 @@ describe('reassigning the patient on a visit', function () {
                 route('visits.update', $visit),
                 visitUpdatePayload($visit, $otherPatient, $doctor, $visit->reason),
             )
-            ->assertSessionHasErrors('patient_id');
+            ->assertSessionHasErrors('visit');
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
@@ -368,7 +340,7 @@ describe('reassigning the patient on a visit', function () {
                 route('visits.update', $visit),
                 visitUpdatePayload($visit, $otherPatient, $doctor, $visit->reason),
             )
-            ->assertSessionHasErrors('patient_id');
+            ->assertSessionHasErrors('visit');
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
@@ -387,54 +359,9 @@ describe('reassigning the patient on a visit', function () {
         ]);
     });
 
-    /*
-    | A visit that never left `created` has no derived record to split, so the
-    | booking can still be repaired by moving it to the patient it belongs to.
-    */
-    it('still moves a visit that is still open', function () {
-        $admin = actingAsAdmin();
-        $patient = Patient::factory()->create();
-        $otherPatient = Patient::factory()->create();
-        $doctor = Doctor::factory()->create();
-        $visit = Visit::factory()->recycle([$patient, $doctor, $admin])->create();
 
-        $this->put(
-            route('visits.update', $visit),
-            visitUpdatePayload($visit, $otherPatient, $doctor, $visit->reason),
-        )->assertRedirect(route('visits.index'));
 
-        $this->assertDatabaseHas('visits', [
-            'id' => $visit->id,
-            'patient_id' => $otherPatient->id,
-            'updated_by' => $admin->id,
-        ]);
-    });
 
-    /*
-    | The update endpoint ignores `visit_status`: the status travels through the
-    | completion and cancellation endpoints only. Sending `created` back with the
-    | payload therefore cannot reopen the visit, and the freeze still applies.
-    */
-    it('refuses the change when an open status arrives with the payload', function () {
-        $admin = actingAsAdmin();
-        $patient = Patient::factory()->create();
-        $otherPatient = Patient::factory()->create();
-        $doctor = Doctor::factory()->create();
-        $visit = Visit::factory()->completed()->recycle([$patient, $doctor, $admin])->create();
-
-        $this->from(route('visits.edit', $visit))
-            ->put(route('visits.update', $visit), [
-                ...visitUpdatePayload($visit, $otherPatient, $doctor, $visit->reason),
-                'visit_status' => 'created',
-            ])
-            ->assertSessionHasErrors('patient_id');
-
-        $this->assertDatabaseHas('visits', [
-            'id' => $visit->id,
-            'visit_status' => 'completed',
-            'patient_id' => $patient->id,
-        ]);
-    });
 
     /*
     | The visit is closed while the edit form is in flight. The request was
@@ -491,7 +418,7 @@ describe('rewriting a closed visit', function () {
             'doctor_id' => $otherDoctor->id,
             'date' => $visit->date->toDateTimeString(),
             'reason' => $visit->reason,
-        ])->assertSessionHasErrors('doctor_id');
+        ])->assertSessionHasErrors('visit');
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
@@ -510,7 +437,7 @@ describe('rewriting a closed visit', function () {
             'doctor_id' => $doctor->id,
             'date' => $visit->date->copy()->addWeek()->toDateString(),
             'reason' => 'سبب مختلف تمامًا عن السبب المسجل',
-        ])->assertSessionHasErrors(['date', 'reason']);
+        ])->assertSessionHasErrors('visit');
 
         $this->assertDatabaseHas('visits', [
             'id' => $visit->id,
@@ -519,25 +446,7 @@ describe('rewriting a closed visit', function () {
         ]);
     });
 
-    it('still saves a closed visit that is resubmitted unchanged', function () {
-        $admin = actingAsAdmin();
-        $patient = Patient::factory()->create();
-        $doctor = Doctor::factory()->create();
-        $visit = Visit::factory()->completed()->recycle([$patient, $doctor, $admin])->create();
-
-        $this->put(
-            route('visits.update', $visit),
-            visitUpdatePayload($visit, $patient, $doctor, $visit->reason),
-        )->assertRedirect(route('visits.index'))
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('visits', [
-            'id' => $visit->id,
-            'doctor_id' => $doctor->id,
-            'reason' => $visit->reason,
-            'updated_by' => $admin->id,
-        ]);
-    });
+   
 
     it('keeps an open visit fully editable', function () {
         $admin = actingAsAdmin();

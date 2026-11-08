@@ -2,29 +2,12 @@
 
 use App\Models\Patient;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for the patient create action.
-|
-| `patients.status` has no database default and the create form does not submit
-| one, so the insert left the column empty. MySQL runs in strict mode and refused
-| it with "Field 'status' doesn't have a default value", which surfaced as a 500
-| on the create page. The column is also the one the patient list filters on, so
-| a file stored without it would never have appeared in the listing either.
-|--------------------------------------------------------------------------
-*/
 
-/**
- * The payload the patient create form submits.
- *
- * @param  array<string, string>  $overrides
- * @return array<string, string>
- */
 function patientCreatePayload(array $overrides = []): array
 {
     return [
         'fullname' => 'أحمد عبد الرحمن السيد',
-        'phone' => '01000000007',
+        'phone' => '+201000000007',
         'gender' => 'male',
         'birthdate' => '1990-05-05',
         'blood_group' => 'O+',
@@ -70,7 +53,7 @@ describe('registering a patient', function () {
             ->assertRedirect(route('patients.index'));
 
         $this->post(route('patients.store'), patientCreatePayload([
-            'phone' => '01000000008',
+            'phone' => '+201000000008',
         ]))->assertRedirect(route('patients.index'))
             ->assertSessionHasNoErrors();
 
@@ -86,10 +69,10 @@ describe('registering a patient', function () {
 describe('phone numbers of archived files', function () {
     it('refuses to recycle the phone of an archived patient', function () {
         actingAsAdmin();
-        Patient::factory()->create(['phone' => '01000000031'])->delete();
+        Patient::factory()->create(['phone' => '+201000000031'])->delete();
 
         $this->post(route('patients.store'), patientCreatePayload([
-            'phone' => '01000000031',
+            'phone' => '+201000000031',
         ]))->assertSessionHasErrors('phone');
 
         expect(Patient::withTrashed()->count())->toBe(1);
@@ -97,7 +80,7 @@ describe('phone numbers of archived files', function () {
 
     it('restores the archived file with its original phone', function () {
         actingAsAdmin();
-        $patient = Patient::factory()->create(['phone' => '01000000032']);
+        $patient = Patient::factory()->create(['phone' => '+201000000032']);
         $patient->delete();
 
         $this->patch(route('patients.restore', $patient->id))
@@ -105,20 +88,20 @@ describe('phone numbers of archived files', function () {
 
         $patient->refresh();
 
-        expect($patient->phone)->toBe('01000000032')
+        expect($patient->phone)->toBe('+201000000032')
             ->and($patient->deleted_at)->toBeNull();
     });
 
     it('keeps the archived phone reserved after the file is restored', function () {
         actingAsAdmin();
-        $patient = Patient::factory()->create(['phone' => '01000000033']);
+        $patient = Patient::factory()->create(['phone' => '+201000000033']);
         $patient->delete();
 
         $this->patch(route('patients.restore', $patient->id))
             ->assertRedirect(route('patients.archived'));
 
         $this->post(route('patients.store'), patientCreatePayload([
-            'phone' => '01000000033',
+            'phone' => '+201000000033',
         ]))->assertSessionHasErrors('phone');
 
         expect(Patient::query()->count())->toBe(1);

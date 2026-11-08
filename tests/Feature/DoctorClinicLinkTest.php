@@ -3,16 +3,7 @@
 use App\Models\Clinic;
 use App\Models\Doctor;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for the clinic badge of the doctor list.
-|
-| The badge passed the doctor model to `clinics.show`, so the doctor id was
-| used as the clinic id: the link opened a different clinic's page, or failed
-| when no clinic carried that id. A doctor with no clinic also had no id to
-| link with.
-|--------------------------------------------------------------------------
-*/
+
 
 it('links the clinic badge of every doctor to that doctor\'s clinic', function () {
     actingAsAdmin();

@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Doctor;
-use App\Queries\DoctorIndexQuery;
+use App\Queries\DoctorQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\Paginator;
@@ -12,43 +12,24 @@ use Illuminate\Support\Facades\DB;
 
 class DoctorService
 {
-    /**
-     * The number of doctors a dropdown loads before the directory grows past it.
-     * The currently selected doctor is always kept in the list.
-     */
+
+    // The number of doctors a dropdown loads before the directory grows past it.
     private const OPTION_LIMIT = 500;
 
-    /**
-     * The columns a doctor dropdown renders.
-     *
-     * @var list<string>
-     */
-    private const OPTION_COLUMNS = ['id', 'fullname', 'clinic_id'];
 
-    public function __construct(private DoctorIndexQuery $doctorIndexQuery) {}
+
+    public function __construct(private DoctorQuery $doctorQuery) {}
 
 
     public function paginateIndex(array $filters): Paginator
     {
-        return $this->doctorIndexQuery
-            ->build($filters)
+        return $this->doctorQuery
+            ->getIndexQuery(Doctor::query()->latest() , $filters)
             ->simplePaginate(15)
             ->withQueryString();
     }
 
 
-
-    /**
-     * The doctor options offered by a dropdown: the active directory, bounded and
-     * ordered by name.
-     *
-     * A doctor who is no longer active is not offered for a new assignment, but
-     * the one a record already names stays in the list: dropping it would leave
-     * the field pointing at an option that is not there, and the browser would
-     * submit whichever doctor happened to be first instead.
-     *
-     * @return Collection<int, Doctor>
-     */
     public function getDoctorOptions(?int $selectedDoctorId = null): Collection
     {
         $doctors = $this->optionQuery()
@@ -72,13 +53,11 @@ class DoctorService
             ->values();
     }
 
-    /**
-     * @return Builder<Doctor>
-     */
+
     private function optionQuery(): Builder
     {
         return Doctor::query()
-            ->select(self::OPTION_COLUMNS)
+            ->select(['id', 'fullname', 'clinic_id'])
             ->with('clinic:id,name')
             ->orderBy('fullname');
     }
@@ -122,7 +101,7 @@ class DoctorService
         return $doctor;
     }
 
-   
+
     public function update(Doctor $doctor, array $data, ?int $actorId): void
     {
         $doctor->update([

@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Patient;
-use App\Queries\PatientIndexQuery;
+use App\Queries\PatientQuery;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -18,13 +18,14 @@ class PatientService
 
     private const MRN_ATTEMPTS = 5;
 
-    public function __construct(private PatientIndexQuery $patientIndexQuery) {}
+    public function __construct(private PatientQuery $patientQuery) {}
 
 
     public function paginateIndex(array $filters): array
     {
-        $patients = $this->patientIndexQuery
-            ->build($filters)
+        $query = Patient::query()->latest();
+        $patients = $this->patientQuery
+            ->getIndexQuery($query, $filters)
             ->where('status', 'active')
             ->paginate(20)
             ->withQueryString();
@@ -124,16 +125,15 @@ class PatientService
 
     public function getPatientOptions(): Collection
     {
-       return Patient::query()
+        return Patient::query()
             ->select(['id', 'fullname', 'mrn', 'phone'])
             ->latest()
             ->limit(self::OPTION_LIMIT)
             ->get();
-
     }
 
 
-    public function getPatientOption(int $patientId):?Patient
+    public function getPatientOption(int $patientId): ?Patient
     {
         return Patient::query()
             ->select(['id', 'fullname', 'mrn', 'phone'])

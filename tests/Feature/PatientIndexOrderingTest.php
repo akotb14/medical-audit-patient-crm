@@ -2,16 +2,7 @@
 
 use App\Models\Patient;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for the order of the patient listing.
-|
-| The list ordered by `created_at` alone. Registration timestamps have second
-| precision, so patients registered in the same second had no defined order
-| and could be repeated or skipped between pages. The id tiebreaker keeps the
-| newest-first order deterministic.
-|--------------------------------------------------------------------------
-*/
+
 
 it('orders patients registered in the same second by id across pages', function () {
     actingAsAdmin();

@@ -2,14 +2,13 @@
 
 namespace App\Queries;
 
-use App\Models\Doctor;
 use Illuminate\Database\Eloquent\Builder;
 
-class DoctorIndexQuery
+class DoctorQuery
 {
-    public function build(array $filters): Builder
+    public function getIndexQuery(Builder $query ,array $filters): Builder
     {
-        return Doctor::query()
+        return $query
             ->with('clinic:id,name')
             ->when($filters['search'] ?? null, function (
                 Builder $query,

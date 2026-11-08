@@ -3,15 +3,7 @@
 use App\Models\Clinic;
 use App\Models\Doctor;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for the clinic directory summary.
-|
-| The average doctors per clinic and the readiness percentage both divide by the
-| number of clinics, so a directory with no clinic divided by zero: the page came
-| back as a 500 instead of rendering the empty list.
-|--------------------------------------------------------------------------
-*/
+
 
 it('renders the directory with no clinic at all', function () {
     actingAsAdmin();

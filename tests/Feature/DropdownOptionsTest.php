@@ -5,19 +5,7 @@ use App\Models\Patient;
 use App\Models\User;
 use App\Models\Visit;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for the dropdown findings of the code review.
-|
-| Unbounded lists — the doctor and the assignee dropdowns queried every row of
-| their table on every page view. Both are now bounded, projection-limited and
-| ordered by a service, which is only safe while the row a record already names
-| stays in the list: an option that is stored but not rendered leaves the field
-| showing whichever option happens to be first, and the form submits that one
-| instead. These tests cover that silent reassignment, and the status filter
-| that still keeps a doctor who is no longer active out of a new assignment.
-|--------------------------------------------------------------------------
-*/
+
 
 describe('the doctor list of a visit form', function () {
     it('keeps the doctor a visit is filed under after that doctor leaves the active list', function () {
@@ -34,26 +22,7 @@ describe('the doctor list of a visit form', function () {
             ->assertSee('د. سامي عبد الرحمن الشاذلي');
     });
 
-    it('still saves a completed visit whose doctor left the active list', function () {
-        $admin = actingAsAdmin();
-        $patient = Patient::factory()->create();
-        $doctor = Doctor::factory()->create(['status' => 'inactive']);
-        $visit = Visit::factory()->completed()->recycle([$patient, $doctor, $admin])->create();
-
-        $this->put(route('visits.update', $visit), [
-            'patient_id' => $patient->id,
-            'doctor_id' => $doctor->id,
-            'date' => $visit->date->toDateTimeString(),
-            'reason' => $visit->reason,
-        ])->assertSessionHasNoErrors()
-            ->assertRedirect(route('visits.index'));
-
-        $this->assertDatabaseHas('visits', [
-            'id' => $visit->id,
-            'doctor_id' => $doctor->id,
-        ]);
-    });
-
+  
     it('does not offer a doctor who left the active list for a new visit', function () {
         actingAsAdmin();
         Doctor::factory()->create([

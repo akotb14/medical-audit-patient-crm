@@ -30,7 +30,6 @@
               سيتم نقل حالة الزيارة إلى <span class="font-bold text-emerald-800">مكتملة (completed)</span> وتوليد سجل متابعة سريرية تلقائي في جدول <code class="font-mono bg-white px-1 py-0.2 rounded border border-emerald-200 font-bold">follow_ups</code>.
             </p>
           </div>
-
           <!-- Reason summary -->
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
             <span class="text-slate-400 block text-[11px]">سبب الزيارة المسجل:</span>

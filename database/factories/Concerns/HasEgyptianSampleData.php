@@ -37,7 +37,7 @@ trait HasEgyptianSampleData
             ? $faker->unique()->numerify('########')
             : $faker->numerify('########');
 
-        return '01'.$faker->randomElement(['0', '1', '2', '5']).$digits;
+        return '+201'.$faker->randomElement(['0', '1', '2', '5']).$digits;
     }
 
     /**

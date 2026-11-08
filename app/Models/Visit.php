@@ -30,9 +30,7 @@ class Visit extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Archived patients stay readable on the visit, the history outlives the file.
-     */
+    
     public function patient()
     {
         return $this->belongsTo(Patient::class, 'patient_id')->withTrashed();
@@ -79,46 +77,6 @@ class Visit extends Model
     public function scopeCancelled(Builder $query): Builder
     {
         return $query->where('visit_status', 'cancelled');
-    }
-
-    public function scopeForPatient(Builder $query, int $patient): Builder
-    {
-        return $query->where('patient_id', $patient);
-    }
-
-    public function scopeForDoctor(Builder $query, int $doctor): Builder
-    {
-        return $query->where('doctor_id', $doctor);
-    }
-
-    public function scopeStatus(Builder $query, string $status): Builder
-    {
-        return $query->where('visit_status', $status);
-    }
-
-    public function scopeForDate(Builder $query, $date): Builder
-    {
-        return $query->whereDate('date', $date);
-    }
-
-    public function scopeSearch(Builder $query, ?string $term): Builder
-    {
-        if (! $term) {
-            return $query;
-        }
-
-        return $query->where(function ($q) use ($term) {
-            $q->where('reason', 'like', "%{$term}%")
-                ->orWhereHas('patient', function ($pq) use ($term) {
-                    $pq->where('fullname', 'like', "%{$term}%")
-                        ->orWhere('mrn', 'like', "%{$term}%");
-                })
-                ->orWhereHas('doctor', function ($dq) use ($term) {
-                    $dq->where('fullname', 'like', "%{$term}%");
-                })->orWhereHas('creator', function ($cq) use ($term) {
-                    $cq->where('name', 'like', "%{$term}%");
-                });
-        });
     }
 
     // attributes

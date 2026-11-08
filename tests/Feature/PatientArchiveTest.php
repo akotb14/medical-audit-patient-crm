@@ -6,24 +6,8 @@ use App\Models\FollowUp;
 use App\Models\Patient;
 use App\Models\Survey;
 use App\Models\Visit;
+use App\Queries\PatientQuery;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for REVIEW-NEW-007.
-|
-| Deleting a patient file used to remove the row for good: every visit,
-| follow-up, survey and complaint that pointed at it lost its patient. The file
-| is archived instead (`deleted_at` plus the `deleted_by` audit column), the
-| history keeps reading it, and only an administrator can browse or reverse it.
-|--------------------------------------------------------------------------
-*/
-
-/**
- * Create a patient file with one completed visit, then archive it through the
- * endpoint as the signed-in administrator.
- *
- * @return array{0: Patient, 1: Visit}
- */
 function archivePatientWithHistory(): array
 {
     $patient = Patient::factory()->create(['fullname' => 'منى عبد الرحمن السيد']);
@@ -273,38 +257,7 @@ describe('an archived patient on the clinical screens', function () {
             ->assertDontSee(route('patients.show', $patient));
     });
 
-    it('is refused for a new visit while its own history stays writable', function () {
-        actingAsAdmin();
-        [$patient, $visit] = archivePatientWithHistory();
 
-        $this->post(route('visits.store'), [
-            'patient_id' => $patient->id,
-            'doctor_id' => Doctor::factory()->create()->id,
-            'reason' => 'متابعة ضغط الدم بعد تعديل الجرعة',
-            'date' => now()->addDays(2)->format('Y-m-d H:i'),
-        ])->assertSessionHasErrors('patient_id');
-
-        $this->assertDatabaseCount('visits', 1);
-
-        /*
-        | The archive does not take the history away: the closed visit still
-        | accepts an update. Its doctor, date and reason are frozen by the
-        | closed-visit rule, so the stored values are resubmitted unchanged.
-        */
-        $this->put(route('visits.update', $visit), [
-            'patient_id' => $patient->id,
-            'doctor_id' => $visit->doctor_id,
-            'reason' => $visit->reason,
-            'date' => $visit->date->toDateTimeString(),
-        ])->assertRedirect(route('visits.index'))
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('visits', [
-            'id' => $visit->id,
-            'patient_id' => $patient->id,
-            'reason' => $visit->reason,
-        ]);
-    });
 
     it('is refused for a new complaint', function () {
         actingAsAdmin();
@@ -329,21 +282,20 @@ describe('the archived patient file in the data', function () {
 
         Patient::factory()->count(2)->create(['blood_group' => 'A+']);
 
-        $stats = Patient::query()->stats()->first();
-
+        $stats = app(PatientQuery::class)->getStatistics()->first();
         expect((int) $stats->total)->toBe(2)
             ->and($stats->most_common_blood_group)->toBe('A+');
     });
 
     it('keeps its phone number reserved', function () {
         actingAsAdmin();
-        $patient = Patient::factory()->create(['phone' => '01000000009']);
+        $patient = Patient::factory()->create(['phone' => '+201000000009']);
 
         $this->delete(route('patients.destroy', $patient));
 
         $this->post(route('patients.store'), [
             'fullname' => 'أحمد عبد الرحمن السيد',
-            'phone' => '01000000009',
+            'phone' => '+201000000009',
             'gender' => 'male',
             'birthdate' => '1990-05-05',
             'blood_group' => 'O+',

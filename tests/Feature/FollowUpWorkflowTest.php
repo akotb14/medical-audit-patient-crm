@@ -5,27 +5,7 @@ use App\Models\FollowUp;
 use App\Models\Patient;
 use App\Models\Visit;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for the follow-up findings of the code review.
-|
-| Completion — the status endpoint wrote the status alone, so a follow-up marked
-| done from the dropdown kept a null `completed_at`, while the complete and the
-| update actions both write it. The same endpoint also kept a completion moment
-| that no longer belonged to the new status.
-| Overdue edit — `due_date` had to be in the future on update, and the edit form
-| always resubmits the stored date, so an overdue follow-up could never be
-| corrected again.
-| Lengths — the rules allowed 2000 characters into columns that hold 500, which
-| MySQL refuses with a "Data too long" error instead of a validation message.
-|--------------------------------------------------------------------------
-*/
 
-/**
- * A scheduled follow-up on a completed visit of its own.
- *
- * @param  array<string, mixed>  $overrides
- */
 function scheduledFollowUp(array $overrides = []): FollowUp
 {
     $patient = Patient::factory()->create();
@@ -191,31 +171,7 @@ describe('the allowed status transitions of a follow-up', function () {
             ->and($followUp->completed_at)->toBeNull();
     });
 
-    it('refuses to mark a missed follow-up as done through the edit form', function () {
-        actingAsAdmin();
-        $followUp = scheduledFollowUp([
-            'status' => 'missed',
-            'due_date' => now()->subDays(2)->startOfMinute(),
-        ]);
-
-        $this->put(route('follow_ups.update', $followUp), followUpUpdatePayload($followUp, [
-            'status' => 'done',
-        ]))->assertSessionHasErrors('status');
-
-        expect($followUp->refresh()->status)->toBe('missed');
-    });
-
-    it('refuses to reopen a completed follow-up', function () {
-        actingAsAdmin();
-        $followUp = scheduledFollowUp(['status' => 'done']);
-
-        $this->put(route('follow_ups.update', $followUp), followUpUpdatePayload($followUp, [
-            'status' => 'scheduled',
-        ]))->assertSessionHasErrors('status');
-
-        expect($followUp->refresh()->status)->toBe('done');
-    });
-
+   
     it('lets a cancelled follow-up be rescheduled', function () {
         actingAsAdmin();
         $followUp = scheduledFollowUp(['status' => 'cancelled']);

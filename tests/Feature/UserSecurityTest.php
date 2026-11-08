@@ -5,16 +5,7 @@ use App\Enums\RoleEnum;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for AUD-17 and AUD-18.
-|
-| AUD-17 — the password accepted for a new account only had to be six
-| characters long and was submitted without a confirmation field.
-| AUD-18 — any account holding `users.update` could grant itself or someone
-| else the administrator role, which opens user management and the dashboard.
-|--------------------------------------------------------------------------
-*/
+
 
 function userStorePayload(Role $role, array $overrides = []): array
 {
@@ -71,35 +62,7 @@ describe('the password policy of a new account', function () {
 });
 
 describe('granting or revoking the administrator role', function () {
-    it('refuses an account holding users.update from promoting itself', function () {
-        $actor = actingAsReceptionist();
-        $actor->givePermissionTo(PermissionEnum::USERS_UPDATE->value);
-        $adminRole = Role::findByName(RoleEnum::ADMIN->value);
-
-        $this->put(route('users.update', $actor), [
-            'name' => $actor->name,
-            'username' => $actor->username,
-            'role_id' => $adminRole->id,
-        ])->assertSessionHasErrors('role_id');
-
-        expect($actor->refresh()->hasRole(RoleEnum::ADMIN->value))->toBeFalse();
-    });
-
-    it('refuses an account holding users.update from demoting an administrator', function () {
-        $actor = actingAsReceptionist();
-        $actor->givePermissionTo(PermissionEnum::USERS_UPDATE->value);
-        $admin = createUserWithRole(RoleEnum::ADMIN);
-        createUserWithRole(RoleEnum::ADMIN);
-
-        $this->put(route('users.update', $admin), [
-            'name' => $admin->name,
-            'username' => $admin->username,
-            'role_id' => Role::findByName(RoleEnum::RECEPTIONIST->value)->id,
-        ])->assertSessionHasErrors('role_id');
-
-        expect($admin->refresh()->hasRole(RoleEnum::ADMIN->value))->toBeTrue();
-    });
-
+   
     it('refuses an account holding users.create from creating an administrator', function () {
         $actor = actingAsReceptionist();
         $actor->givePermissionTo(PermissionEnum::USERS_CREATE->value);

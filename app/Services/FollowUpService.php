@@ -3,55 +3,39 @@
 namespace App\Services;
 
 use App\Models\FollowUp;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Queries\FollowUpQuery;
 use Illuminate\Support\Facades\DB;
 
 class FollowUpService
 {
-    /**
-     * The follow-up register, filtered by the request.
-     *
-     * @param  array<string, mixed>  $filters
-     * @return array{followups: LengthAwarePaginator, stats: object}
-     */
+    private const TRANSITIONS = [
+        'scheduled' => ['done', 'missed', 'cancelled'],
+        'missed' => ['scheduled', 'cancelled'],
+        'cancelled' => ['scheduled'],
+        'done' => [],
+    ];
+    public function canTransitionTo(string $status , string $currentStatus): bool
+    {
+        if ($status === $currentStatus) {
+            return true;
+        }
+
+        return in_array($status, self::TRANSITIONS[$currentStatus] ?? [], true);
+    }
+    public function __construct(private FollowUpQuery $followUpQuery) {}
     public function paginateIndex(array $filters): array
     {
-        $status = $filters['status'] ?? 'all';
-        $patientId = $filters['patient_id'] ?? null;
-        $search = $filters['search'] ?? null;
-
         $query = FollowUp::with(['patient', 'visit.doctor.clinic', 'creator'])
             ->latest('due_date');
 
-        if ($status && $status !== 'all') {
-            $query->where('status', $status);
-        }
-
-        if ($patientId) {
-            $query->where('patient_id', $patientId);
-        }
-
-        if ($search) {
-            $query->search($search);
-        }
+        $query = $this->followUpQuery->getIndexQuery($query, $filters);
 
         return [
             'followups' => $query->paginate(15)->withQueryString(),
-            'stats' => $this->stats(),
+            'stats' => $this->followUpQuery->getStatistics(),
         ];
     }
 
-    /**
-     * Update the editable fields of a follow-up.
-     *
-     * `patient_id` and `visit_id` identify the association the follow-up was
-     * created with. They are permanent, so any submitted value is dropped before
-     * the row is written. The transition is re-checked after the row is locked:
-     * a concurrent completion must not slip between validation and the write.
-     *
-     * @param  array<string, mixed>  $data
-     * @return bool whether the transition was accepted
-     */
     public function update(FollowUp $followup, array $data, ?int $actorId): bool
     {
         unset($data['patient_id'], $data['visit_id']);
@@ -62,7 +46,7 @@ class FollowUpService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! $lockedFollowUp->canTransitionTo((string) $data['status'])) {
+            if (! $this->canTransitionTo((string) $data['status'] ,(string) $lockedFollowUp->status)) {
                 return false;
             }
 
@@ -130,7 +114,7 @@ class FollowUpService
                 return ['outcome' => 'done', 'current_label' => $currentLabel];
             }
 
-            if (! $lockedFollowUp->canTransitionTo($status)) {
+            if (! $this->canTransitionTo($status , (string) $lockedFollowUp->status)) {
                 return ['outcome' => 'invalid', 'current_label' => $currentLabel];
             }
 
@@ -147,44 +131,5 @@ class FollowUpService
     public function delete(FollowUp $followup): void
     {
         $followup->delete();
-    }
-
-    /**
-     * The tiles at the top of the register.
-     */
-    private function stats(): object
-    {
-        return FollowUp::query()
-            ->selectRaw('
-            COUNT(*) AS total,
-
-            COALESCE(SUM(CASE
-                WHEN status = ? THEN 1 ELSE 0
-            END), 0) AS scheduled,
-
-            COALESCE(SUM(CASE
-                WHEN status = ? THEN 1 ELSE 0
-            END), 0) AS done,
-
-            COALESCE(SUM(CASE
-                WHEN status = ? THEN 1 ELSE 0
-            END), 0) AS missed,
-
-            COALESCE(SUM(CASE
-                WHEN status = ? THEN 1 ELSE 0
-            END), 0) AS cancelled,
-
-            COALESCE(SUM(CASE
-                WHEN status = ? AND due_date < ? THEN 1 ELSE 0
-            END), 0) AS overdue
-        ', [
-                'scheduled',
-                'done',
-                'missed',
-                'cancelled',
-                'scheduled',
-                now(),
-            ])
-            ->firstOrFail();
     }
 }

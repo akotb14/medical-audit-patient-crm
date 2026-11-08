@@ -35,7 +35,7 @@ class UpdateFollowUpRequest extends FormRequest
             'status' => [
                 'required',
                 'in:scheduled,done,missed,cancelled',
-                $this->transitionRule(),
+
             ],
 
             'outcome_note' => [
@@ -70,21 +70,14 @@ class UpdateFollowUpRequest extends FormRequest
         ];
     }
 
-    /**
-     * A follow-up that is already past its due date stays editable: the date only
-     * has to move forward when it is actually being rescheduled, otherwise
-     * correcting the outcome note of an overdue record would be impossible.
-     */
+
     private function rescheduleRule(): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail): void {
             $followUp = $this->route('followup');
             $submitted = Carbon::parse($value);
 
-            /*
-            | The form submits the date to the minute, so the comparison is made at
-            | the same precision the stored value is presented with.
-            */
+
             $isUnchanged = $followUp instanceof FollowUp
                 && $followUp->due_date !== null
                 && $submitted->format('Y-m-d H:i') === $followUp->due_date->format('Y-m-d H:i');
@@ -95,19 +88,5 @@ class UpdateFollowUpRequest extends FormRequest
         };
     }
 
-    /**
-     * A follow-up moves through a fixed set of states: a scheduled one can be
-     * completed, missed or cancelled; a missed one can be rescheduled or
-     * cancelled; a cancelled one can only be rescheduled. `done` is terminal.
-     */
-    private function transitionRule(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            $followUp = $this->route('followup');
-
-            if ($followUp instanceof FollowUp && ! $followUp->canTransitionTo((string) $value)) {
-                $fail('لا يمكن نقل المتابعة من حالة «'.$followUp->status_label.'» إلى هذه الحالة.');
-            }
-        };
-    }
+   
 }

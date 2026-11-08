@@ -92,7 +92,7 @@
             <div
                 class="bg-white p-4 rounded-xl border border-amber-200 shadow-xs flex items-center justify-between bg-amber-50/10">
                 <div>
-                    <p class="text-[11px] font-semibold text-amber-700">شكاوى مفعلة تلقائياً (BR-6)</p>
+                    <p class="text-[11px] font-semibold text-amber-700">شكاوى مفعلة تلقائياً </p>
                     <p class="text-xl font-bold text-amber-800 mt-0.5">{{ $stats->complaints_count }}</p>
                 </div>
                 <div
@@ -158,10 +158,10 @@
                         <tr>
                             <th class="py-3 px-3.5 w-12 text-center font-mono">#</th>
                             <th class="py-3 px-3.5 min-w-[170px]">المريض ورقم الملف (Patient)</th>
-                            <th class="py-3 px-3.5 min-w-[150px]">الزيارة السريرية (Visit FK - BR-4)</th>
+                            <th class="py-3 px-3.5 min-w-[150px]">الزيارة السريرية (Visit)</th>
                             <th class="py-3 px-3.5 min-w-[140px]">درجة التقييم (Rating 1-5)</th>
                             <th class="py-3 px-3.5 min-w-[220px]">ملاحظات وتجربة المريض (Comment)</th>
-                            <th class="py-3 px-3.5 min-w-[180px]">الشكوى الناتجة آلياً (BR-6 Complaint)</th>
+                            <th class="py-3 px-3.5 min-w-[180px]">الشكوى الناتجة آلياً (Complaint)</th>
                             <th class="py-3 px-3.5 min-w-[120px]">المسجل والتاريخ</th>
                             <th class="py-3 px-3.5 text-center w-24">إجراءات</th>
                         </tr>

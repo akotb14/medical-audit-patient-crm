@@ -45,45 +45,12 @@ class Survey extends Model
         return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 
-    // scopes
-    public function scopeStats(Builder $query): Builder
-    {
-        return $query->selectRaw("
-            count(*) AS total,
-            AVG(rating) AS average_rating,
-            COALESCE(SUM(CASE WHEN rating >= 3 THEN 1 ELSE 0 END),0 ) AS postive_ratings,
-            COALESCE(SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END),0 ) AS negative_ratings,
-            (
-                SELECT COUNT(*)
-                FROM complaints
-                WHERE source = 'survey'
-            ) AS complaints_count
-        ");
-    }
-
-    public function scopeSearch(Builder $query, string $search): Builder
-    {
-        return $query->where(function ($query) use ($search) {
-            $query
-                ->orWhereHas('patient', function ($query) use ($search) {
-                    $query->where('fullname', 'LIKE', '%'.$search.'%')
-                        ->orWhere('mrn', 'like', '%'.$search.'%');
-                });
-        });
-    }
-
     public function scopeIsLowRating(Builder $query): Builder
     {
         return $query->where('rating', '<', 3);
     }
 
     // attribute
-    /**
-     * Whether the rating has to be treated as a quality alert.
-     *
-     * The view cannot use the scope of the same name: a scope called on an
-     * instance returns a query builder, which is always truthy.
-     */
     public function getIsLowRatingAttribute(): bool
     {
         return (int) $this->rating < 3;

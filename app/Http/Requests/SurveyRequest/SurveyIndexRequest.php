@@ -18,6 +18,7 @@ class SurveyIndexRequest extends FormRequest
     {
         return [
             'search' => 'nullable|string',
+            'rating' => 'nullable|numeric|min:1|max:5',
         ];
     }
 }

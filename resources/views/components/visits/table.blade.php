@@ -84,7 +84,7 @@
                                 </a>
                             @elseif ($visit->visit_status == 'completed' && !isset($visit->survey))
                                 <button type="button"
-                                    onclick={{"openCreateSurveyModal('createSurveyModal',$visit->id,true)"}}
+                                    onclick={{ "openCreateSurveyModal('createSurveyModal',$visit->id,true)" }}
                                     class="text-[12px]  text-[#00685f] hover:underline font-bold block">
 
                                     <span>+ تسجيل استبيان جديد </span>
@@ -122,11 +122,13 @@
                                     </a>
                                 @endcan
                                 @can('update', $visit)
-                                    <a href="{{ route('visits.edit', $visit) }}"
-                                        class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-md transition"
-                                        title="تعديل">
-                                        ✏️
-                                    </a>
+                                    @if (!in_array($visit->visit_status, ['completed', 'cancelled'], true))
+                                        <a href="{{ route('visits.edit', $visit) }}"
+                                            class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-md transition"
+                                            title="تعديل">
+                                            ✏️
+                                        </a>
+                                    @endif
                                 @endcan
                                 @can('delete', $visit)
                                     <button type="button"

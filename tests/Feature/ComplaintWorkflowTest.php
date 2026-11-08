@@ -4,32 +4,7 @@ use App\Models\Complaint;
 use App\Models\Patient;
 use App\Models\User;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for REVIEW-008, REVIEW-015 and REVIEW-NEW-011.
-|
-| REVIEW-008 — the update endpoint accepted `status` from the payload, so a
-| complaint could jump from `new` to `closed` without passing through the
-| workflow.
-| REVIEW-015 — `advance`, `assign` and `reopen` changed the complaint without
-| recording who did it, leaving `updated_by` untouched.
-| REVIEW-NEW-011 — the patient link was guarded by `show`, an ability
-| `PatientPolicy` never defines, so the link never rendered for anybody.
-| The complaint screens also asked the gate about `App\Model\Complaint`, a class
-| this application does not have; that one only worked because the gate falls
-| back to guessing the policy from the class name.
-|
-| The code review added the stage timestamps, the archived patient guard on the
-| update endpoint and the stored title length. `resolved_at` and `closed_at` are
-| read by the complaint screens but were never written, the update endpoint
-| accepted any patient id while the create endpoint already refuses archived
-| files, and the title rule allowed 500 characters into a column holding 255.
-| Reopening a complaint sends it back to investigation, so the two stage
-| timestamps it had already reached are cleared with the status: the screens keep
-| reading them, and a complaint under investigation was displaying the moment it
-| had been resolved and closed.
-|--------------------------------------------------------------------------
-*/
+
 
 describe('updating a complaint', function () {
     it('ignores a status supplied through the update endpoint', function () {

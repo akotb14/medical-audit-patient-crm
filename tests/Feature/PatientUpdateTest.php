@@ -2,15 +2,7 @@
 
 use App\Models\Patient;
 
-/*
-|--------------------------------------------------------------------------
-| Regression cover for REVIEW-006.
-|
-| The update action replaced the validated payload before writing it, so the
-| submitted fields and `updated_by` were silently dropped and the patient file
-| came back unchanged.
-|--------------------------------------------------------------------------
-*/
+
 
 it('records the acting user and persists every submitted field', function () {
     $admin = actingAsAdmin();
@@ -18,7 +10,7 @@ it('records the acting user and persists every submitted field', function () {
 
     $this->put(route('patients.update', $patient), [
         'fullname' => 'منى عبد الرحمن السيد',
-        'phone' => '01000000001',
+        'phone' => '+201000000001',
         'address' => 'شارع النصر، مدينة نصر، القاهرة',
         'gender' => 'female',
         'birthdate' => '1990-05-05',
@@ -26,13 +18,13 @@ it('records the acting user and persists every submitted field', function () {
         'allergies' => null,
         'chronic_diseases' => null,
         'emergency_name' => 'أحمد عبد الرحمن السيد',
-        'emergency_phone' => '01000000002',
+        'emergency_phone' => '+201000000002',
     ])->assertRedirect(route('patients.index'));
 
     $this->assertDatabaseHas('patients', [
         'id' => $patient->id,
         'fullname' => 'منى عبد الرحمن السيد',
-        'phone' => '01000000001',
+        'phone' => '+201000000001',
         'gender' => 'female',
         'blood_group' => 'O+',
         'allergies' => null,

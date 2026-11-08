@@ -47,18 +47,8 @@ class FollowUp extends Model
         return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 
-    /**
-     * The statuses each status may move to. A status may always be resubmitted
-     * unchanged, and `done` is terminal.
-     *
-     * @var array<string, list<string>>
-     */
-    private const TRANSITIONS = [
-        'scheduled' => ['done', 'missed', 'cancelled'],
-        'missed' => ['scheduled', 'cancelled'],
-        'cancelled' => ['scheduled'],
-        'done' => [],
-    ];
+
+
 
     protected function casts(): array
     {
@@ -68,14 +58,7 @@ class FollowUp extends Model
         ];
     }
 
-    public function canTransitionTo(string $status): bool
-    {
-        if ($status === $this->status) {
-            return true;
-        }
-
-        return in_array($status, self::TRANSITIONS[$this->status] ?? [], true);
-    }
+    
 
     public function getStatusLabelAttribute(): string
     {
@@ -139,20 +122,5 @@ class FollowUp extends Model
             ->where('due_date', '<', now());
     }
 
-    public function scopeSearch(Builder $query, ?string $term): Builder
-    {
-        if (empty($term)) {
-            return $query;
-        }
 
-        return $query->where(function (Builder $q) use ($term) {
-            $q->where('reason', 'like', "%{$term}%")
-                ->orWhere('outcome_note', 'like', "%{$term}%")
-                ->orWhereHas('patient', function (Builder $pq) use ($term) {
-                    $pq->where('fullname', 'like', "%{$term}%")
-                        ->orWhere('mrn', 'like', "%{$term}%")
-                        ->orWhere('phone', 'like', "%{$term}%");
-                });
-        });
-    }
 }
