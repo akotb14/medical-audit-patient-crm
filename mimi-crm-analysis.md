@@ -5,6 +5,16 @@
 
 ---
 
+> **Reconciliation status — 2026-11-08.** This file is the *original specification*, kept as design
+> history. The application that was actually built differs from it in several important ways: it runs
+> on **Laravel 13 with a hand-built Blade + Tailwind CSS UI, not Laravel 11 with Filament**; it adds
+> clinics, doctors, a visit state machine and MRNs that this document never describes; and it omits
+> several items specified here (the activity log, the "Missed → Done" transition, Filament resources).
+> **Section 15 at the end reconciles every requirement, business rule and transition below with the
+> shipped code.** Read section 15 before treating anything in sections 1–14 as implemented.
+
+---
+
 ## 1. Overview
 
 A small CRM that helps a clinic track its patients after they visit: register patients, record visits, schedule and track follow-ups, collect satisfaction ratings, and handle complaints. A dashboard gives management a quick view of how the clinic is doing.
@@ -322,3 +332,191 @@ Designed so it can be added without reworking the CRM:
 - Single clinic only.
 - Open: should a visit allow multiple follow-ups? (MVP: at most one.)
 - Open: should survey ratings be editable by Admin? (MVP: delete only.)
+
+---
+
+## 15. Reconciliation with the shipped application
+
+Reconciled on 2026-11-08 against the code in `app/`, `database/`, `resources/views/` and
+`routes/`, and against the schema of the development database. "Shipped" means present in this
+repository; nothing in this section has been implemented, and every item marked **missing** is
+reported only.
+
+### 15.1 Headline differences
+
+| Topic | This document | Shipped application |
+| --- | --- | --- |
+| Framework | Laravel 11 | Laravel 13.34 on PHP 8.5 (`composer.json`) |
+| Admin UI | Filament resources and pages | Hand-built Blade + Tailwind CSS v4, Arabic RTL, no admin-panel package |
+| Audit trail | `spatie/laravel-activitylog` | Not installed. Attribution comes from `created_by` / `updated_by` / `deleted_by` columns on the domain tables. |
+| Static analysis | Larastan | Not installed. Pint is used for style. |
+| Visit | Recorded directly as completed; "no workflow" (§5.3) | A real state machine: `created → completed` or `created → cancelled`, editable only while `created` |
+| Organisation | Not modelled | `clinics` and `doctors` tables, with statuses, schedules and a doctor→clinic FK |
+| Patient identifier | Not modelled | `patients.mrn`, unique, generated on registration |
+| Follow-up due scanning | Daily job `followups:mark-missed` | `followups:update-overdue`, scheduled **every minute** with `withoutOverlapping()` in `routes/console.php` |
+| Status enums | `FollowUpStatus`, `ComplaintStatus`, `ComplaintSource`, `Gender` enums owning their transitions | Status values are plain strings held on the models/services. Enums exist for `AccountStatus`, `BloodGroup`, `Gender`, `Permission` and `Role`. |
+| Events/listeners | Optional `SurveyRecorded`, `ComplaintStatusChanged` | Not present (`app/Events`, `app/Listeners`, `app/Jobs` do not exist) |
+
+### 15.2 Actors (§2)
+
+Implemented as specified: two roles (`RoleEnum`) and 38 permissions (`PermissionEnum`). Admin
+holds every permission and is the only role admitted to `/dashboard`; receptionists get the
+day-to-day patient, visit, follow-up, survey and complaint permissions but cannot manage users,
+clinics, doctors, or assign/advance/reopen complaints. There is still no patient-facing portal.
+
+### 15.3 MVP scope (§3)
+
+| # | Item | Status |
+| --- | --- | --- |
+| 1 | Authentication and roles | Implemented (username + password, two roles, 38 permissions) |
+| 2 | Patients | Implemented, and extended (MRN, blood group, allergies, chronic conditions, emergency contact, archive/restore) |
+| 3 | Visits | Implemented, and extended into a state machine linked to a doctor and clinic |
+| 4 | Follow-ups | Implemented |
+| 5 | Satisfaction surveys | Implemented (one per completed visit) |
+| 6 | Complaints | Implemented (auto from survey or manual) |
+| 7 | Dashboard with KPIs | Implemented (Admin only, six KPI cards plus workflow tables) |
+| 8 | Activity log for all important state changes | **Not implemented** — see §15.11 |
+
+New scope that this document did not contain: **clinics**, **doctors**, **visit statuses**,
+**MRN allocation**, **archive/restore for patients and doctors**, and **error pages** for
+403/404/419/429/500.
+
+### 15.4 Core workflow (§4)
+
+The end-to-end journey matches: register patient → record visit → optionally schedule a follow-up
+→ record a survey (completed visits only) → a rating below 3 opens a complaint automatically →
+complaint moves through its stages.
+
+Two details differ:
+
+- step 2 says the receptionist records a "doctor name"; the application stores a `doctor_id`
+  FK to a doctor record that belongs to a clinic, so a free-text doctor name is not possible.
+- The visit is created with status `created` and must then be **completed** (optionally
+  scheduling the follow-up in the same transaction) or **cancelled**. A completed visit freezes
+  its date, doctor, reason and patient, and cannot be deleted.
+
+### 15.5 State machines (§5)
+
+**Follow-up.** `app/Services/FollowUpService.php` holds the transition table:
+
+| This document | Shipped | Note |
+| --- | --- | --- |
+| Scheduled → Done | Implemented | Outcome note is **optional** (`nullable` in `CompleteFollowUpRequest`), not required as §5.1 states |
+| Scheduled → Cancelled | Implemented | No reason note required |
+| Scheduled → Missed | Implemented | Set by the scheduled command, **and** available as a manual transition |
+| Missed → Done | **Missing** | Not allowed; a missed follow-up must first return to `scheduled` |
+| Missed → Cancelled | Implemented | Added beyond this document |
+| Cancelled → Scheduled | Implemented | Added beyond this document; §5.1 called Cancelled final |
+| Done terminal | Implemented | Refused by both the update and the status action |
+
+**Complaint.** Matches §5.2. `new → assigned` requires an assignee; `assigned → investigating →
+resolved` requires a resolution note; `resolved → closed`. Reopening from `resolved` or `closed`
+returns the complaint to `investigating` and clears `resolved_at` / `closed_at`, but it **does
+not accept a reason**, which §5.2 asked for. Closing and reopening are administrator
+permissions. A single `advance` endpoint moves the complaint one step along the happy path.
+
+**Visit and survey (§5.3).** Contrary to "visit has no workflow", the visit has one. The survey
+part is faithful: no edit route exists (`routes/surveys.php` exposes index, show, store and
+destroy only), so a survey cannot be changed after creation; only deletion is available, and
+deletion is refused when a complaint is attached.
+
+### 15.6 Business rules (§6)
+
+| Rule | Status | Where |
+| --- | --- | --- |
+| BR-1 patient phone unique | Implemented, **including archived patients** | `patients.phone` unique index |
+| BR-2 visit belongs to an existing patient | Implemented | FK + `StoreVisitRequest` |
+| BR-3 follow-up due date not before the visit | Implemented | `UpdateFollowUpRequest::rescheduleRule()` |
+| BR-4 one survey per visit | Implemented | `surveys.visit_id` unique + service guard |
+| BR-5 rating 1–5 | Implemented | Form request + column |
+| BR-6 rating below 3 opens exactly one complaint | Implemented in one transaction | `SurveyService::submit()`; `complaints.survey_id` is unique |
+| BR-7 no resolve/close without a resolution note | Implemented | `ComplaintService::advance()` inside the row lock |
+| BR-8 missed only through the daily job | **Not honoured** | `scheduled → missed` is an allowed manual transition |
+| BR-9 every transition written to an activity log | **Not implemented** | No activity-log package or table |
+| BR-10 receptionists cannot manage users or close complaints | Implemented | Permission sets + policies |
+| BR-11 patients soft-deleted, never hard-deleted | Implemented | `SoftDeletes` + `deleted_by`, restore action |
+| BR-12 survey and auto-complaint in one transaction | Implemented | `SurveyService::submit()` |
+
+### 15.7 Functional requirements (§7)
+
+| Requirement | Status |
+| --- | --- |
+| FR-1 login/logout, roles, admin manages users | Implemented (users are soft-deleted; the last administrator is protected) |
+| FR-2 patients CRUD, search, soft delete, profile with history | Implemented; search covers name, MRN and phone; archive/restore instead of a destructive delete |
+| FR-3 visits with date, doctor, reason; filter by date and patient | Implemented, plus doctor and status filters and KPIs |
+| FR-4 follow-ups, "today" and "missed" lists, daily job | Implemented as status filters and tiles; the scan runs every minute |
+| FR-5 surveys with rating and comment | Implemented (completed visits only) |
+| FR-6 complaints auto/manual, full workflow, filters | Implemented |
+| FR-7 dashboard KPIs | Partially implemented: the dashboard shows counts for visits, follow-ups, satisfaction, complaints, clinics, doctors and patients plus the latest visits. There is **no** "new patients this month", no follow-up completion-rate metric and no average-time-to-resolve metric. |
+| FR-8 activity log, admin-visible | **Not implemented** |
+
+### 15.8 Data model (§8)
+
+| Table | This document | Shipped schema |
+| --- | --- | --- |
+| `users` | `name, email, password, is_active` | `name, username, password, remember_token, deleted_at` — no `email`, no `is_active`; login is by username |
+| `patients` | `full_name, phone, gender, birth_date, notes` | `fullname, phone, gender, birthdate, address, blood_group, allergies, chronic_diseases, emergency_name, emergency_phone, status, mrn, created_by, updated_by, deleted_at, deleted_by` — no `notes` |
+| `visits` | `patient_id, visit_date, doctor_name, reason` | `patient_id, doctor_id, date, reason, visit_status, created_by, updated_by` |
+| `follow_ups` | as specified | as specified plus `updated_by`; `due_date` is a datetime |
+| `surveys` | `recorded_by` | `created_by, updated_by` |
+| `complaints` | as specified | as specified plus `updated_by` |
+| `clinics`, `doctors` | — | **Added**: clinic status/schedule fields, doctor specialty/schedule/status, soft deletes on doctors |
+
+Relationship direction to remember when integrating: the survey↔complaint link is
+`complaints.survey_id` (unique, nullable). `surveys` has no `complaint_id` column.
+
+### 15.9 Screens (§9)
+
+Filament resources are **not** used. The equivalent Blade screens exist for login, dashboard,
+patients (list, create, edit, profile with history), visits (list, create, edit, detail),
+follow-ups, surveys, complaints, clinics, doctors and users. The **activity-log screen does not
+exist** because there is no activity log.
+
+### 15.10 Technical design (§10)
+
+- Services exist (`app/Services`) and hold the transactions, row locks and workflow checks;
+  controllers stay HTTP-only, as intended.
+- The *Action* classes named in §10.1 (`RecordSurveyAction`, `AssignComplaintAction`, …) are not
+  separate classes; their logic lives in `SurveyService` and `ComplaintService`.
+- Form Requests are used as specified (`app/Http/Requests`), and policies cover every domain
+  model (`app/Policies`).
+- The scheduled command is `followups:update-overdue`, not `followups:mark-missed`, and it runs
+  every minute rather than daily.
+- `spatie/laravel-activitylog`, `larastan/larastan` and `filament/filament` are **not** installed.
+  Installed runtime packages are `laravel/framework`, `laravel/tinker`,
+  `propaganistas/laravel-phone` and `spatie/laravel-permission`; development packages add Pest,
+  Pint, Telescope, Pail and Boost.
+- Factories and seeders exist for every model with synthetic Arabic data. Facility for testing is
+  Pest with feature tests plus a separate two-process MySQL concurrency harness.
+- Larastan does not run, so the §10.3 "Larastan at a reasonable level" quality bar is unmet; Pint
+  and the test suite are met.
+
+### 15.11 Acceptance criteria (§12)
+
+| Criterion | Result |
+| --- | --- |
+| Rating 2 creates exactly one complaint (source `survey`); rating 4 creates none | Met |
+| A second survey for the same visit is rejected | Met (unique `visit_id`) |
+| Resolving a complaint without a resolution note is rejected | Met |
+| An overdue scheduled follow-up becomes missed after the job, and running it twice changes nothing more | Met |
+| A receptionist cannot reach the users page or close a complaint | Met (policy + permission tests) |
+| Every follow-up/complaint status change appears in the activity log | **Failed** — no activity log |
+| Dashboard "average satisfaction" equals the mean of the ratings in the period | Met for the displayed average; there is no period selector on the dashboard |
+
+### 15.12 Roadmap (§11)
+
+Steps 1–7 and 9 of the roadmap were completed with the deviations listed above. Step 8
+(activity log) was **not** done. Step 10 (tests, seeders, README, screenshots) was done.
+
+### 15.13 Future extension (§13)
+
+Not implemented and not stubbed: there is no audit-template table, no audit session, no scoring,
+no corrective action, no KPI module, no export, no API, no Docker file and no CI workflow. §13
+remains a roadmap only.
+
+### 15.14 Open questions (§14)
+
+- Multiple follow-ups per visit: resolved to **at most one** by a unique index on
+  `follow_ups.visit_id`.
+- Editable survey ratings: resolved to **no edit, delete only**, guarded when a complaint exists.
+  The application is also stricter than this document: only *completed* visits accept a survey.

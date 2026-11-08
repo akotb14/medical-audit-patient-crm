@@ -413,8 +413,8 @@ vendor/bin/pest                          # the same suite through the Pest binar
 | Architecture-level checks | `EagerLoadingTest`, `LocalizationTest` |
 | Routing | `HomeRedirectTest`, `ExampleTest` |
 
-**Latest verified run (2026-11-03):** 192 tests, 695 assertions, all passing, on PHP 8.5.12
-with an in-memory SQLite database.
+**Latest verified run (2026-11-08):** 166 tests, 594 assertions, all passing, on PHP 8.5.12
+with an in-memory SQLite database. The suite takes roughly 2.5 minutes.
 
 ### MySQL concurrency harness
 
@@ -497,20 +497,23 @@ Known gaps and deliberate limitations:
 
 ## Historical analysis documents
 
-Two analysis documents are kept in the repository as design history. They describe the product
-as it was conceived, not necessarily as it was built:
+One analysis document is kept in the repository as design history. It describes the product as
+it was conceived, not necessarily as it was built:
 
 - [`mimi-crm-analysis.md`](mimi-crm-analysis.md) — the original mini-CRM specification
   (patients, visits, follow-ups, surveys, complaints, dashboard). Most of it is implemented; the
-  notable differences are that the UI is Blade rather than Filament, there is no activity-log
-  package, and the visit workflow, clinics, doctors and MRNs were added beyond the original
-  scope.
-- [`analysis-and-requirements.md`](analysis-and-requirements.md) — a much wider medical-audit
-  platform specification (audit templates, compliance scoring, corrective actions, claims,
-  KPIs, exports, API, Docker, CI). **That scope was not built.** It is retained as context for
-  the repository name and as a roadmap, not as a description of the current application.
+  notable differences are that the UI is Blade + Tailwind rather than Filament, there is no
+  activity-log package, and the visit workflow, clinics, doctors and MRNs were added beyond the
+  original scope. **Section 15 of that document reconciles every requirement and business rule
+  with the shipped code**, including the items that were never built (the activity log, the
+  `missed → done` transition, Filament resources).
 
-Neither document is a contract for the current behaviour; the tests and the code are.
+An earlier, much wider medical-audit platform specification (audit templates, compliance
+scoring, corrective actions, claims, KPIs, exports, API, Docker, CI) shaped the repository name.
+That scope was never built and the document was removed from the repository in commit
+`ac48aef`; the README's "Documented but not implemented" list above preserves its boundaries.
+
+That document is not a contract for the current behaviour; the tests and the code are.
 
 ---
 
@@ -534,16 +537,20 @@ The screens worth capturing for a portfolio, in order:
 
 Use the seeded synthetic data only when capturing images — no real patient data.
 
-<!--
-Create docs/screenshots/, drop the images there, and uncomment the matching line:
+A captured set lives in [`project-presentation/screenshots/`](project-presentation/screenshots/)
+(21 PNGs at 1440×900, Arabic RTL, synthetic data only), together with the walkthrough videos in
+[`project-presentation/videos/`](project-presentation/videos/). Every image and every frame was
+taken from the running application; nothing is a mock-up.
 
-![Login](docs/screenshots/01-login.png)
-![Dashboard](docs/screenshots/02-dashboard.png)
-![Patients](docs/screenshots/03-patients.png)
-![Visits](docs/screenshots/05-visits.png)
-![Follow-ups](docs/screenshots/07-followups.png)
-![Complaints](docs/screenshots/09-complaint.png)
--->
+| | |
+| --- | --- |
+| ![Login](project-presentation/screenshots/01-login.png) | ![Dashboard](project-presentation/screenshots/02-dashboard.png) |
+| ![Patients](project-presentation/screenshots/03-patients.png) | ![Patient file](project-presentation/screenshots/05-patient-profile.png) |
+| ![Visits](project-presentation/screenshots/07-visits.png) | ![Follow-ups](project-presentation/screenshots/10-followups.png) |
+| ![Complaints](project-presentation/screenshots/14-complaints.png) | ![Survey modal](project-presentation/screenshots/13-survey-modal.png) |
+
+- `project-presentation/videos/full-demo.mp4` — full walkthrough of every module (Arabic captions).
+- `project-presentation/videos/linkedin-demo.mp4` — short cut for LinkedIn.
 
 ---
 
