@@ -15,22 +15,22 @@
         <div class="text-xs text-slate-600 leading-relaxed space-y-2">
             <p>
                 هل أنت متأكد من رغبتك في حذف سجل الزيارة رقم: 
-                <strong id="deleteVisitIdSpan" class="font-mono text-slate-900">#---</strong>؟
+                <strong class="font-mono text-slate-900">#{{ $visit->id }}</strong>؟
             </p>
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-900 leading-relaxed">
-                <strong>تنبيه السلامة السريرية:</strong> يتم حفظ وتفريغ قيود المفاتيح الأجنبية مع الجداول المرتبطة (<code class="font-mono">patients</code> و <code class="font-mono">doctors</code> و <code class="font-mono">users</code>) وفق قاعدة <code class="font-mono">nullOnDelete</code> دون كسر سلامة البيانات المرجعية.
+                <strong>تنبيه السلامة السريرية:</strong> حذف الزيارة يزيل ارتباطها من سجل المريض والطبيب المسؤول، بينما تبقى ملفات المريض والطبيب وسجلات المستخدمين محفوظة كما هي.
             </div>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button 
                 type="button" 
-                onclick="window.clinicalApp ? window.clinicalApp.closeModal('deleteVisitModal') : document.getElementById('deleteVisitModal-{{ $visit->id }}').classList.add('hidden')" 
+                onclick="document.getElementById('deleteVisitModal-{{ $visit->id }}').classList.add('hidden')"
                 class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition"
             >
                 إلغاء
             </button>
-            <form id="deleteVisitForm" method="POST" action="{{route('visits.destroy' ,$visit)}}" class="inline">
+            <form method="POST" action="{{route('visits.destroy' ,$visit)}}" class="inline">
                 @csrf
                 @method('DELETE')
                 <button 

@@ -12,7 +12,7 @@
                     <h1 class="text-2xl font-bold text-[#0b1c30]">المتابعات السريرية والنتائج الحرجة (Follow-ups)</h1>
                     <span
                         class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                        جدول follow_ups
+                        سجل سريري
                     </span>
                 </div>
                 <p class="text-xs text-[#64748b] mt-1">
@@ -34,7 +34,7 @@
             <!-- Total Follow-ups -->
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-500">إجمالي المتابعات (Total)</p>
+                    <p class="text-[11px] font-semibold text-slate-500">إجمالي المتابعات</p>
                     <p class="text-xl font-bold text-[#0b1c30] mt-0.5">{{ $stats->total ?? 0 }}</p>
                 </div>
                 <div
@@ -60,7 +60,7 @@
             <div
                 class="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs flex items-center justify-between bg-emerald-50/10">
                 <div>
-                    <p class="text-[11px] font-semibold text-emerald-700">مكتملة وموثقة (Done)</p>
+                    <p class="text-[11px] font-semibold text-emerald-700">مكتملة وموثقة</p>
                     <p class="text-xl font-bold text-emerald-800 mt-0.5">{{ $stats->done ?? 0 }}</p>
                 </div>
                 <div
@@ -85,7 +85,7 @@
             <!-- Cancelled -->
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-500">ملغاة (Cancelled)</p>
+                    <p class="text-[11px] font-semibold text-slate-500">ملغاة</p>
                     <p class="text-xl font-bold text-slate-700 mt-0.5">{{ $stats->cancelled ?? 0 }}</p>
                 </div>
                 <div
@@ -118,10 +118,10 @@
                         <select name="status"
                             class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 text-xs focus:ring-1 focus:ring-[#00685f]">
                             <option value="all" @selected(request('status') == 'all' || !request('status'))>كافة الحالات</option>
-                            <option value="scheduled" @selected(request('status') == 'scheduled')>مجدولة (scheduled)</option>
-                            <option value="done" @selected(request('status') == 'done')>مكتملة (done)</option>
-                            <option value="missed" @selected(request('status') == 'missed')>فائتة (missed)</option>
-                            <option value="cancelled" @selected(request('status') == 'cancelled')>ملغاة (cancelled)</option>
+                            <option value="scheduled" @selected(request('status') == 'scheduled')>مجدولة</option>
+                            <option value="done" @selected(request('status') == 'done')>مكتملة</option>
+                            <option value="missed" @selected(request('status') == 'missed')>فائتة</option>
+                            <option value="cancelled" @selected(request('status') == 'cancelled')>ملغاة</option>
                         </select>
                     </div>
 
@@ -151,13 +151,13 @@
                         <tr>
                             <th class="py-3 px-3.5 w-12 text-center font-mono">#</th>
                             <th class="py-3 px-3.5 min-w-[170px]">المريض ورقم الملف (Patient)</th>
-                            <th class="py-3 px-3.5 min-w-[130px]">الزيارة المرتبطة (Visit FK)</th>
-                            <th class="py-3 px-3.5 min-w-[130px]">موعد الاستحقاق (due_date)</th>
+                            <th class="py-3 px-3.5 min-w-[130px]">الزيارة المرتبطة</th>
+                            <th class="py-3 px-3.5 min-w-[130px]">موعد الاستحقاق</th>
                             <th class="py-3 px-3.5 min-w-[220px]">سبب وأهداف المتابعة (Reason)</th>
                             <th class="py-3 px-3.5 min-w-[120px]">الحالة (Status)</th>
                             <th class="py-3 px-3.5 min-w-[180px]">النتيجة والتوثيق (Outcome Note)</th>
-                            <th class="py-3 px-3.5 min-w-[100px]">مسجل السجل</th>
-                            <th class="py-3 px-3.5 text-center w-28">إجراءات</th>
+                            <th class="py-3 px-3.5 min-w-[100px]">مُنشئ السجل</th>
+                            <th class="sticky left-0 z-20 bg-[#f8fafc] py-3 px-3.5 text-center w-28">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#e2e8f0]">
@@ -167,7 +167,7 @@
                                     $isOverdue =
                                         $flw->status === 'scheduled' && $flw->due_date && $flw->due_date->isPast();
                                 @endphp
-                                <tr class="hover:bg-teal-50/30 transition {{ $isOverdue ? 'bg-rose-50/25' : '' }}">
+                                <tr class="group hover:bg-teal-50/30 transition {{ $isOverdue ? 'bg-rose-50/25' : '' }}">
                                     <!-- ID -->
                                     <td class="py-3.5 px-3.5 text-center font-mono font-bold text-slate-500">
                                         #{{ $flw->id }}
@@ -261,7 +261,7 @@
                                             @else
                                                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                             @endif
-                                            <span>{{ $flw->status_Label }}</span>
+                                            <span>{{ $flw->status_label }}</span>
                                         </span>
                                     </td>
 
@@ -280,11 +280,16 @@
                                                 @endif
                                             </div>
                                         @elseif($flw->status === 'scheduled')
-                                            <button type="button"
-                                                onclick="openCompleteFollowupModal({{ $flw->id }}, '{{ addslashes($flw->patient->fullname) }}', '{{ addslashes($flw->outcome_note ?? '') }}')"
-                                                class="text-[11px] text-[#00685f] hover:underline font-bold flex items-center gap-1">
-                                                <span>+ توثيق النتيجة</span>
-                                            </button>
+                                            @can('complete', $flw)
+                                                <button type="button"
+                                                    onclick="document.getElementById('completeFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
+                                                    title="إتمام وتوثيق المتابعة"
+                                                    class="text-[11px] text-[#00685f] hover:underline font-bold flex items-center gap-1">
+                                                    <span>+ توثيق النتيجة</span>
+                                                </button>
+                                            @else
+                                                <span class="text-slate-400 italic text-[11px]">—</span>
+                                            @endcan
                                         @else
                                             <span class="text-slate-400 italic text-[11px]">—</span>
                                         @endif
@@ -292,40 +297,41 @@
 
                                     <!-- Creator / Audit -->
                                     <td class="py-3.5 px-3.5 text-xs text-slate-500">
-                                        {{ $flw->creator->name }}
+                                        {{ $flw->creator?->name ?? 'غير معروف' }}
                                     </td>
 
-                                    <!-- Actions -->
-                                    <td class="py-3.5 px-3.5 text-center">
+                                    <!-- Actions (sticky so it stays reachable when the table scrolls) -->
+                                    <td
+                                        class="sticky left-0 z-10 py-3.5 px-3.5 text-center shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] {{ $isOverdue ? 'bg-rose-50' : 'bg-white' }} group-hover:bg-teal-50">
                                         <div class="inline-flex items-center gap-1 justify-center">
                                             @can('complete', $flw)
                                                 @if ($flw->status === 'scheduled')
                                                     <button type="button"
                                                         onclick="document.getElementById('completeFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
-                                                        title="إتمام وتوثيق المتابعة (Complete)"
+                                                        title="إتمام وتوثيق المتابعة"
                                                         class="p-1.5 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition">
-                                                        ✓
+                                                        <x-icon name="check" />
                                                     </button>
                                                 @endif
                                             @endcan
                                             @can('view', $flw)
-                                                <a href="{{ route('follow_ups.show', $flw) }}" title="عرض التفاصيل (Show)"
+                                                <a href="{{ route('follow_ups.show', $flw) }}" title="عرض التفاصيل"
                                                     class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition">
-                                                    👁️
+                                                    <x-icon name="eye" />
                                                 </a>
                                             @endcan
                                             @can('update', $flw)
-                                                <a href="{{ route('follow_ups.edit', $flw) }}" title="تعديل (Edit)"
+                                                <a href="{{ route('follow_ups.edit', $flw) }}" title="تعديل"
                                                     class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-slate-200 transition">
-                                                    ✏️
+                                                    <x-icon name="pencil" />
                                                 </a>
                                             @endcan
                                             @can('delete', $flw)
                                                 <button type="button"
                                                     onclick="document.getElementById('deleteFollowupModal-{{ $flw->id }}').classList.remove('hidden')"
-                                                    title="حذف (Delete)"
+                                                    title="حذف"
                                                     class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition">
-                                                    🗑️
+                                                    <x-icon name="trash" />
                                                 </button>
                                             @endcan
                                         </div>

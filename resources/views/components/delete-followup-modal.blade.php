@@ -8,7 +8,7 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-sm text-[#0b1c30]">تأكيد حذف سجل المتابعة السريرية</h3>
-                    <p class="text-[11px] text-[#64748b]">إجراء لا يمكن التراجع عنه في جدول follow_ups</p>
+                    <p class="text-[11px] text-[#64748b]">إجراء لا يمكن التراجع عنه في سجل المتابعات</p>
                 </div>
             </div>
             <button type="button" onclick="document.getElementById('deleteFollowupModal-{{$followup->id}}').classList.add('hidden')" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/50 text-base">
@@ -16,18 +16,18 @@
             </button>
         </div>
 
-        <form id="deleteFollowupForm" action="{{route('follow_ups.destroy', $followup)}}" method="POST" class="p-6 space-y-4 text-xs">
+        <form action="{{route('follow_ups.destroy', $followup)}}" method="POST" class="p-6 space-y-4 text-xs">
             @csrf
             @method('DELETE')
 
             <p class="text-slate-700 leading-relaxed">
                 هل أنت متأكد من رغبتك في حذف سجل المتابعة السريرية رقم
-                <span id="deleteModalFollowupId" class="font-mono font-bold text-red-600">#{{$followup->id}}</span> للمريض
-                <strong id="deleteModalPatientName" class="text-slate-900">{{$followup->patient?->fullname}}</strong>؟
+                <span class="font-mono font-bold text-red-600">#{{$followup->id}}</span> للمريض
+                <strong class="text-slate-900">{{$followup->patient?->fullname ?? 'غير معروف'}}</strong>؟
             </p>
 
             <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] leading-relaxed">
-                💡 ملاحظة: إذا كان الهدف هو عدم الحضور أو عدم الرد، يُفضل تغيير الحالة إلى <strong>فائتة (Missed)</strong> أو <strong>ملغاة (Cancelled)</strong> بدلاً من الحذف للحفاظ على السجل الطبي والتدقيق السريري.
+                💡 ملاحظة: إذا كان الهدف هو عدم الحضور أو عدم الرد، يُفضل تغيير حالة المتابعة إلى <strong>فائتة</strong> أو <strong>ملغاة</strong> بدلاً من الحذف للحفاظ على السجل الطبي والتدقيق السريري.
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-start gap-2.5">

@@ -32,15 +32,15 @@
                 <div class="flex items-center gap-2.5">
                     <div
                         class="w-8 h-8 rounded-lg bg-teal-100 text-[#00685f] flex items-center justify-center font-bold text-sm">
-                        ✏️
+                        <x-icon name="pencil" class="w-4 h-4" />
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm text-[#0b1c30]">تعديل بيانات سجل المتابعة (follow_ups)</h3>
+                        <h3 class="font-bold text-sm text-[#0b1c30]">تعديل بيانات سجل المتابعة</h3>
                         <p class="text-[11px] text-[#64748b]">تعديل الحقول المرتبطة بالمريض، الموعد، والنتيجة السريرية</p>
                     </div>
                 </div>
-                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                    id: {{ $followup->id }}
+                <span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                    رقم السجل: #{{ $followup->id }}
                 </span>
             </div>
 
@@ -58,22 +58,21 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- patient_id -->
                         <div class="flex flex-col gap-2.5">
-                            <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
-                                المريض ورقم الملف (patient_id):
+                            <label class="font-bold text-slate-700 block mb-1.5">
+                                المريض ورقم الملف:
                             </label>
-                            <span id="patient_id"
-                                class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">{{ $followup->patient->fullname }}</span>
+                            <span class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">{{ $followup->patient?->fullname ?? 'غير معروف' }}</span>
 
                         </div>
 
                         <!-- visit_id -->
                         <div class="flex flex-col gap-2.5">
-                            <label for="visit_id" class="font-bold text-slate-700 block mb-1.5">
-                                الزيارة السريرية المرتبطة (visit_id):
+                            <label class="font-bold text-slate-700 block mb-1.5">
+                                الزيارة السريرية المرتبطة:
                             </label>
-                            <span id="visit_id" class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">
-                                زيارة #{{ $followup->visit->id }} - {{ $followup->patient->fullname }}
-                                ({{ $followup->visit->date ? $followup->visit->date->format('Y-m-d') : 'بدون تاريخ' }})
+                            <span class="bg-gray-100 p-2.5 rounded-lg border border-slate-300">
+                                زيارة #{{ $followup->visit?->id ?? '—' }} - {{ $followup->patient?->fullname ?? 'غير معروف' }}
+                                ({{ $followup->visit?->date ? $followup->visit->date->format('Y-m-d') : 'بدون تاريخ' }})
                             </span>
 
                         </div>
@@ -91,7 +90,7 @@
                         <!-- due_date -->
                         <div>
                             <label for="due_date" class="font-bold text-slate-700 block mb-1.5">
-                                تاريخ ووقت استحقاق المتابعة (due_date):
+                                تاريخ ووقت استحقاق المتابعة:
                                 <span class="text-red-500">*</span>
                             </label>
                             <input type="datetime-local" name="due_date" id="due_date" required
@@ -103,23 +102,23 @@
                         <!-- status -->
                         <div>
                             <label for="status" class="font-bold text-slate-700 block mb-1.5">
-                                حالة المتابعة (status):
+                                حالة المتابعة:
                                 <span class="text-red-500">*</span>
                             </label>
                             <select name="status" id="status" required
                                 class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 text-xs"
                                 onchange="toggleOutcomeNoteSection(this.value)">
                                 <option value="scheduled" @selected(old('status', $followup->status) == 'scheduled')>
-                                    ⏳ مجدولة (scheduled) - بانتظار الاتصال / الإجراء
+                                    مجدولة - بانتظار الاتصال / الإجراء
                                 </option>
                                 <option value="done" @selected(old('status', $followup->status) == 'done')>
-                                    ✓ مكتملة (done) - تم التواصل وتوثيق النتيجة
+                                    مكتملة - تم التواصل وتوثيق النتيجة
                                 </option>
                                 <option value="missed" @selected(old('status', $followup->status) == 'missed')>
-                                    ✕ فائتة (missed) - لم يتم الرد / تعذر التواصل
+                                    فائتة - لم يتم الرد / تعذر التواصل
                                 </option>
                                 <option value="cancelled" @selected(old('status', $followup->status) == 'cancelled')>
-                                    🚫 ملغاة (cancelled) - تم إلغاؤها
+                                    ملغاة - تم إلغاؤها
                                 </option>
                             </select>
 
@@ -131,7 +130,7 @@
                 <div class="space-y-2 pt-2">
                     <div class="flex items-center justify-between">
                         <label for="reason" class="font-bold text-slate-700 block">
-                            سبب وأهداف المتابعة السريرية (reason):
+                            سبب وأهداف المتابعة السريرية:
                             <span class="text-red-500">*</span>
                         </label>
                         <span id="charCounter" class="text-[11px] font-mono text-slate-400">0 / 500 حرف</span>
@@ -146,7 +145,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="sm:col-span-2">
                             <label for="outcome_note" class="font-bold text-slate-700 block mb-1.5">
-                                ملاحظات ونتيجة المتابعة (outcome_note):
+                                ملاحظات ونتيجة المتابعة:
                             </label>
                             <textarea name="outcome_note" id="outcome_note" rows="3"
                                 placeholder="تدوين استجابة المريض أو الإجراء المتخذ عند التواصل..."

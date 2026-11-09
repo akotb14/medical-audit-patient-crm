@@ -34,7 +34,7 @@
         <div class="p-5 border-b border-slate-100 bg-[#f8fafc] flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
-                    ✏️
+                    <x-icon name="pencil" class="w-4 h-4" />
                 </div>
                 <div>
                     <h3 class="font-bold text-sm text-[#0b1c30]">تعديل حقول الزيارة </h3>
@@ -63,7 +63,7 @@
                         <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
                             المريض ورقم الملف (Patient):
                         </label>
-                        <span name="patient_id" class="w-full p-2.5 bg-white border font-semibold border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800" >{{$patient?->fullname}}</span>
+                        <span class="w-full p-2.5 bg-white border font-semibold border-slate-300 rounded-lg text-slate-800">{{ $patient?->fullname ?? 'بدون مريض' }}</span>
 
                     </div>
 

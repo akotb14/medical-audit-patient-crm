@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تسجيل شكوى يدوية جديدة (FR-6)')
+@section('title', 'تسجيل شكوى يدوية جديدة')
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
@@ -28,8 +28,8 @@
                     <p class="text-xs text-[#64748b]">فتح ملف شكوى مباشر وتعيين المحقق المسؤول لمتابعة التحقيق والإجراء التصحيحي</p>
                 </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200 font-mono">
-                source: manual
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                شكوى مسجلة يدوياً
             </span>
         </div>
 
@@ -106,14 +106,14 @@
                     id="assigned_to"
                     class="w-full p-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800 text-xs @error('assigned_to') border-rose-500 @enderror"
                 >
-                    <option value="">-- بدون إسناد فوري (ستكون الحالة: جديدة new) --</option>
+                    <option value="">-- بدون إسناد فوري (ستكون الحالة: جديدة) --</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" @selected(old('assigned_to') == $user->id)>
-                            {{ $user->name }} - {{ $user->roleNames() ?: 'بدون دور' }}
+                            {{ $user->name }} - {{ collect(explode(',', $user->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}
                         </option>
                     @endforeach
                 </select>
-                <p class="text-[11px] text-slate-400">عند اختيار موظف مسؤول، ستتحول الحالة تلقائياً إلى مسندة (<strong class="font-mono">assigned</strong>).</p>
+                <p class="text-[11px] text-slate-400">عند اختيار موظف مسؤول، ستتحول حالة الشكوى تلقائياً إلى «مسندة».</p>
 
             </div>
 

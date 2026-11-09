@@ -86,11 +86,8 @@
                 {{-- Fixed Visit ID --}}
                 <div id="{{ $modalId }}FixedVisit" class="hidden">
                     <label class="font-bold">الزيارة المرتبطة:</label>
-
                     <strong id="{{ $modalId }}VisitText"></strong>
                 </div>
-
-
 
                 {{-- Actual Visit ID submitted to Laravel --}}
                 <input type="hidden" name="visit_id" id="{{ $modalId }}HiddenVisitId">
@@ -101,9 +98,9 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <label class="block font-bold text-slate-700">
-                        درجة رضا المريض العامة (Rating 1-5): <span class="text-red-500">*</span>
+                        درجة رضا المريض العامة (من 1 إلى 5 نجوم): <span class="text-red-500">*</span>
                     </label>
-                    <span class="text-[10px] text-teal-700 font-mono font-bold"> Enforced (1-5)</span>
+                    <span class="text-[10px] text-teal-700 font-bold">حقل إلزامي</span>
                 </div>
 
                 <div class="grid grid-cols-5 gap-2 text-center" id="{{ $modalId }}RatingRadios">
@@ -167,9 +164,8 @@
                     <span> إنشاء شكوى تلقائية غير مكررة</span>
                 </div>
                 <p class="text-[11px] text-rose-700 leading-relaxed">
-                    تقييم أقل من 3 نجوم! سيقوم النظام تلقائياً بإنشاء تذكرة شكوى رسمية في جدول <strong
-                        class="font-mono text-rose-950">complaints</strong> برقم مستقل وإحالتها فوراً لفريق الجودة
-                    والمتابعة السريرية.
+                    تقييم أقل من 3 نجوم! سيقوم النظام تلقائياً بإنشاء تذكرة شكوى رسمية في سجل الشكاوى برقم
+                    مستقل وإحالتها فوراً لفريق الجودة والمتابعة السريرية.
                 </p>
             </div>
 
@@ -236,7 +232,7 @@
                 // Opened from Visits
                 fixedVisit.classList.remove('hidden');
 
-                visitText.textContent = `Visit #${visitId}`;
+                visitText.textContent = `زيارة #${visitId}`;
                 hiddenVisit.value = visitId;
 
             }

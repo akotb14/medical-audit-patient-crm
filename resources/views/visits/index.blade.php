@@ -49,9 +49,9 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl border border-blue-200 bg-blue-50/20 p-4 shadow-xs">
+            <div class="rounded-xl border border-blue-200 bg-blue-50/20 p-4 shadow-xs">
                 <div class="flex items-center justify-between text-blue-700 mb-1">
-                    <span class="text-xs font-semibold">تم الإنشاء / قيد الانتظار (Created)</span>
+                    <span class="text-xs font-semibold">قيد الانتظار</span>
                     <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                 </div>
                 <div class="text-2xl font-bold font-mono text-blue-800" id="kpiVisitsCreated">{{ $stats->created ?? 0 }}
@@ -59,9 +59,9 @@
                 <div class="text-[11px] text-blue-600 mt-1">بانتظار دخول العيادة والكشف</div>
             </div>
 
-            <div class="bg-white rounded-xl border border-emerald-200 bg-emerald-50/20 p-4 shadow-xs">
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/20 p-4 shadow-xs">
                 <div class="flex items-center justify-between text-emerald-700 mb-1">
-                    <span class="text-xs font-semibold">مكتملة بنجاح (Completed)</span>
+                    <span class="text-xs font-semibold">مكتملة بنجاح</span>
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold font-mono text-emerald-800" id="kpiVisitsCompleted">
@@ -69,9 +69,9 @@
                 <div class="text-[11px] text-emerald-600 mt-1">تم توثيق الكشف والوصفة الطبية</div>
             </div>
 
-            <div class="bg-white rounded-xl border border-rose-200 bg-rose-50/20 p-4 shadow-xs">
+            <div class="rounded-xl border border-rose-200 bg-rose-50/20 p-4 shadow-xs">
                 <div class="flex items-center justify-between text-rose-700 mb-1">
-                    <span class="text-xs font-semibold">ملغاة (Cancelled)</span>
+                    <span class="text-xs font-semibold">ملغاة</span>
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                 </div>
                 <div class="text-2xl font-bold font-mono text-rose-800" id="kpiVisitsCancelled">{{ $stats->cancelled ?? 0 }}
@@ -119,7 +119,6 @@
                     </div>
 
                     <input type="date" name="date" value="{{ request('date') }}" id="visitDateFilter"
-                        value="2026-10-08"
                         class="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-mono focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
 
                     <select name="doctor_id" id="visitDoctorFilter"
@@ -163,7 +162,6 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const visitId = @json(session('open_survey_modal'));
 
-                console.log(visitId);
                 window.openCreateSurveyModal(
                     'createSurveyModal',
                     visitId,

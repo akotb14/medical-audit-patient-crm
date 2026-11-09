@@ -25,7 +25,7 @@
     </div>
 
     <!-- Quick Stats for Users & Security -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <x-kpi-card title="إجمالي المستخدمين" :value="$totalUsers" subtitle="كادر العيادات المسجل" trend="نشط"
             trendType="positive" />
         <x-kpi-card title="فريق الاستقبال والفرز" :value="$receptionCountRole ?? 0" subtitle="مناوبات الصباح والمساء"
@@ -62,28 +62,32 @@
                         <td class="py-3.5 px-4 text-center">
                             <span
                                 class="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#eff4ff] text-[#00685f] border border-teal-200">
-                                {{ $user->roles->pluck('name')->implode(',') ?: 'بدون دور' }}
+                                {{ $user->roles->pluck('name')->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}
                             </span>
                         </td>
 
 
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a class="text-xs font-semibold text-[#00685f] hover:underline"
-                                    href="{{ route('users.edit', $user) }}">تعديل</a>
-                                <span class="text-slate-300">|</span>
-                                <form method="POST" action="{{ route('users.destroy', $user) }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="text-xs text-rose-600 hover:underline">حذف</button>
-                                </form>
+                                @can('update', $user)
+                                    <a class="text-xs font-semibold text-[#00685f] hover:underline"
+                                        href="{{ route('users.edit', $user) }}">تعديل</a>
+                                @endcan
+                                @can('delete', $user)
+                                    <span class="text-slate-300">|</span>
+                                    <form method="POST" action="{{ route('users.destroy', $user) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-xs text-rose-600 hover:underline">حذف</button>
+                                    </form>
+                                @endcan
                             </div>
                         </td>
                     </tr>
 
                     @empty
                     <tr>
-                        <td colspan="4" class="py-8 px-4 text-center text-xs text-slate-500">
+                        <td colspan="3" class="py-8 px-4 text-center text-xs text-slate-500">
                             لا توجد حسابات مستخدمين مسجلة بعد.
                         </td>
                     </tr>

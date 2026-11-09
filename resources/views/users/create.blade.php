@@ -102,7 +102,7 @@
                         @checked(old('role_id') == $role->id)
                         class="mt-0.5 text-[#00685f] focus:ring-[#00685f]" />
                     <div>
-                        <div class="font-bold text-[#0b1c30]">{{$role->name}}</div>
+                        <div class="font-bold text-[#0b1c30]">{{ trans()->has('roles.' . $role->name) ? __('roles.' . $role->name) : $role->name }}</div>
                     </div>
                 </label>
 

@@ -22,7 +22,7 @@
         <div class="p-6 border-b border-slate-100 bg-[#f8fafc] flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center font-bold text-lg">
-                    ✏️
+                    <x-icon name="pencil" class="w-5 h-5" />
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-[#0b1c30]">تعديل بيانات الشكوى #{{ $complaint->id }}</h1>
@@ -30,10 +30,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $complaint->source === 'survey' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-sky-50 text-sky-800 border border-sky-200' }} font-mono">
-                    source: {{ $complaint->source }}
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $complaint->source_badge_classes }}">
+                    {{ $complaint->source_label }}
                 </span>
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border font-mono {{ $complaint->status_badge_classes }}">
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $complaint->status_badge_classes }}">
                     {{ $complaint->status_label }}
                 </span>
             </div>
@@ -43,15 +43,15 @@
         <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs">
-                    {{ mb_substr($complaint->patient->fullname, 0, 1) }}
+                    {{ mb_substr($complaint->patient?->fullname ?? '؟', 0, 1) }}
                 </div>
                 <div>
                     <div class="font-bold text-slate-900">
-                        {{ $complaint->patient->fullname }}
+                        {{ $complaint->patient?->fullname ?? 'غير معروف' }}
                         <x-archived-badge :patient="$complaint->patient" />
                     </div>
                     <div class="text-[11px] text-slate-500 font-mono">
-                        الملف: <span class="text-slate-800 font-bold">{{ $complaint->patient->mrn }}</span> | الهاتف: {{ $complaint->patient->phone }}
+                        الملف: <span class="text-slate-800 font-bold">{{ $complaint->patient?->mrn ?? '—' }}</span> | الهاتف: {{ $complaint->patient?->phone ?? '—' }}
                     </div>
                 </div>
             </div>
@@ -67,7 +67,7 @@
         <form action="{{ route('complaints.update', $complaint) }}" method="POST" class="p-6 sm:p-8 space-y-6 text-xs" id="editComplaintForm">
             @csrf
             @method('PUT')
-            <input type="hidden" name="patient_id" value="{{ $complaint->patient->id }}">
+            <input type="hidden" name="patient_id" value="{{ $complaint->patient?->id }}">
             <!-- Title -->
             <div class="space-y-1.5">
                 <label for="title" class="block font-bold text-slate-700 text-xs">

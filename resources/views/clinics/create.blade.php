@@ -31,6 +31,7 @@
                         اسم العيادة <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="name" required placeholder="مثال: عيادة العيون والليزك"
+                        value="{{ old('name') }}"
                         class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600" />
                 </div>
             </div>
@@ -41,7 +42,7 @@
                 </label>
                 <textarea name="description" rows="3"
                     placeholder="وصف الخدمات التشخيصية المتوفرة، أجهزة الفحص التخصصية..."
-                    class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600"></textarea>
+                    class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600">{{ old('description') }}</textarea>
             </div>
 
 

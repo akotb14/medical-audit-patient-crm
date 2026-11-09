@@ -9,21 +9,19 @@
         <div class="text-center">
             <h3 class="text-base font-bold text-slate-800">تأكيد حذف العيادة</h3>
             <p class="text-xs text-slate-500 mt-1">
-                هل أنت متأكد من رغبتك في حذف عيادة <span id="deleteClinicNameTarget"
-                    class="font-bold text-slate-700"></span> (<span id="deleteClinicCodeTarget"
-                    class="font-mono text-slate-600"></span>)؟
+                هل أنت متأكد من رغبتك في حذف عيادة
+                <span class="font-bold text-slate-700">{{ $clinic->name }}</span>؟
             </p>
         </div>
 
         <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-900 space-y-1">
-            <p class="font-bold">⚠️ تنبيه قيود العلاقة (Integrity Constraint):</p>
+            <p class="font-bold">تنبيه قبل الحذف:</p>
             <p class="text-[11px] text-amber-800">
-                في حال وجود أطباء تابعين لهذه العيادة (<span id="deleteClinicDoctorsCountTarget"
-                    class="font-bold">0</span> طبيب)، سيتم منع الحذف أو يلزم إعادة تعيينهم لعيادة أخرى أولاً.
+                إذا كانت هذه العيادة مرتبطة بأطباء مسجّلين، فلن يُسمح بحذفها قبل إعادة تعيين هؤلاء الأطباء إلى عيادة أخرى.
             </p>
         </div>
 
-        <form id="deleteClinicForm" action="{{route('clinics.destroy', $clinic)}}" method="POST"
+        <form action="{{route('clinics.destroy', $clinic)}}" method="POST"
             class="pt-2 flex items-center justify-center gap-3">
             @csrf
             @method('DELETE')

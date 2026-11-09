@@ -10,10 +10,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2.5">
-                    <h1 class="text-2xl font-bold text-[#0b1c30]">استبيانات رضا المرضى وتجربة المراجع (Surveys)</h1>
+                    <h1 class="text-2xl font-bold text-[#0b1c30]">استبيانات رضا المرضى وتجربة المراجع</h1>
                     <span
-                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 font-mono">
-                        جدول surveys
+                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                        سجل رضا المرضى
                     </span>
                 </div>
                 <p class="text-xs text-[#64748b] mt-1">
@@ -163,7 +163,7 @@
                             <th class="py-3 px-3.5 min-w-[220px]">ملاحظات وتجربة المريض (Comment)</th>
                             <th class="py-3 px-3.5 min-w-[180px]">الشكوى الناتجة آلياً (Complaint)</th>
                             <th class="py-3 px-3.5 min-w-[120px]">المسجل والتاريخ</th>
-                            <th class="py-3 px-3.5 text-center w-24">إجراءات</th>
+                            <th class="sticky left-0 z-20 bg-[#f8fafc] py-3 px-3.5 text-center w-24">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#e2e8f0]">
@@ -172,7 +172,7 @@
                                 @php
                                     $isLow = $survey->is_low_rating;
                                 @endphp
-                                <tr class="hover:bg-teal-50/20 transition {{ $isLow ? 'bg-rose-50/20' : '' }}">
+                                <tr class="group hover:bg-teal-50/20 transition {{ $isLow ? 'bg-rose-50/20' : '' }}">
                                     <!-- ID -->
                                     <td class="py-3.5 px-3.5 text-center font-mono font-bold text-slate-500">
                                         #{{ $survey->id }}
@@ -292,17 +292,18 @@
                                     <td class="py-3.5 px-3.5 text-slate-500 font-mono text-[11px]">
                                         <div>{{ $survey->created_at ? $survey->created_at->format('Y-m-d') : '-' }}</div>
                                         <div class="text-[10px] text-slate-400">
-                                            {{ $survey->creator->name }}</div>
+                                            {{ $survey->creator?->name ?? 'غير معروف' }}</div>
                                     </td>
 
                                     <!-- Actions -->
-                                    <td class="py-3.5 px-3.5 text-center">
+                                    <td
+                                        class="sticky left-0 z-10 bg-white py-3.5 px-3.5 text-center shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-teal-50/20 {{ $isLow ? 'bg-rose-50/20' : '' }}">
                                         <div class="inline-flex items-center gap-1 justify-center">
                                             @can('view', $survey)
                                                 <a href="{{ route('surveys.show', $survey) }}"
                                                     class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition"
                                                     title="عرض تفاصيل الاستبيان">
-                                                    👁️
+                                                    <x-icon name="eye" />
                                                 </a>
                                             @endcan
                                             @can('delete', $survey)
@@ -314,7 +315,7 @@
                                                     <button type="submit"
                                                         class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition"
                                                         title="حذف">
-                                                        🗑️
+                                                        <x-icon name="trash" />
                                                     </button>
                                                 </form>
                                             @endcan

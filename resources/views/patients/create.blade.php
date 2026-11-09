@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'فتح ملف مريض جديد (MRN Intake)')
+@section('title', 'فتح ملف مريض جديد')
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
@@ -59,8 +59,8 @@
                                 class="text-red-500">*</span></label>
                         <select id="gender" name="gender"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                            <option value="male">ذكر</option>
-                            <option value="female">أنثى</option>
+                            <option value="male" @selected(old('gender') === 'male')>ذكر</option>
+                            <option value="female" @selected(old('gender') === 'female')>أنثى</option>
                         </select>
                     </div>
                 </div>
@@ -76,14 +76,14 @@
                         <label for="blood_group" class="font-bold text-slate-700 block mb-1">فصيلة الدم:</label>
                         <select id="blood_group" name="blood_group"
                             class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-bold text-rose-700 focus:outline-none focus:ring-1 focus:ring-[#00685f]">
-                            <option value="A+">A+</option>
-                            <option value="O+">O+</option>
-                            <option value="B+">B+</option>
-                            <option value="AB+">AB+</option>
-                            <option value="A-">A-</option>
-                            <option value="O-">O-</option>
-                            <option value="B-">B-</option>
-                            <option value="AB-">AB-</option>
+                            <option value="A+" @selected(old('blood_group') === 'A+')>A+</option>
+                            <option value="O+" @selected(old('blood_group') === 'O+')>O+</option>
+                            <option value="B+" @selected(old('blood_group') === 'B+')>B+</option>
+                            <option value="AB+" @selected(old('blood_group') === 'AB+')>AB+</option>
+                            <option value="A-" @selected(old('blood_group') === 'A-')>A-</option>
+                            <option value="O-" @selected(old('blood_group') === 'O-')>O-</option>
+                            <option value="B-" @selected(old('blood_group') === 'B-')>B-</option>
+                            <option value="AB-" @selected(old('blood_group') === 'AB-')>AB-</option>
                         </select>
                     </div>
                 </div>

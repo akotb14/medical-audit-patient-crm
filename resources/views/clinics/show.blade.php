@@ -19,8 +19,8 @@
                 </a>
                 @can('update', $clinic)
                     <a href="{{ route('clinics.edit', $clinic->id) }}"
-                        class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition">
-                        ✏️ تعديل بيانات العيادة
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition">
+                        <x-icon name="pencil" /> <span>تعديل بيانات العيادة</span>
                     </a>
                 @endcan
             </div>
@@ -31,8 +31,8 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                 <div class="flex items-center gap-4">
                     <div
-                        class="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center font-bold text-2xl shadow-xs">
-                        🏥
+                        class="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-200 text-[#00685f] flex items-center justify-center shadow-xs">
+                        <x-icon name="building" class="w-8 h-8" />
                     </div>
                     <div>
                         <div class="flex items-center gap-3">
@@ -66,8 +66,8 @@
                                 class="text-xs font-medium text-teal-700">أطباء</span>
                         </p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center text-lg">
-                        👨‍⚕️
+                    <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center">
+                        <x-icon name="users" class="w-5 h-5" />
                     </div>
                 </div>
             </div>
@@ -105,7 +105,6 @@
                         </tr>
                     </thead>
                     <tbody id="clinicDoctorsTableBody" class="divide-y divide-slate-100">
-                        <!-- Populated dynamically via JS prototype and Blade loop in backend -->
                         @forelse($doctors ?? [] as $doctor)
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="py-3 px-3">
@@ -153,21 +152,23 @@
                                     </span>
 
                                 </td>
-                                @can('view', $doctor)
-                                    <td class="py-3 px-3 text-left">
-                                        <div class="flex items-center justify-end gap-1.5">
+                                <td class="py-3 px-3 text-left">
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        @can('view', $doctor)
                                             <a href="{{ route('doctors.show', $doctor->id) }}"
                                                 class="px-2.5 py-1 text-[11px] font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 rounded transition">
                                                 الملف المهني
                                             </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endcan
+                                        @else
+                                            <span class="text-slate-300">—</span>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
                         @empty
                             <tr id="clinicDoctorsEmptyRow">
-                                <td colspan="7" class="py-8 text-center text-slate-400">
-                                    لا يوجد أطباء معينون لهذه العيادة حالياً. اضغط على "+ تعيين طبيب جديد" لإضافة طبيب.
+                                <td colspan="5" class="py-8 text-center text-slate-400">
+                                    لا يوجد أطباء معينون لهذه العيادة حالياً.
                                 </td>
                             </tr>
                         @endforelse

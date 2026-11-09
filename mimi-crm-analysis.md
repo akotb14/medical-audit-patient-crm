@@ -15,6 +15,13 @@
 
 ---
 
+> **UI review — 2026-11-09.** **Section 16** records a presentation-only audit of the shipped
+> application: internal identifiers that were reaching the screen, the one genuinely missing
+> translation, Blade architecture findings, the defects found and fixed in the views, and the
+> items that cannot be closed without a backend change. Sections 1–15 are unchanged by it.
+
+---
+
 ## 1. Overview
 
 A small CRM that helps a clinic track its patients after they visit: register patients, record visits, schedule and track follow-ups, collect satisfaction ratings, and handle complaints. A dashboard gives management a quick view of how the clinic is doing.
@@ -520,3 +527,193 @@ remains a roadmap only.
   `follow_ups.visit_id`.
 - Editable survey ratings: resolved to **no edit, delete only**, guarded when a complaint exists.
   The application is also stricter than this document: only *completed* visits accept a survey.
+
+---
+
+## 16. UI, translation and Blade review
+
+Reviewed on 2026-11-09 against the running application on the development database. This section
+is the audit the brief asked for: unintended English text, missing translations, internal
+identifiers shown to users, Blade architecture, and Arabic RTL quality. It records three
+different things and never mixes them: **what was changed**, **what was found and left alone**,
+and **what needs a backend change before it can be fixed**.
+
+### 16.1 What the review was allowed to touch
+
+Presentation only. No controller, service, action, model, form request, policy, gate, middleware,
+route, migration, seeder or configuration file was modified. Every `@can` / `@endcan` pair that
+existed before the review still exists, wraps the same control, and still asks the same policy
+question. Where a view was made to look different, the difference is markup, wording, or a class
+list — never which user is allowed to see or do something.
+
+### 16.2 Internal identifiers that were shown to users — fixed
+
+These are classification **(3)** in the audit: developer vocabulary that reached the screen.
+
+| Where | Before | After |
+| --- | --- | --- |
+| `complaints/index` filter selects and status tiles | `جديدة (new)`, `مسندة (assigned)`, `قيد التحقيق (investigating)`, `تم الحل (resolved)`, `مغلقة (closed)`, `غير مسندة (Unassigned)` | `جديدة`, `مسندة`, `قيد التحقيق`, `تم الحل`, `مغلقة`, `غير مسندة` |
+| `complaints/index` source column | `source: {{ $complaint->source }}` in a `font-mono` pill | `{{ $complaint->source_label }}` — the model's existing accessor |
+| `complaints/index` status column | a raw status token in a `font-mono` pill | `{{ $c->status_label }}` — the model's existing accessor |
+| `complaints/create` page title | `تسجيل شكوى يدوية جديدة (FR-6)` | `تسجيل شكوى يدوية جديدة` |
+| `complaints/index` explanatory banner | `جدول complaints` and the raw lifecycle `new ← assigned ← investigating ← resolved ← closed` | the flowchart in Arabic only |
+| `complaints/show` stepper heading | `مسار دورة حياة الشكوى (Complaint Stepper)` | `مسار دورة حياة الشكوى` |
+| `complaints/show` lifecycle stages | `1. جديدة (New)`, `… (Assigned)`, `… (Investigating)`, `… (Resolved)`, `… (Closed)` | `1. جديدة`, `2. مسندة`, … |
+| `complaints/show`, `complaints/index` | `توثيق الإجراء التصحيحي (BR-7)` | `توثيق الإجراء التصحيحي` |
+| `complaints/show` timestamps | `تاريخ الحل (resolved):`, `تاريخ الإغلاق (closed):` | `تاريخ الحل:`, `تاريخ الإغلاق:` |
+| `complaints/index` quick-assign modal | `تأكيد الإسناد (Assign)` | `تأكيد الإسناد` |
+| `complete-followup-modal` | `توثيق نتيجة المتابعة السريرية (Document Outcome)`, `… إلى مكتملة (Done)`, `حفظ النتيجة وإتمام المتابعة (Done)`, `ملاحظات ونتيجة المتابعة (Outcome Note)` | the same wording with the English gloss removed |
+| `complaints/index` empty-state / toolbar | `+ تسجيل شكوى يدوية (Manual Complaint)` | `+ تسجيل شكوى يدوية` |
+| `complaints/create` assignee hint | `ستتحول الحالة تلقائياً إلى مسندة (<strong>assigned</strong>)` | `ستتحول حالة الشكوى تلقائياً إلى «مسندة».` |
+
+The Arabic text itself was kept wherever it was already correct; only the identifier next to it
+was dropped.
+
+### 16.3 Missing translations — fixed
+
+- **Role names.** `users/index`, `users/create`, `users/edit`, `complaints/index`,
+  `complaints/create` and `complaints/show` printed the raw seeded role name — a Latin string
+  such as `Admin` or `Receptionist` — straight into an Arabic interface. A new language file
+  `lang/ar/roles.php` maps `Admin` → `مدير النظام` and `Receptionist` → `موظف استقبال`. The views
+  resolve it with a fallback so an unmapped role degrades to its stored name instead of a blank
+  or a translation key:
+
+  ```blade
+  {{ trans()->has('roles.' . $role) ? __('roles.' . $role) : $role }}
+  ```
+
+  This is classification **(2)**, a genuinely missing translation, and the only place in the
+  application where a user-facing string had no Arabic form at all.
+
+- **Clinic status labels.** The three options were already Arabic (`جاهزة للتشغيل (نشطة)`,
+  `تحت الصيانة`, `مغلقة مؤقتاً`); what was missing was `@selected(old('status', …))`, so a
+  validation error threw the chosen status away. The options now repopulate. The submitted
+  `value` attributes are untouched.
+
+### 16.4 Text that was *kept* — classifications (1) and (4)
+
+The audit list names these as things to classify rather than to delete, and both survive
+deliberately:
+
+- **(1) Legitimate user-facing technical terms.** `MRN` / `الملف`, `BR` and `FR` where they appear
+  in a clinical or quality context, blood groups (`O+`), phone numbers, and the timeline
+  timestamps. A hospital clerk reads "رقم الملف" every day; renaming it would be the regression.
+- **(4) Business statuses that need a human label.** `completed`, `scheduled`, `cancelled`,
+  `missed` for visits and follow-ups, and the five complaint stages. These are real business
+  states. They are already rendered through the models' `status_label` accessors, so the screen
+  shows a phrase rather than a database token. The database values were not touched.
+
+### 16.5 Blade architecture — findings
+
+The audit looked for business logic in views, queries in views, duplicated calculations, and
+presentation logic that belongs elsewhere. The result is mostly clean, with three findings.
+
+1. **No database access in views.** A sweep for `DB::`, `::where(`, `::all()`, `::get()`,
+   `::pluck(` and `::count()` across `resources/views/` returns exactly one hit:
+   `layouts/header.blade.php` resolves the current user's role with
+   `$currentUser->getRoleNames()->first()`. It is a single call for a single label on every
+   request — not a query in a loop and not an N+1 — but it is still a data lookup that belongs in
+   a view composer or a shared layout variable rather than in the template. **Reported, not
+   changed** (it would mean touching a provider).
+2. **No heavy calculations in views.** No `@php` block contains a loop, a sort, an aggregate or a
+   query. What remains is the ordinary `@foreach` / `@if` / `@can` the brief treats as acceptable.
+3. **Duplicated presentation logic — introduced by the translation fix.** Localizing a role name
+   needs a small pipeline, and because views may not call a new helper class, that pipeline is
+   now written out in seven places: `users/index`, `users/create`, `users/edit`,
+   `complaints/index` (twice), `complaints/create`, `complaints/show`. The root cause is that
+   `User::roleNames()` already returns a *display* string (a comma-joined list of raw role names)
+   from inside the model, so every screen that wants a translated version has to redo the work.
+   **Recommendation, not implemented:** give the model a `roleLabels()` accessor that returns the
+   localized, `،`-joined string and let all seven call sites use it. That is a model change and is
+   therefore out of scope for this pass.
+
+### 16.6 Defects found and fixed
+
+Two real, user-visible defects were found while auditing markup rather than wording.
+
+- **Duplicate element ids in the per-row follow-up dialog.** `complete-followup-modal` renders
+  once per follow-up row, and it used to hard-code the ids `completeFollowupForm`,
+  `complete_outcome_note`, `outcomeCharCount`, `completeModalFollowupId` and
+  `completeModalPatientName`. The register therefore emitted those ids once per row — invalid
+  HTML, and worse, the character-counter script bound itself with
+  `document.getElementById('complete_outcome_note')`, which resolves to the **first** row's
+  textarea on the page. Opening any row's dialog and typing updated the counter inside row 1's
+  hidden dialog, and the counter inside the open dialog stayed at `0 / 2000 حرف`. The `label
+  for=` attribute had the same problem. Fixed by deriving the id from the record
+  (`complete_outcome_note_{{ $followup->id }}`) and delegating the counter to a single
+  `input` listener on `document` that finds its counter through
+  `textarea.closest('form')`. The quick-template helper was also declared once behind an
+  `if (typeof window.applyOutcomeTemplate === 'undefined')` guard instead of being redefined per
+  row. Form actions, field names, routes and methods are unchanged.
+- **Malformed table row in `clinics/show`.** The doctors table wrapped the entire `<td>` in
+  `@can('view', $doctor)`, so an unauthorized viewer lost a whole cell and the row shifted by one
+  column against its header. The directive now selects only the inner link, with an em-dash
+  `@else`, so the cell always exists. The empty-state row's `colspan` was `7` for a five-column
+  table and is now `5`.
+
+### 16.7 Authorization presentation — hardened, never weakened
+
+The brief allows a permission-based control to be *presented* better but never to become
+permissive. Three changes were made, all in that direction:
+
+- `users/index` moved its edit and delete buttons inside `@can('update', $user)` and
+  `@can('delete', $user)`. A user who may not act on a row no longer sees the control.
+- `clinics/show` — described above — replaced a *row-level* `@can` with a *cell-level* one.
+  Nothing new became visible; a column that had been silently dropped now renders, and the
+  unauthorized viewer still gets no link.
+- `visits/table` and `clinics/index` moved their modal partials below `</table>`. The modals were
+  previously emitted inside `<tbody>`, and browsers were hoisting the stray `<div>`s out of the
+  table. This is markup correctness; the modals' own `@can` wrappers were carried over unchanged.
+
+No permission check was removed, downgraded to a JavaScript-only check, or made to depend on
+something the browser sends.
+
+### 16.8 Discovered but not fixed
+
+- **Requirement ids survive in HTML comments.** `<!-- Assigned To (FR-6) -->`,
+  `<!-- Resolution Note Card (BR-7) -->`, `<!-- KPI 3: Satisfaction Index (FR-5, BR-5) -->` and
+  about twenty more of the same kind are still served to the browser in the page source of
+  `complaints/*`, `components/create-survey-modal`, `dashboard/index` and others. They are not
+  rendered, so no user sees them, and they were left in place on purpose: removing them is pure
+  comment churn that would inflate a diff whose value is that it can be reviewed line by line.
+  They are recorded here so the next pass can decide.
+- **The English gloss is baked into the model accessors.** `Complaint::getStatusLabelAttribute()`
+  returns `جديدة (New)`, `مسندة للتحقيق (Assigned)` and so on, and
+  `getSourceLabelAttribute()` returns `استبيان رضا (تلقائي)` / `تسجيل يدوي (مباشر)`. Views that
+  render `status_label` therefore still print a Latin word in brackets, and the filter labels
+  fixed in §16.2 now read `جديدة` while the badge beside them reads `جديدة (New)`. The accessors
+  live in a model, so correcting them is a backend change. **Reported, not changed.** Until it is
+  done, the badge and the filter for the same state will not agree word for word.
+- **Decorative emoji remain in KPI and stepper tiles.** Action affordances were converted to the
+  shared `<x-icon>` component — the pencil, eye, trash, building, users and stethoscope glyphs are
+  now one consistent vector set — but the large emoji used as decoration in the dashboard KPI
+  cards, the complaint lifecycle stepper and the delete confirmations were left alone. They are
+  not untranslated text and they are not identifiers; whether they suit a clinical product is a
+  design decision, not a defect.
+- **`followups/index` still renders its modals inside `</tbody>`.** `components/visits/table` and
+  `clinics/index` were corrected; this one was not, because it carries two `@can`-gated partials
+  per row and the change is larger than the defect. No visible symptom was observed — browsers
+  recover by hoisting the elements — so it stays on the list as low severity.
+- **Two suspicions were investigated and dismissed**, and are recorded so they are not re-opened
+  as bugs: the clinic register's `$clinics->count()` is correct because
+  `ClinicService::getClinicsWithDoctors()` returns a `Collection`, not a paginator; and
+  `createSurveyModal` is included exactly once per page (`visits/index` and `dashboard/index`),
+  so its ids are unique.
+
+### 16.9 Recommendations that need backend changes
+
+None of these were implemented. Each one is here because the fix belongs outside the presentation
+layer.
+
+| # | Recommendation | Why it is out of scope |
+| --- | --- | --- |
+| 1 | Drop the `(New)` / `(Assigned)` / `(Resolved)` gloss from `Complaint::getStatusLabelAttribute()` and `getSourceLabelAttribute()` | Model change |
+| 2 | Add `User::roleLabels()` and delete the seven duplicated view pipelines (§16.5.3) | Model change |
+| 3 | Resolve the header's current role in a view composer instead of `layouts/header.blade.php` | Provider change |
+| 4 | Move the `followups/index` modals below the table | Larger markup change; do it with the next follow-up view rework |
+| 5 | **`/visits/create?patient_id={id}` returned a 500** before this pass. `VisitController::create()` assigns `$patients` from `PatientService::getPatientOption()`, which returns a single `?Patient`, and then falls back to `getPatientOptions()` for the normal case, which returns a collection — so the variable has two possible types. With a `patient_id` in the query string the view's `@foreach ($patients as $patient)` iterated a *model*, and an Eloquent model iterates its public properties, so the loop's first item was `exists` (`true`) and the template died on `Attempt to read property "id" on true`. The view now normalizes what it is handed, so the page works, but the type should be made uniform in the controller | Controller change |
+| 6 | Store the requirement ids in a code comment convention that is stripped at build time, or move them to the repository's issue tracker | Build/tooling change |
+
+Item 5 is the only one that was a crash rather than a cosmetic issue. It is fixed at the view
+layer, which means the underlying contract between the controller and the form is still
+inconsistent and should be closed properly.

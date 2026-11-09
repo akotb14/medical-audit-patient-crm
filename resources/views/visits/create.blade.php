@@ -26,8 +26,8 @@
             <div class="p-5 border-b border-slate-100 bg-[#f8fafc] flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <div
-                        class="w-8 h-8 rounded-lg bg-teal-100 text-[#00685f] flex items-center justify-center font-bold text-sm">
-                        🩺
+                        class="w-8 h-8 rounded-lg bg-teal-100 text-[#00685f] flex items-center justify-center">
+                        <x-icon name="stethoscope" class="w-4 h-4" />
                     </div>
                     <div>
                         <h3 class="font-bold text-sm text-[#0b1c30]">بيانات نموذج الزيارة </h3>
@@ -50,6 +50,16 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- patient_id: nullable foreignId constrained to patients -->
+                        @php
+                            /*
+                             | The controller hands over either the whole option list or the
+                             | single patient the caller preselected, so the select is fed a
+                             | uniform list here instead of iterating a model's attributes.
+                             */
+                            $patientOptions = $patients instanceof \Illuminate\Database\Eloquent\Model
+                                ? collect([$patients])
+                                : ($patients ?? collect());
+                        @endphp
                         <div>
                             <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
                                 المريض ورقم الملف (Patient):
@@ -57,9 +67,9 @@
                             <select name="patient_id" id="patient_id"
                                 class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800">
                                 <option value="">-- اختر المريض --</option>
-                                @foreach ($patients ?? [] as $patient)
+                                @foreach ($patientOptions as $patient)
                                     <option value="{{ $patient->id }}"
-                                        {{ old('patient_id', request('patient_id')) == $patient->id ? 'selected' : '' }}>
+                                        @selected(old('patient_id', request('patient_id')) == $patient->id)>
                                         {{ $patient->fullname }} ({{ $patient->mrn }})
                                     </option>
                                 @endforeach
@@ -78,7 +88,7 @@
                                 @if (isset($doctors))
                                     @foreach ($doctors as $doctor)
                                         <option value="{{ $doctor->id }}"
-                                            {{ old('doctor_id') == $doctor->id ? 'selected' : '' }}>
+                                            @selected(old('doctor_id') == $doctor->id)>
                                             {{ $doctor->fullname }} - {{ $doctor->clinic?->name ?: 'بدون عيادة' }}
                                         </option>
                                     @endforeach

@@ -144,8 +144,8 @@
                     <a href="{{ route('patients.index', ['blood_group' => 'B+']) }}"
                         class="px-2 py-0.5 rounded hover:bg-slate-100 text-slate-600">فصيلة B+</a>
                 </div>
-                <div class="text-slate-400 font-mono text-[11px]">
-                    نظام الجدول السريري السريع (Eye-Scan Rapid Table)
+                <div class="text-slate-400 text-[11px]">
+                    اضغط على اسم المريض لفتح ملفه السريري الكامل
                 </div>
             </div>
         </div>
@@ -164,7 +164,7 @@
                             <th class="py-3 px-3.5 font-bold text-slate-800 min-w-[140px]">الهوية والجوال</th>
                             <th class="py-3 px-3.5 font-bold text-slate-800 min-w-[160px]">الحساسية الدوائية</th>
                             <th class="py-3 px-3.5 font-bold text-slate-800 min-w-[160px]">الأمراض المزمنة</th>
-                            <th class="py-3 px-3.5 font-bold text-slate-800 text-center min-w-[190px]">الإجراءات السريرية
+                            <th class="sticky left-0 z-20 bg-slate-50/90 py-3 px-3.5 font-bold text-slate-800 text-center min-w-[190px]">الإجراءات السريرية
                             </th>
                         </tr>
                     </thead>
@@ -241,7 +241,8 @@
                                 </td>
 
                                 {{-- 8. Clinical Quick Actions (Immediate 1-Click Operations) --}}
-                                <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                                <td
+                                    class="sticky left-0 z-10 bg-white py-3 px-3.5 text-center whitespace-nowrap shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-teal-50/40">
                                     <div class="flex items-center justify-center gap-1.5">
                                         {{-- 1-Click New Visit --}}
                                         @can('create', App\Models\Visit::class)
@@ -265,7 +266,7 @@
                                             <a href="{{ route('patients.edit', $patient) }}"
                                                 class="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition"
                                                 title="تعديل بيانات المريض">
-                                                ✏️
+                                                <x-icon name="pencil" />
                                             </a>
                                         @endcan
                                         @can('delete', $patient)
@@ -274,19 +275,21 @@
                                                 onclick="document.getElementById('deletePatientModal-{{ $patient->id }}').classList.remove('hidden')"
                                                 class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-md transition"
                                                 title="أرشفة الملف السريري">
-                                                🗑️
+                                                <x-icon name="trash" />
                                             </button>
                                         @endcan
                                     </div>
                                 </td>
                             </tr>
-                            @can('delete', $patient)
-                                <x-delete-patient-modal :patient="$patient" />
-                            @endcan
                         @endforeach
                     </tbody>
                 </table>
             </div>
+            @foreach ($patients ?? [] as $patient)
+                @can('delete', $patient)
+                    <x-delete-patient-modal :patient="$patient" />
+                @endcan
+            @endforeach
         </div>
 
 

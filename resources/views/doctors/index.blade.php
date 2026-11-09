@@ -29,14 +29,14 @@
                 @can('viewAny', App\Models\Clinic::class)
                     <a href="{{ route('clinics.index') }}"
                         class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition">
-                        🏥 عرض العيادات
+                        عرض العيادات
                     </a>
                 @endcan
             </div>
         </div>
 
         <!-- Filter & Search Bar with One-to-Many Clinic Filter -->
-        <form action={{ route('doctors.index') }} method="GET"
+        <form action="{{ route('doctors.index') }}" method="GET"
             class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
             <div class="relative flex-1 max-w-md">
                 <input type="text" id="doctorDirectorySearch" name="search" value="{{ request('search') }}"
@@ -98,7 +98,7 @@
                             <th class="py-3 px-3 font-bold text-slate-800 min-w-[150px]">أيام الكشف</th>
                             <th class="py-3 px-3 font-bold text-slate-800 min-w-[110px]">الجوال</th>
                             <th class="py-3 px-3 font-bold text-slate-800 text-center">الحالة</th>
-                            <th class="py-3 px-4 font-bold text-slate-800 text-center min-w-[150px]">الإجراءات</th>
+                            <th class="sticky left-0 z-20 bg-slate-50/90 py-3 px-4 font-bold text-slate-800 text-center min-w-[150px]">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -159,13 +159,11 @@
                                     @if ($doctor->clinic)
                                         <a href="{{ route('clinics.show', $doctor->clinic) }}"
                                             class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 transition">
-                                            <span>🏥</span>
                                             <span class="text-[#00685f] font-bold">{{ $doctor->clinic->name }}</span>
                                         </a>
                                     @else
                                         <span
                                             class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200/80">
-                                            <span>🏥</span>
                                             <span class="font-bold">لا يوجد</span>
                                         </span>
                                     @endif
@@ -190,7 +188,8 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <td
+                                        class="sticky left-0 z-10 bg-white py-3.5 px-4 text-center whitespace-nowrap shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-teal-50/40">
                                     <div class="flex items-center justify-center gap-1.5">
                                         @can('view', $doctor)
                                             <a href="{{ route('doctors.show', $doctor) }}"

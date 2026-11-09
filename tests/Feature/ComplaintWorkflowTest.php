@@ -4,8 +4,6 @@ use App\Models\Complaint;
 use App\Models\Patient;
 use App\Models\User;
 
-
-
 describe('updating a complaint', function () {
     it('ignores a status supplied through the update endpoint', function () {
         $admin = actingAsAdmin();
@@ -153,7 +151,7 @@ describe('the manual complaint button', function () {
         $this->get(route('complaints.create'))
             ->assertOk()
             ->assertSee($patient->fullname)
-            ->assertSee($admin->name.' - '.$admin->roleNames());
+            ->assertSee($admin->name.' - '.__('roles.'.$admin->roleNames()));
     });
 });
 

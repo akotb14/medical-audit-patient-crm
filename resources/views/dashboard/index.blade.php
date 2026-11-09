@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'لوحة البيانات والتحليل السريري المتقدم (Clinical Dashboard)')
+@section('title', 'لوحة البيانات والتحليل السريري المتقدم')
 
 @section('content')
     <div class="space-y-6">
@@ -19,7 +19,7 @@
                         </span>
                     </div>
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-[#0b1c30] tracking-tight">
-                        لوحة البيانات والعمليات السريرية (Clinical Care Dashboard)
+                        لوحة البيانات والعمليات السريرية
                     </h1>
                     <p class="text-xs sm:text-sm text-[#64748b] max-w-3xl leading-relaxed">
                         منظومة المراقبة اللحظية لتدفق الزيارات السريرية، المتابعات الحرجة، مؤشرات رضا المراجعين والجودة،
@@ -181,7 +181,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#00685f]"></span>
-                            <h3 class="font-bold text-base text-[#0b1c30]">أحمال العيادات التخصصية والكوادر (Clinics Load)
+                            <h3 class="font-bold text-base text-[#0b1c30]">أحمال العيادات التخصصية والكوادر
                             </h3>
                         </div>
                         <p class="text-xs text-[#64748b] mt-0.5">توزيع الأطباء الاستشاريين وحصص الكشف السريري</p>
@@ -310,12 +310,12 @@
                             <th class="py-3 px-3.5 min-w-[200px]">سبب الزيارة السريرية</th>
                             <th class="py-3 px-3.5 min-w-[120px]">حالة الزيارة</th>
                             <th class="py-3 px-3.5 min-w-[130px]">استبيان الرضا </th>
-                            <th class="py-3 px-3.5 text-center w-24">إجراءات</th>
+                            <th class="sticky left-0 z-20 bg-[#f8fafc] py-3 px-3.5 text-center w-24">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#e2e8f0]">
                         @forelse($recentVisits as $v)
-                            <tr class="hover:bg-teal-50/20 transition">
+                            <tr class="group hover:bg-teal-50/20 transition">
                                 <td class="py-3.5 px-3.5 text-center font-mono font-bold text-slate-500">
                                     #{{ $v->id }}
                                 </td>
@@ -374,11 +374,12 @@
                                         </button>
                                     @endif
                                 </td>
-                                <td class="py-3.5 px-3.5 text-center">
+                                <td
+                                    class="sticky left-0 z-10 bg-white py-3.5 px-3.5 text-center shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-teal-50/20">
                                     <a href="{{ route('visits.show', $v) }}"
                                         class="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition inline-block"
                                         title="فتح ملف الزيارة">
-                                        👁️
+                                        <x-icon name="eye" />
                                     </a>
                                 </td>
                             </tr>

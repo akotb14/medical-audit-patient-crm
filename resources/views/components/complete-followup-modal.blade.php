@@ -11,8 +11,8 @@
                     ✓
                 </div>
                 <div>
-                    <h3 class="font-bold text-sm text-[#0b1c30]">توثيق نتيجة المتابعة السريرية (Document Outcome)</h3>
-                    <p class="text-[11px] text-[#64748b]">تسجيل استجابة المريض وتحديث الحالة إلى مكتملة (Done)</p>
+                    <h3 class="font-bold text-sm text-[#0b1c30]">توثيق نتيجة المتابعة السريرية</h3>
+                    <p class="text-[11px] text-[#64748b]">تسجيل استجابة المريض وتحديث الحالة إلى «مكتملة»</p>
                 </div>
             </div>
             <button type="button"
@@ -22,7 +22,7 @@
             </button>
         </div>
 
-        <form id="completeFollowupForm" action="{{ route('follow_ups.complete', $followup) }}" method="POST"
+        <form action="{{ route('follow_ups.complete', $followup) }}" method="POST"
             class="p-6 space-y-4 text-xs">
             @csrf
             @method('PATCH')
@@ -30,27 +30,25 @@
             <div class="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl space-y-1">
                 <div class="flex items-center justify-between">
                     <span class="text-slate-500 text-[11px]">رقم قيد المتابعة:</span>
-                    <span id="completeModalFollowupId"
-                        class="font-mono font-bold text-emerald-800">#{{ $followup->id }}</span>
+                    <span class="font-mono font-bold text-emerald-800">#{{ $followup->id }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-slate-500 text-[11px]">المريض:</span>
-                    <span id="completeModalPatientName"
-                        class="font-bold text-slate-800">{{ $followup->patient?->fullname }}</span>
+                    <span class="font-bold text-slate-800">{{ $followup->patient?->fullname ?? 'غير معروف' }}</span>
                 </div>
             </div>
 
             <div>
-                <label for="complete_outcome_note" class="font-bold text-slate-700 block mb-1.5">
+                <label for="complete_outcome_note_{{ $followup->id }}" class="font-bold text-slate-700 block mb-1.5">
                     ملاحظات ونتيجة المتابعة (Outcome Note):
                     <span class="text-red-500">*</span>
                 </label>
-                <textarea name="outcome_note" id="complete_outcome_note" rows="4" required
+                <textarea name="outcome_note" id="complete_outcome_note_{{ $followup->id }}" rows="4" required
                     placeholder="مثال: تم الاتصال بالمريض هاتفياً، وأفاد بانخفاض الحرارة إلى 37.2 م وزوال الصداع. أكد استمراره في تناول الدواء في المواعيد المقررة دون أي أعراض جانبية..."
                     class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800 text-xs leading-relaxed"></textarea>
                 <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1">
                     <span>نماذج سريعة:</span>
-                    <span id="outcomeCharCount">0 / 2000 حرف</span>
+                    <span data-outcome-counter>0 / 2000 حرف</span>
                 </div>
             </div>
 
@@ -84,31 +82,42 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>حفظ النتيجة وإتمام المتابعة (Done)</span>
+                    <span>حفظ النتيجة وإتمام المتابعة</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
 <script>
-    // Apply Outcome Template
-    function applyOutcomeTemplate(template , model) {
-        const modal = document.getElementById(model);
-        const textarea = modal.querySelector('#complete_outcome_note');
-        if (!textarea) {
-            console.error('complete_outcome_note element not found');
-            return;
-        }
-        textarea.value = template;
-        textarea.focus();
+    if (typeof window.applyOutcomeTemplate === 'undefined') {
+        // Apply Outcome Template
+        window.applyOutcomeTemplate = function(template, modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) {
+                return;
+            }
+            const textarea = modal.querySelector('textarea[name="outcome_note"]');
+            if (!textarea) {
+                return;
+            }
+            textarea.value = template;
+            textarea.focus();
 
-        textarea.dispatchEvent(new Event('input', {
-            bubbles: true
-        }));
+            textarea.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+        };
 
+        // Count Outcome Note Characters (delegated: one modal per follow-up row)
+        document.addEventListener('input', function(event) {
+            const textarea = event.target;
+            if (!textarea.matches || !textarea.matches('textarea[name="outcome_note"]')) {
+                return;
+            }
+            const counter = textarea.closest('form')?.querySelector('[data-outcome-counter]');
+            if (counter) {
+                counter.textContent = `${textarea.value.length} / 2000 حرف`;
+            }
+        });
     }
-    // Count Outcome Note Characters
-    document.getElementById('complete_outcome_note').addEventListener('input', function() {
-        document.getElementById('outcomeCharCount').textContent = `${this.value.length} / 2000 حرف`;
-    });
 </script>

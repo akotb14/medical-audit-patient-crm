@@ -9,15 +9,15 @@
                 <th class="py-3 px-4">تاريخ الزيارة</th>
                 <th class="py-3 px-4 w-[220px]">سبب الزيارة (Reason)</th>
                 <th class="py-3 px-4">حالة الزيارة (Status)</th>
-                <th class="py-3 px-4">مسجل الزيارة</th>
+                <th class="py-3 px-4">مُنشئ الزيارة</th>
                 <th class="py-3 px-4">استبيان المريض</th>
-                <th class="py-3 px-4 text-center">إجراءات</th>
+                <th class="sticky left-0 z-20 bg-[#f8fafc] py-3 px-4 text-center">إجراءات</th>
             </tr>
         </thead>
         <tbody id="visitsTableBody" class="divide-y divide-[#e2e8f0]">
             @if (isset($visits))
                 @foreach ($visits ?? [] as $visit)
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="group hover:bg-slate-50 transition">
                         <td class="py-3 px-4 text-center font-mono text-xs text-slate-500">{{ $visit->id }}</td>
                         <td class="py-3 px-4">
                             @if ($visit->patient)
@@ -73,7 +73,7 @@
                             </span>
                         </td>
                         <td class="py-3 px-4 text-xs text-slate-500">
-                            {{ $visit->creator->name }}
+                            {{ $visit->creator?->name ?? 'غير معروف' }}
                         </td>
                         <td class="py-3 px-4 text-center">
                             @if ($visit->visit_status == 'completed' && isset($visit->survey))
@@ -93,7 +93,8 @@
                                 <span class="text-xs text-slate-400 italic">لم يتم إنهاء الزيارة </span>
                             @endif
                         </td>
-                        <td class="py-3 px-4 text-center">
+                        <td
+                            class="sticky left-0 z-10 bg-white py-3 px-4 text-center shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-slate-50">
                             <div class="inline-flex items-center gap-1.5">
 
                                 @can('updateStatus', $visit)
@@ -101,7 +102,7 @@
                                         <button type="button"
                                             onclick="document.getElementById('completeVisitWithFollowupModal-{{ $visit->id }}').classList.remove('hidden')"
                                             class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-slate-100 rounded-md transition">
-                                            ✓
+                                            <x-icon name="check" />
                                         </button>
                                         <form action="{{ route('visits.status', $visit) }}" method="POST">
                                             @csrf
@@ -118,7 +119,7 @@
                                     <a href="{{ route('visits.show', $visit) }}"
                                         class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-slate-100 rounded-md transition"
                                         title="عرض التفاصيل">
-                                        👁️
+                                        <x-icon name="eye" />
                                     </a>
                                 @endcan
                                 @can('update', $visit)
@@ -126,7 +127,7 @@
                                         <a href="{{ route('visits.edit', $visit) }}"
                                             class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-md transition"
                                             title="تعديل">
-                                            ✏️
+                                            <x-icon name="pencil" />
                                         </a>
                                     @endif
                                 @endcan
@@ -135,20 +136,24 @@
                                         onclick="document.getElementById('deleteVisitModal-{{ $visit->id }}').classList.remove('hidden')"
                                         class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-md transition"
                                         title="حذف">
-                                        🗑️
+                                        <x-icon name="trash" />
                                     </button>
                                 @endcan
                             </div>
                         </td>
                     </tr>
-                    @can('updateStatus', $visit)
-                        <x-complete-visit-with-followup-modal :visit="$visit" />
-                    @endcan
-                    @can('delete', $visit)
-                        <x-delete-visit-modal :visit="$visit" />
-                    @endcan
                 @endforeach
             @endif
         </tbody>
     </table>
+    </div>
+    {{-- Modals live outside the table markup so the table stays valid HTML. --}}
+    @foreach ($visits ?? [] as $visit)
+        @can('updateStatus', $visit)
+            <x-complete-visit-with-followup-modal :visit="$visit" />
+        @endcan
+        @can('delete', $visit)
+            <x-delete-visit-modal :visit="$visit" />
+        @endcan
+    @endforeach
 </div>

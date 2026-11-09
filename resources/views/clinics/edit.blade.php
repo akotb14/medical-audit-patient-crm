@@ -53,9 +53,9 @@
                     </label>
                     <select name="status"
                         class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600">
-                        <option value="active">جاهزة للتشغيل (نشطة)</option>
-                        <option value="maintenance">تحت الصيانة</option>
-                        <option value="inactive">مغلقة مؤقتاً</option>
+                        <option value="active" @selected(old('status', $clinic->status) === 'active')>جاهزة للتشغيل (نشطة)</option>
+                        <option value="maintenance" @selected(old('status', $clinic->status) === 'maintenance')>تحت الصيانة</option>
+                        <option value="inactive" @selected(old('status', $clinic->status) === 'inactive')>مغلقة مؤقتاً</option>
                     </select>
                 </div>
 

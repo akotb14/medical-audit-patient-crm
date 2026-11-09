@@ -37,8 +37,8 @@
                     class="w-full px-3 py-2 text-xs bg-white border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-800 font-medium">
                     <option value="">-- اختر العيادة الطبية التابع لها --</option>
                     @foreach($clinics ?? [] as $clinic)
-                    <option value="{{ $clinic->id }}" {{ old('clinic_id') == $clinic->id ? 'selected' : ''}}>
-                        🏥 {{ $clinic->name }}
+                    <option value="{{ $clinic->id }}" @selected(old('clinic_id') == $clinic->id)>
+                        {{ $clinic->name }}
                     </option>
                     @endforeach
                 </select>
@@ -88,6 +88,7 @@
                     </label>
                     <input type="text" name="schedule_days" required
                         placeholder="مثال: الأحد - الخميس (08:00 ص - 04:00 م)"
+                        value="{{ old('schedule_days') }}"
                         class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600" />
                 </div>
 
@@ -98,8 +99,8 @@
                     نبذة مهنية ومؤهلات الطبيب
                 </label>
                 <textarea name="notes" rows="3"
-                    placeholder="الشهادات العليا، البورد العربي/السعودي/الأمريكي، والخبرات السريرية..." value="{{old('notes')}}"
-                    class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600"></textarea>
+                    placeholder="الشهادات العليا، البورد العربي/السعودي/الأمريكي، والخبرات السريرية..."
+                    class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600">{{ old('notes') }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
@@ -109,9 +110,9 @@
                     </label>
                     <select name="status"
                         class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600">
-                        <option value="active">متاح ومناوب (نشط)</option>
-                        <option value="holiday">في إجازة دورية / علمية</option>
-                        <option value="inactive">غير نشط</option>
+                        <option value="active" @selected(old('status', 'active') === 'active')>متاح ومناوب (نشط)</option>
+                        <option value="holiday" @selected(old('status') === 'holiday')>في إجازة دورية / علمية</option>
+                        <option value="inactive" @selected(old('status') === 'inactive')>غير نشط</option>
                     </select>
                 </div>
             </div>

@@ -34,7 +34,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                     <label for="name" class="font-bold text-slate-700 block mb-1">الاسم الكامل (رباعي):</label>
-                    <input type="text" id="name" name="name" value={{ $user->name}} required
+                    <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required
 
                     class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none
                     focus:ring-1 focus:ring-[#00685f]" />
@@ -45,7 +45,7 @@
                 <div>
 
                     <label for="username" class="font-bold text-slate-700 block mb-1"> اسم المستخدم:</label>
-                    <input type="text" id="username" name="username" value={{$user->username}} required
+                    <input type="text" id="username" name="username" value="{{ old('username', $user->username) }}" required
 
                     class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-left
                     focus:outline-none focus:ring-1 focus:ring-[#00685f]" />
@@ -76,7 +76,7 @@
                     <input type="radio" name="role_id" value="{{$role->id}}" @checked($user->hasRole($role->name))
                     class="mt-0.5 text-[#00685f] focus:ring-[#00685f]" />
                     <div>
-                        <div class="font-bold text-[#0b1c30]">{{$role->name}}</div>
+                        <div class="font-bold text-[#0b1c30]">{{ trans()->has('roles.' . $role->name) ? __('roles.' . $role->name) : $role->name }}</div>
                     </div>
                 </label>
 
@@ -100,7 +100,7 @@
 
             <button type="submit"
                 class="px-6 py-2.5 bg-[#00685f] hover:bg-[#005049] text-white text-xs font-bold rounded-lg shadow-sm transition">
-                حفظ وإنشاء حساب المستخدم
+                حفظ التعديلات
             </button>
         </div>
     </form>

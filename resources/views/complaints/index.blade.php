@@ -12,12 +12,11 @@
                     <h1 class="text-2xl font-bold text-[#0b1c30]">إدارة الشكاوى واعتراضات المرضى</h1>
                     <span
                         class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 font-mono">
-                        جدول complaints
+                        سجل الجودة
                     </span>
                 </div>
                 <p class="text-xs text-[#64748b] mt-1">
-                    دورة حياة التحقيق والمعالجة: جديدة (new) ← مسندة (assigned) ← قيد التحقيق (investigating) ← تم الحل
-                    (resolved) ← مغلقة (closed)
+                    دورة حياة التحقيق والمعالجة: جديدة ← مسندة ← قيد التحقيق ← تم الحل ← مغلقة
                 </p>
             </div>
             <div class="flex items-center gap-2.5">
@@ -27,7 +26,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        <span>+ تسجيل شكوى يدوية (Manual Complaint)</span>
+                        <span>+ تسجيل شكوى يدوية</span>
                     </a>
                 @endcan
                 @can('viewAny', App\Models\Survey::class)
@@ -55,9 +54,9 @@
 
             <!-- New -->
             <div
-                class="bg-white p-3.5 rounded-xl border border-blue-200 shadow-xs flex items-center justify-between bg-blue-50/10">
+                class="p-3.5 rounded-xl border border-blue-200 shadow-xs flex items-center justify-between bg-blue-50/10">
                 <div>
-                    <p class="text-[11px] font-semibold text-blue-700">جديدة (New)</p>
+                    <p class="text-[11px] font-semibold text-blue-700">جديدة</p>
                     <p class="text-xl font-bold text-blue-800 mt-0.5">{{ $stats->new }}</p>
                 </div>
                 <div
@@ -68,7 +67,7 @@
 
             <!-- Investigating & Assigned -->
             <div
-                class="bg-white p-3.5 rounded-xl border border-amber-200 shadow-xs flex items-center justify-between bg-amber-50/10">
+                class="p-3.5 rounded-xl border border-amber-200 shadow-xs flex items-center justify-between bg-amber-50/10">
                 <div>
                     <p class="text-[11px] font-semibold text-amber-700">قيد التحقيق</p>
                     <p class="text-xl font-bold text-amber-800 mt-0.5">{{ $stats->assigned + $stats->investigating }}</p>
@@ -81,9 +80,9 @@
 
             <!-- Resolved (BR-7) -->
             <div
-                class="bg-white p-3.5 rounded-xl border border-teal-200 shadow-xs flex items-center justify-between bg-teal-50/10">
+                class="p-3.5 rounded-xl border border-teal-200 shadow-xs flex items-center justify-between bg-teal-50/10">
                 <div>
-                    <p class="text-[11px] font-semibold text-teal-700">تم الحل (Resolved)</p>
+                    <p class="text-[11px] font-semibold text-teal-700">تم الحل</p>
                     <p class="text-xl font-bold text-teal-800 mt-0.5">{{ $stats->resolved }}</p>
                 </div>
                 <div
@@ -95,7 +94,7 @@
             <!-- Closed (BR-7) -->
             <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-500">مغلقة (Closed)</p>
+                    <p class="text-[11px] font-semibold text-slate-500">مغلقة</p>
                     <p class="text-xl font-bold text-slate-700 mt-0.5">{{ $stats->closed }}</p>
                 </div>
                 <div
@@ -106,7 +105,7 @@
 
             <!-- From Surveys (BR-6) -->
             <div
-                class="bg-white p-3.5 rounded-xl border border-rose-200 shadow-xs flex items-center justify-between bg-rose-50/10">
+                class="p-3.5 rounded-xl border border-rose-200 shadow-xs flex items-center justify-between bg-rose-50/10">
                 <div>
                     <p class="text-[11px] font-semibold text-rose-700">تلقائية من الاستبيان</p>
                     <p class="text-xl font-bold text-rose-800 mt-0.5">{{ $stats->from_surveys }}</p>
@@ -153,11 +152,11 @@
                         <select name="status"
                             class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 text-xs focus:ring-1 focus:ring-[#00685f]">
                             <option value="all" @selected(request('status') == 'all' || !request('status'))>كافة المراحل</option>
-                            <option value="new" @selected(request('status') == 'new')>جديدة (new)</option>
-                            <option value="assigned" @selected(request('status') == 'assigned')>مسندة (assigned)</option>
-                            <option value="investigating" @selected(request('status') == 'investigating')>قيد التحقيق (investigating)</option>
-                            <option value="resolved" @selected(request('status') == 'resolved')>تم الحل (resolved)</option>
-                            <option value="closed" @selected(request('status') == 'closed')>مغلقة (closed)</option>
+                            <option value="new" @selected(request('status') == 'new')>جديدة</option>
+                            <option value="assigned" @selected(request('status') == 'assigned')>مسندة</option>
+                            <option value="investigating" @selected(request('status') == 'investigating')>قيد التحقيق</option>
+                            <option value="resolved" @selected(request('status') == 'resolved')>تم الحل</option>
+                            <option value="closed" @selected(request('status') == 'closed')>مغلقة</option>
                         </select>
                     </div>
 
@@ -167,7 +166,7 @@
                         <select name="assigned_to"
                             class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 text-xs focus:ring-1 focus:ring-[#00685f]">
                             <option value="all" @selected(request('assigned_to') == 'all' || !request('assigned_to'))>كافة الموظفين</option>
-                            <option value="unassigned" @selected(request('assigned_to') == 'unassigned')>غير مسندة (Unassigned)</option>
+                            <option value="unassigned" @selected(request('assigned_to') == 'unassigned')>غير مسندة</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}" @selected(request('assigned_to') == $user->id)>{{ $user->name }}
                                 </option>
@@ -215,13 +214,13 @@
                             <th class="py-3 px-3.5 min-w-[150px]">المحقق المسند إليه (Assignee)</th>
                             <th class="py-3 px-3.5 min-w-[180px]">ملاحظة الحل (Resolution Note)</th>
                             <th class="py-3 px-3.5 min-w-[110px]">التاريخ</th>
-                            <th class="py-3 px-3.5 text-center w-28">إجراءات</th>
+                            <th class="sticky left-0 z-20 bg-[#f8fafc] py-3 px-3.5 text-center w-28">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#e2e8f0]">
                         @if (isset($complaints) && count($complaints) > 0)
                             @foreach ($complaints as $c)
-                                <tr class="hover:bg-teal-50/20 transition">
+                                <tr class="group hover:bg-teal-50/20 transition">
                                     <!-- ID -->
                                     <td class="py-3.5 px-3.5 text-center font-mono font-bold text-slate-500">
                                         #{{ $c->id }}
@@ -318,7 +317,7 @@
                                                     <span
                                                         class="font-semibold text-slate-800 block text-xs">{{ $c->assignee->name }}</span>
                                                     <span
-                                                        class="text-[10px] text-slate-400 block">{{ $c->assignee->roleNames() ?: 'بدون دور' }}</span>
+                                                        class="text-[10px] text-slate-400 block">{{ collect(explode(',', $c->assignee->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}</span>
                                                 </div>
                                             </div>
                                         @else
@@ -361,21 +360,22 @@
                                             {{ $c->created_at ? $c->created_at->format('h:i A') : '' }}</div>
                                     </td>
 
-                                    <!-- Actions -->
-                                    <td class="py-3.5 px-3.5 text-center">
+                                    <!-- Actions (sticky so it stays reachable when the table scrolls) -->
+                                    <td
+                                        class="sticky left-0 z-10 bg-white py-3.5 px-3.5 text-center shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-teal-50">
                                         <div class="inline-flex items-center gap-1 justify-center">
                                             @can('view', $c)
                                                 <a href="{{ route('complaints.show', $c) }}"
                                                     class="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg border border-slate-200 transition"
                                                     title="عرض التفاصيل ومسار التحقيق">
-                                                    👁️
+                                                    <x-icon name="eye" />
                                                 </a>
                                             @endcan
                                             @can('update', $c)
                                                 <a href="{{ route('complaints.edit', $c) }}"
                                                     class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-slate-200 transition"
                                                     title="تعديل الشكوى">
-                                                    ✏️
+                                                    <x-icon name="pencil" />
                                                 </a>
                                             @endcan
                                             @can('delete', $c)
@@ -387,7 +387,7 @@
                                                     <button type="submit"
                                                         class="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition"
                                                         title="حذف">
-                                                        🗑️
+                                                        <x-icon name="trash" />
                                                     </button>
                                                 </form>
                                             @endcan
@@ -440,7 +440,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-sm text-[#0b1c30]">إسناد الشكوى لمحقق جودة </h3>
-                        <p class="text-[11px] text-[#64748b]">تعيين موظف مسؤول لتحديث الحالة إلى مسندة (assigned)</p>
+                        <p class="text-[11px] text-[#64748b]">تعيين موظف مسؤول لتحديث الحالة إلى «مسندة»</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeAssignModal()"
@@ -464,7 +464,7 @@
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-1 focus:ring-purple-600">
                         <option value="">-- اختر موظف الجودة --</option>
                         @foreach ($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->roleNames() ?: 'بدون دور' }}
+                            <option value="{{ $user->id }}">{{ $user->name }} - {{ collect(explode(',', $user->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}
                             </option>
                         @endforeach
                     </select>
@@ -477,7 +477,7 @@
                     </button>
                     <button type="submit"
                         class="px-5 py-2 font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-lg shadow-sm transition">
-                        تأكيد الإسناد (Assign)
+                        تأكيد الإسناد
                     </button>
                 </div>
             </form>
@@ -489,7 +489,6 @@
             const modal = document.getElementById('assignComplaintModal');
             const form = document.getElementById('assignComplaintForm');
             const titleElem = document.getElementById('assignModalComplaintTitle');
-            console.log(complaint)
 
             if (form) form.action = "complaints/" + complaint['id'] + "/assign";
             if (titleElem) titleElem.textContent = `#${complaint['id']}: ${complaint['title']}`;

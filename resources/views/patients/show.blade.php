@@ -140,19 +140,19 @@
                                 {{ $visits->total() }}</p>
                         </div>
                         <div class="p-3 bg-blue-50/60 rounded-lg border border-blue-200/80">
-                            <span class="text-[11px] font-medium text-blue-800">قيد الانتظار (created)</span>
+                            <span class="text-[11px] font-medium text-blue-800">قيد الانتظار</span>
                             <p class="text-lg font-black text-blue-700 mt-0.5" id="patientVisitsCreatedCount">
                                 {{ $visitCounts['created'] }}
                             </p>
                         </div>
                         <div class="p-3 bg-emerald-50/60 rounded-lg border border-emerald-200/80">
-                            <span class="text-[11px] font-medium text-emerald-800">مكتملة (completed)</span>
+                            <span class="text-[11px] font-medium text-emerald-800">مكتملة</span>
                             <p class="text-lg font-black text-emerald-700 mt-0.5" id="patientVisitsCompletedCount">
                                 {{ $visitCounts['completed'] }}
                             </p>
                         </div>
                         <div class="p-3 bg-rose-50/60 rounded-lg border border-rose-200/80">
-                            <span class="text-[11px] font-medium text-rose-800">ملغاة (cancelled)</span>
+                            <span class="text-[11px] font-medium text-rose-800">ملغاة</span>
                             <p class="text-lg font-black text-rose-700 mt-0.5" id="patientVisitsCancelledCount">
                                 {{ $visitCounts['cancelled'] }}
                             </p>

@@ -18,8 +18,8 @@
                 </a>
                 @can('update', $doctor)
                     <a href="{{ route('doctors.edit', $doctor) }}"
-                        class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition">
-                        ✏️ تعديل بيانات الطبيب
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition">
+                        <x-icon name="pencil" /> <span>تعديل بيانات الطبيب</span>
                     </a>
                 @endcan
             </div>

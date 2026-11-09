@@ -37,7 +37,7 @@
                 @can('update', $complaint)
                     <a href="{{ route('complaints.edit', $complaint) }}"
                         class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5">
-                        <span>✏️ تعديل</span>
+                        <x-icon name="pencil" /> <span>تعديل</span>
                     </a>
                 @endcan
                 @can('viewAny', App\Models\Complaint::class)
@@ -57,19 +57,19 @@
         <!-- Stepper Lifecycle Component (Section 5.2 / FR-6) -->
         @php
             $stages = [
-                'new' => ['name' => '1. جديدة (New)', 'icon' => '🆕', 'desc' => 'تسجيل البلاغ'],
-                'assigned' => ['name' => '2. مسندة (Assigned)', 'icon' => '👤', 'desc' => 'تعيين المحقق'],
+                'new' => ['name' => '1. جديدة', 'icon' => '🆕', 'desc' => 'تسجيل البلاغ'],
+                'assigned' => ['name' => '2. مسندة', 'icon' => '👤', 'desc' => 'تعيين المحقق'],
                 'investigating' => [
-                    'name' => '3. قيد التحقيق (Investigating)',
+                    'name' => '3. قيد التحقيق',
                     'icon' => '🔍',
                     'desc' => 'التدقيق والتواصل',
                 ],
                 'resolved' => [
-                    'name' => '4. تم الحل (Resolved)',
+                    'name' => '4. تم الحل',
                     'icon' => '✓',
-                    'desc' => 'توثيق الإجراء التصحيحي (BR-7)',
+                    'desc' => 'توثيق الإجراء التصحيحي',
                 ],
-                'closed' => ['name' => '5. مغلقة (Closed)', 'icon' => '🔒', 'desc' => 'إغلاق رسمي نهائي'],
+                'closed' => ['name' => '5. مغلقة', 'icon' => '🔒', 'desc' => 'إغلاق رسمي نهائي'],
             ];
 
             $stageKeys = array_keys($stages);
@@ -83,7 +83,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="text-sm">🔄</span>
-                    <h3 class="font-bold text-sm text-[#0b1c30]">مسار دورة حياة الشكوى (Complaint Stepper)</h3>
+                    <h3 class="font-bold text-sm text-[#0b1c30]">مسار دورة حياة الشكوى</h3>
                 </div>
                 <span class="text-xs font-bold text-teal-800">
                     المرحلة الحالية: {{ $complaint->status_label }}
@@ -135,12 +135,12 @@
                                 class="font-bold text-slate-800">{{ $complaint->created_at ? $complaint->created_at->format('Y-m-d H:i') : '-' }}</span>
                         </div>
                         <div class="p-2.5 bg-teal-50/50 rounded-lg border border-teal-100">
-                            <span class="text-teal-700 block mb-0.5">تاريخ الحل (resolved):</span>
+                            <span class="text-teal-700 block mb-0.5">تاريخ الحل:</span>
                             <span
                                 class="font-bold text-teal-900">{{ $complaint->resolved_at ? $complaint->resolved_at->format('Y-m-d H:i') : 'لم تُحل بعد' }}</span>
                         </div>
                         <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
-                            <span class="text-slate-400 block mb-0.5">تاريخ الإغلاق (closed):</span>
+                            <span class="text-slate-400 block mb-0.5">تاريخ الإغلاق:</span>
                             <span
                                 class="font-bold text-slate-800">{{ $complaint->closed_at ? $complaint->closed_at->format('Y-m-d H:i') : 'مفتوحة' }}</span>
                         </div>
@@ -178,9 +178,8 @@
                     @else
                         <p
                             class="text-xs text-slate-500 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            لم يتم تسجيل إجراء تصحيحي ، لن يتمكن النظام من قبول تغيير حالة الشكوى إلى <code
-                                class="font-mono text-teal-900 font-bold">resolved</code> أو <code
-                                class="font-mono text-teal-900 font-bold">closed</code> دون تعبئة هذا الحقل.
+                            لم يتم تسجيل إجراء تصحيحي بعد. لا يمكن نقل الشكوى إلى حالة «تم الحل» أو «مغلقة» إلا بعد
+                            تعبئة هذا الحقل.
                         </p>
                     @endif
                 </div>
@@ -205,7 +204,7 @@
                                 </p>
 
                                 <p class="font-bold text-slate-800">
-                                    {{ $complaint->status }}
+                                    {{ $complaint->status_label }}
                                 </p>
 
                             </div>
@@ -362,7 +361,7 @@
 
                 <!-- Linked Survey Card (BR-6 Origin) -->
                 @if ($complaint->survey)
-                    <div class="bg-white rounded-2xl border border-rose-200 p-5 shadow-xs space-y-3 text-xs bg-rose-50/20">
+                    <div class="rounded-2xl border border-rose-200 p-5 shadow-xs space-y-3 text-xs bg-rose-50/20">
                         <div class="flex items-center justify-between border-b border-rose-100 pb-2.5">
                             <span class="font-bold text-rose-900 flex items-center gap-1.5">
                                 <span>⭐</span>
@@ -424,7 +423,7 @@
                             <div>
                                 <div class="font-bold text-sm text-slate-900">{{ $complaint->assignee->name }}</div>
                                 <div class="text-slate-500 text-[11px]">
-                                    {{ $complaint->assignee->roleNames() ?: 'محقق جودة وخدمة عملاء' }}</div>
+                                    {{ collect(explode(',', $complaint->assignee->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'مدقق جودة وخدمة عملاء' }}</div>
                             </div>
                         </div>
                     @else

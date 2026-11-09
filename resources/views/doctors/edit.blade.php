@@ -18,7 +18,7 @@
             href="{{ route('doctors.show' , $doctor) }}"
             class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition"
         >
-            ← العودة للملف الطبيب
+            ← العودة لملف الطبيب
         </a>
     </div>
 
@@ -42,8 +42,8 @@
                     class="w-full px-3 py-2 text-xs bg-white border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-800 font-medium"
                 >
                     @foreach($clinics ?? [] as $clinic)
-                        <option value="{{ $clinic->id }}" {{ ($doctor->clinic_id ?? 1) == $clinic->id ? 'selected' : '' }}>
-                            🏥 {{ $clinic->name }}
+                        <option value="{{ $clinic->id }}" @selected(old('clinic_id', $doctor->clinic_id) == $clinic->id)>
+                            {{ $clinic->name }}
                         </option>
                     @endforeach
                 </select>
@@ -61,7 +61,7 @@
                     <input
                         type="text"
                         name="fullname"
-                        value="{{ old('name', $doctor->fullname ?? '') }}"
+                        value="{{ old('fullname', $doctor->fullname ?? '') }}"
                         required
                         class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600"
                     />
@@ -134,7 +134,7 @@
                     name="notes"
                     rows="3"
                     class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600"
-                >{{ old('bio', $doctor->notes ?? '') }}</textarea>
+                >{{ old('notes', $doctor->notes ?? '') }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
@@ -143,9 +143,9 @@
                         حالة الطبيب <span class="text-red-500">*</span>
                     </label>
                     <select name="status" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-600">
-                        <option value="active">متاح ومناوب (نشط)</option>
-                        <option value="holiday">في إجازة</option>
-                        <option value="inactive">غير نشط</option>
+                        <option value="active" @selected(old('status', $doctor->status) === 'active')>متاح ومناوب (نشط)</option>
+                        <option value="holiday" @selected(old('status', $doctor->status) === 'holiday')>في إجازة</option>
+                        <option value="inactive" @selected(old('status', $doctor->status) === 'inactive')>غير نشط</option>
                     </select>
                 </div>
 

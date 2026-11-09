@@ -25,22 +25,22 @@
                         <span
                             class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
                             <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                            <span>مجدولة (scheduled)</span>
+                            <span>مجدولة</span>
                         </span>
                     @elseif(($followup->status ?? '') === 'done')
                         <span
                             class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            <span>✓ مكتملة وموثقة (done)</span>
+                            <span>✓ مكتملة وموثقة</span>
                         </span>
                     @elseif(($followup->status ?? '') === 'missed')
                         <span
                             class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
-                            <span>✕ فائتة / لم يرد (missed)</span>
+                            <span>✕ فائتة / لم يرد</span>
                         </span>
                     @elseif(($followup->status ?? '') === 'cancelled')
                         <span
                             class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                            <span>ملغاة (cancelled)</span>
+                            <span>ملغاة</span>
                         </span>
                     @endif
 
@@ -69,7 +69,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
-                            <span>إتمام وتدوين النتيجة (Complete)</span>
+                            <span>إتمام وتدوين النتيجة</span>
                         </button>
                     @endcan
                     @can('status', $followup)
@@ -80,7 +80,7 @@
                             <input type="hidden" name="status" value="missed">
                             <button type="submit"
                                 class="px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition">
-                                تسجيل كتفويت (Missed)
+                                تسجيل كتفويت
                             </button>
                         </form>
 
@@ -116,7 +116,7 @@
 
                 <button type="button" onclick="window.print()"
                     class="px-3 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition shadow-xs">
-                    طباعة 🖨️
+                    طباعة
                 </button>
             </div>
         </div>
@@ -204,7 +204,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span>تاريخ وساعة الإتمام (completed_at):</span>
+                                <span>تاريخ وساعة الإتمام:</span>
                             </div>
                             <span class="font-mono font-bold text-emerald-900">
                                 {{ $followup->completed_at ? $followup->completed_at->format('Y-m-d H:i') : '-' }}
@@ -340,7 +340,7 @@
                         </div>
                     @else
                         <div class="p-4 bg-slate-50 rounded-xl text-center text-slate-400 italic text-xs">
-                            متابعة سريرية مستقلة غير مرتبطة بزيارة محددة (visit_id = null)
+                            متابعة سريرية مستقلة غير مرتبطة بزيارة محددة
                         </div>
                     @endif
                 </div>
@@ -352,7 +352,7 @@
                         </h4>
                         <div class="space-y-2 text-slate-600">
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-400">أنشئ بواسطة (created_by):</span>
+                                <span class="text-slate-400">أنشئ بواسطة:</span>
                                 <span class="font-bold text-slate-800">{{ $followup->creator->name }}</span>
                             </div>
                             <div class="flex items-center justify-between">

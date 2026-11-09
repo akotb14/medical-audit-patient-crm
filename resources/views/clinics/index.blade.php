@@ -98,11 +98,11 @@
                 <table class="w-full text-right text-xs">
                     <thead>
                         <tr class="bg-slate-50/90 text-slate-600 border-b border-slate-200">
-                            <th class="py-3 px-4 font-bold">الرمز والعيادة</th>
+                            <th class="py-3 px-4 font-bold">العيادة والقسم</th>
                             <th class="py-3 px-3 font-bold w-[190px]">وصف</th>
                             <th class="py-3 px-3 font-bold">الأطباء التابعون </th>
                             <th class="py-3 px-3 font-bold text-center">الحالة</th>
-                            <th class="py-3 px-4 font-bold text-center">الإجراءات السريعة</th>
+                            <th class="sticky left-0 z-20 bg-slate-50/90 py-3 px-4 font-bold text-center">الإجراءات السريعة</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -168,7 +168,8 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="py-3.5 px-4 text-center">
+                                <td
+                                    class="sticky left-0 z-10 bg-white py-3.5 px-4 text-center shadow-[6px_0_8px_-6px_rgba(15,23,42,0.18)] group-hover:bg-slate-50/80">
                                     <div class="flex items-center justify-center gap-1.5">
                                         @can('view', $clinic)
                                             <a href="{{ route('clinics.show', $clinic) }}"
@@ -182,7 +183,7 @@
                                             <a href="{{ route('clinics.edit', $clinic) }}"
                                                 class="p-1.5 text-xs text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition"
                                                 title="تعديل بيانات العيادة">
-                                                ✏️
+                                                <x-icon name="pencil" />
                                             </a>
                                         @endcan
                                         @can('delete', $clinic)
@@ -190,19 +191,21 @@
                                                 onclick="document.getElementById('deleteClinicModal-{{ $clinic->id }}').classList.remove('hidden')"
                                                 class="p-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition"
                                                 title="حذف العيادة">
-                                                🗑️
+                                                <x-icon name="trash" />
                                             </button>
                                         @endcan
                                     </div>
                                 </td>
                             </tr>
-                            @can('delete', $clinic)
-                                <x-delete-clinic-modal :clinic="$clinic" />
-                            @endcan
                         @endforeach
                     </tbody>
                 </table>
             </div>
+            @foreach ($clinics ?? [] as $clinic)
+                @can('delete', $clinic)
+                    <x-delete-clinic-modal :clinic="$clinic" />
+                @endcan
+            @endforeach
         </div>
 
 

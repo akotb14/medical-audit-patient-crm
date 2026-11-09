@@ -132,7 +132,7 @@
                         </div>
                     @else
                         <div class="text-center py-4 text-xs text-slate-400 italic">
-                            لم يتم تعيين مريض لهذه الزيارة (patient_id is null)
+                            لم يتم تعيين مريض لهذه الزيارة
                         </div>
                     @endif
                 </div>
@@ -180,7 +180,7 @@
                         </div>
                     @else
                         <div class="text-center py-4 text-xs text-slate-400 italic">
-                            لم يتم تعيين طبيب لهذه الزيارة (doctor_id is null)
+                            لم يتم تعيين طبيب لهذه الزيارة
                         </div>
                     @endif
                 </div>
@@ -192,17 +192,17 @@
                         </h4>
                         <div class="space-y-2 text-slate-600">
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-400">أنشئ بواسطة (created_by):</span>
+                                <span class="text-slate-400">أنشئ بواسطة:</span>
                                 <span
                                     class="font-bold text-slate-800">{{ $visit->creator?->name ?? 'غير معروف' }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-400">تاريخ الإنشاء (created_at):</span>
+                                <span class="text-slate-400">تاريخ الإنشاء:</span>
                                 <span
                                     class="font-mono text-slate-700">{{ $visit->created_at ? $visit->created_at->format('Y-m-d H:i') : '-' }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-slate-400">آخر تحديث (updated_at):</span>
+                                <span class="text-slate-400">آخر تحديث:</span>
                                 <span
                                     class="font-mono text-slate-700">{{ $visit->updated_at ? $visit->updated_at->format('Y-m-d H:i') : '-' }}</span>
                             </div>

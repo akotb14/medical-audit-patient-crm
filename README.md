@@ -277,6 +277,16 @@ the framework's validation, authentication, pagination and password-reset messag
 `lang/ar/`. The locale comes from `APP_LOCALE` (`ar` in `.env.example`). There is no language
 switcher and no English translation of the interface.
 
+`lang/ar/roles.php` is the one application-level translation file. Role names are stored in the
+database in Latin (`Admin`, `Receptionist`) and every screen that lists a member of staff resolves
+them through this file, falling back to the stored name when a role has no entry:
+
+```blade
+{{ trans()->has('roles.' . $role) ? __('roles.' . $role) : $role }}
+```
+
+Role *names* in the database are unchanged — the file only supplies their Arabic labels.
+
 Dates and times use the `Africa/Cairo` timezone set in `config/app.php`.
 
 ---
@@ -413,8 +423,8 @@ vendor/bin/pest                          # the same suite through the Pest binar
 | Architecture-level checks | `EagerLoadingTest`, `LocalizationTest` |
 | Routing | `HomeRedirectTest`, `ExampleTest` |
 
-**Latest verified run (2026-11-08):** 166 tests, 594 assertions, all passing, on PHP 8.5.12
-with an in-memory SQLite database. The suite takes roughly 2.5 minutes.
+**Latest verified run (2026-11-09):** 166 tests, 594 assertions, all passing, on PHP 8.5.12
+with an in-memory SQLite database. The suite takes roughly 1.5 minutes on a developer machine.
 
 ### MySQL concurrency harness
 
@@ -538,7 +548,9 @@ The screens worth capturing for a portfolio, in order:
 Use the seeded synthetic data only when capturing images — no real patient data.
 
 A captured set lives in [`project-presentation/screenshots/`](project-presentation/screenshots/)
-(21 PNGs at 1440×900, Arabic RTL, synthetic data only), together with the walkthrough videos in
+(21 PNGs, Arabic RTL, synthetic data only): nineteen desktop captures at 2880×1800 (a 1440×900
+viewport at a device scale factor of 2) and two mobile captures at 780×1688 (390×844 at the same
+scale), together with the walkthrough videos in
 [`project-presentation/videos/`](project-presentation/videos/). Every image and every frame was
 taken from the running application; nothing is a mock-up.
 
@@ -549,8 +561,14 @@ taken from the running application; nothing is a mock-up.
 | ![Visits](project-presentation/screenshots/07-visits.png) | ![Follow-ups](project-presentation/screenshots/10-followups.png) |
 | ![Complaints](project-presentation/screenshots/14-complaints.png) | ![Survey modal](project-presentation/screenshots/13-survey-modal.png) |
 
-- `project-presentation/videos/full-demo.mp4` — full walkthrough of every module (Arabic captions).
-- `project-presentation/videos/linkedin-demo.mp4` — short cut for LinkedIn.
+- `project-presentation/videos/full-demo.mp4` — full walkthrough of every module, 3 min 41 s,
+  1440×810 H.264.
+- `project-presentation/videos/linkedin-demo.mp4` — short cut for LinkedIn, 1 min 14 s, same
+  encoding.
+
+Both follow one fictional patient through the whole journey — registered, updated, given a visit,
+discharged into a follow-up, surveyed, and finally the subject of a complaint — using the real
+screens and the real workflows.
 
 ---
 
@@ -571,7 +589,7 @@ database/
   factories/            model factories (synthetic Arabic data)
   migrations/           schema
   seeders/              roles, demo users, sample clinical data
-lang/ar/                Arabic framework messages
+lang/ar/                Arabic framework messages plus roles.php (role labels)
 resources/views/        Blade layouts, screens and components
 routes/                 web.php plus one route file per module
 tests/

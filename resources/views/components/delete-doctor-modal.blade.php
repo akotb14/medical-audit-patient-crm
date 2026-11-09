@@ -8,18 +8,21 @@
         <div class="text-center">
             <h3 class="text-base font-bold text-slate-800">تأكيد حذف ملف الطبيب</h3>
             <p class="text-xs text-slate-500 mt-1">
-                هل أنت متأكد من حذف الطبيب <span id="deleteDoctorNameTarget" class="font-bold text-slate-700"></span> التابع لعيادة <span id="deleteDoctorClinicTarget" class="font-bold text-teal-800"></span>؟
+                هل أنت متأكد من حذف الطبيب
+                <span class="font-bold text-slate-700">{{ $doctor->fullname }}</span>
+                التابع لعيادة
+                <span class="font-bold text-teal-800">{{ $doctor->clinic?->name ?? 'بدون عيادة' }}</span>؟
             </p>
         </div>
 
         <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-slate-600 space-y-1">
             <p class="font-bold">ملاحظة تنظيمية:</p>
             <p class="text-[11px]">
-                سيتم فك ارتباط الطبيب بالعيادة ونقل المواعيد القادمة إلى طبيب مناوب آخر في نفس العيادة.
+                يتم أرشفة ملف الطبيب وإزالته من قوائم الاختيار، مع الاحتفاظ بسجلاته السابقة لأغراض التدقيق.
             </p>
         </div>
 
-        <form id="deleteDoctorForm" action="{{route('doctors.destroy', $doctor)}}" method="POST" class="pt-2 flex items-center justify-center gap-3">
+        <form action="{{route('doctors.destroy', $doctor)}}" method="POST" class="pt-2 flex items-center justify-center gap-3">
             @csrf
             @method('DELETE')
             {{-- <input type="hidden" id="deleteDoctorIdInput" name="id" value="{{$doctor->id}}" /> --}}

@@ -53,7 +53,7 @@
                         @endfor
                     </div>
                     <h3 class="font-bold text-sm text-slate-800">{{ $survey->rating_label }}</h3>
-                    <p class="text-xs text-slate-500">تم التقييم وفق المعيار السريري BR-5 (عدد صحيح من 1 إلى 5 نجوم)</p>
+                    <p class="text-xs text-slate-500">تم التقييم على مقياس من 1 إلى 5 نجوم</p>
                 </div>
             </div>
             <!-- BR-6 Status Indicator -->

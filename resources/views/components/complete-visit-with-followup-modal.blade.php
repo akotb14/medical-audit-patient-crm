@@ -24,38 +24,38 @@
           <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 space-y-1">
             <div class="font-bold flex items-center gap-1.5 text-xs text-emerald-800">
               <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span>توثيق إتمام المراجعة واستمرارية الرعاية (Care Continuity)</span>
+              <span>توثيق إتمام المراجعة واستمرارية الرعاية</span>
             </div>
             <p class="text-[11px] text-emerald-700 leading-relaxed">
-              سيتم نقل حالة الزيارة إلى <span class="font-bold text-emerald-800">مكتملة (completed)</span> وتوليد سجل متابعة سريرية تلقائي في جدول <code class="font-mono bg-white px-1 py-0.2 rounded border border-emerald-200 font-bold">follow_ups</code>.
+              سيتم نقل حالة الزيارة إلى <span class="font-bold text-emerald-800">مكتملة</span> وتوليد سجل متابعة سريرية تلقائي مرتبط بنفس المريض والزيارة.
             </p>
           </div>
           <!-- Reason summary -->
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
             <span class="text-slate-400 block text-[11px]">سبب الزيارة المسجل:</span>
-            <p id="completeVisitModalReasonText" class="text-slate-800 font-medium text-xs leading-relaxed"></p>
+            <p class="text-slate-800 font-medium text-xs leading-relaxed">{{ $visit->reason ?: 'لم يتم تدوين سبب للزيارة.' }}</p>
           </div>
 
           <!-- Follow-up Creation Toggle -->
           <label class="flex items-start gap-3 p-3 bg-teal-50/50 border border-teal-200 rounded-xl cursor-pointer hover:bg-teal-50 transition">
             <input
               type="checkbox"
-              id="completeVisitCreateFollowupCheckbox"
+              id="completeVisitCreateFollowupCheckbox-{{ $visit->id }}"
               checked
-              onchange="document.getElementById('completeVisitFollowupSection').classList.toggle('hidden', !this.checked)"
+              onchange="document.getElementById('completeVisitFollowupSection-{{ $visit->id }}').classList.toggle('hidden', !this.checked)"
               class="w-4 h-4 text-[#00685f] rounded border-slate-300 focus:ring-[#00685f] mt-0.5"
             />
             <div>
-              <span class="font-bold text-[#0b1c30] block text-xs">إنشاء متابعة سريرية مجدولة (Create follow_ups record)</span>
-              <span class="text-[11px] text-[#64748b]">ربط تلقائي مع visit_id و patient_id بحالة scheduled</span>
+              <span class="font-bold text-[#0b1c30] block text-xs">إنشاء متابعة سريرية مجدولة</span>
+              <span class="text-[11px] text-[#64748b]">ربط تلقائي بالمريض والزيارة بحالة «مجدولة»</span>
             </div>
           </label>
 
           <!-- Follow-up Fields -->
-          <div id="completeVisitFollowupSection" class="space-y-3.5 pt-1">
+          <div id="completeVisitFollowupSection-{{ $visit->id }}" class="space-y-3.5 pt-1">
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label class="font-bold text-slate-700">موعد استحقاق المتابعة (due_date):</label>
+                <label for="completeVisitWithFollowupModal-{{ $visit->id }}DueDate" class="font-bold text-slate-700">موعد استحقاق المتابعة:</label>
                 <span class="text-[10px] text-teal-700 font-semibold">خيارات سريعة:</span>
               </div>
               <div class="flex items-center gap-1.5 mb-2">
@@ -98,9 +98,9 @@
             </div>
 
             <div>
-              <label class="font-bold text-slate-700 block mb-1">السبب السريري للمتابعة (reason):</label>
+              <label for="completeVisitFollowupReason-{{ $visit->id }}" class="font-bold text-slate-700 block mb-1">السبب السريري للمتابعة:</label>
               <textarea
-                id="completeVisitFollowupReason"
+                id="completeVisitFollowupReason-{{ $visit->id }}"
                 name="reason"
                 rows="2"
                 maxlength="500"
