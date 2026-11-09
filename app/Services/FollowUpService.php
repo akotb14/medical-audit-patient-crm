@@ -8,13 +8,20 @@ use Illuminate\Support\Facades\DB;
 
 class FollowUpService
 {
+    /*
+     * A scheduled follow-up is completed from its outcome note or cancelled; it
+     * never becomes `missed` by hand. Only the scheduled `followups:update-overdue`
+     * command marks a follow-up missed, and from `missed` it can still be
+     * rescheduled or cancelled.
+     */
     private const TRANSITIONS = [
-        'scheduled' => ['done', 'missed', 'cancelled'],
+        'scheduled' => ['done', 'cancelled'],
         'missed' => ['scheduled', 'cancelled'],
         'cancelled' => ['scheduled'],
         'done' => [],
     ];
-    public function canTransitionTo(string $status , string $currentStatus): bool
+
+    public function canTransitionTo(string $status, string $currentStatus): bool
     {
         if ($status === $currentStatus) {
             return true;
@@ -22,7 +29,9 @@ class FollowUpService
 
         return in_array($status, self::TRANSITIONS[$currentStatus] ?? [], true);
     }
+
     public function __construct(private FollowUpQuery $followUpQuery) {}
+
     public function paginateIndex(array $filters): array
     {
         $query = FollowUp::with(['patient', 'visit.doctor.clinic', 'creator'])
@@ -46,7 +55,7 @@ class FollowUpService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! $this->canTransitionTo((string) $data['status'] ,(string) $lockedFollowUp->status)) {
+            if (! $this->canTransitionTo((string) $data['status'], (string) $lockedFollowUp->status)) {
                 return false;
             }
 
@@ -114,7 +123,7 @@ class FollowUpService
                 return ['outcome' => 'done', 'current_label' => $currentLabel];
             }
 
-            if (! $this->canTransitionTo($status , (string) $lockedFollowUp->status)) {
+            if (! $this->canTransitionTo($status, (string) $lockedFollowUp->status)) {
                 return ['outcome' => 'invalid', 'current_label' => $currentLabel];
             }
 

@@ -67,7 +67,7 @@
                 </div>
             </div>
 
-            <!-- BR-4 Rule Explanatory Banner -->
+            <!-- Explanatory Banner -->
             <div
                 class="p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-900 text-[11px] leading-relaxed flex items-start gap-2">
                 <svg class="w-4 h-4 text-sky-600 shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -94,7 +94,7 @@
 
             </div>
 
-            <!-- BR-5: Rating Selection (1-5 Integer) with Star Tiles -->
+            <!-- Rating Selection (1-5 Integer) with Star Tiles -->
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <label class="block font-bold text-slate-700">
@@ -152,7 +152,7 @@
                 </div>
             </div>
 
-            <!-- BR-6: Dynamic Trigger Warning Banner (visible when rating < 3) -->
+            <!-- Dynamic Trigger Warning Banner (visible when rating < 3) -->
             <div id="{{ $modalId }}Br6Alert"
                 class="p-3 bg-rose-50 border border-rose-300 rounded-xl text-rose-900 text-xs hidden space-y-1 transition">
                 <div class="flex items-center gap-1.5 font-bold text-rose-800">
@@ -169,7 +169,7 @@
                 </p>
             </div>
 
-            <!-- Patient Comment / Notes (FR-5) -->
+            <!-- Patient Comment / Notes -->
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                     <label for="{{ $modalId }}Comment" class="block font-bold text-slate-700">

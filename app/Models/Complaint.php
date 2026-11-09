@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Database\Factories\ComplaintFactory;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -67,11 +66,11 @@ class Complaint extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'new' => 'جديدة (New)',
-            'assigned' => 'مسندة للتحقيق (Assigned)',
-            'investigating' => 'قيد التدقيق والتحقيق (Investigating)',
-            'resolved' => 'تم الحل والمعالجة (Resolved)',
-            'closed' => 'مغلقة نهائياً (Closed)',
+            'new' => 'جديدة',
+            'assigned' => 'مسندة للتحقيق',
+            'investigating' => 'قيد التدقيق والتحقيق',
+            'resolved' => 'تم الحل والمعالجة',
+            'closed' => 'مغلقة نهائياً',
             default => $this->status,
         };
     }
@@ -105,7 +104,6 @@ class Complaint extends Model
             default => 'bg-slate-100 text-slate-700 border-slate-200',
         };
     }
-
 
     public function nextStatus(): ?string
     {

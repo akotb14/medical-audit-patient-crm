@@ -62,7 +62,7 @@
                         <td class="py-3.5 px-4 text-center">
                             <span
                                 class="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#eff4ff] text-[#00685f] border border-teal-200">
-                                {{ $user->roles->pluck('name')->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}
+                                {{ $user->roleLabels() }}
                             </span>
                         </td>
 

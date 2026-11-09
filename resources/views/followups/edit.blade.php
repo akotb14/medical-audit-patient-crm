@@ -114,13 +114,21 @@
                                 <option value="done" @selected(old('status', $followup->status) == 'done')>
                                     مكتملة - تم التواصل وتوثيق النتيجة
                                 </option>
-                                <option value="missed" @selected(old('status', $followup->status) == 'missed')>
-                                    فائتة - لم يتم الرد / تعذر التواصل
-                                </option>
+                                @if ($followup->status === 'missed')
+                                    {{-- «فائتة» يضبطها النظام تلقائياً؛ تُعرض هنا فقط حتى لا تتغير عند حفظ المتابعة. --}}
+                                    <option value="missed" @selected(old('status', $followup->status) == 'missed')>
+                                        فائتة - لم يتم الرد / تعذر التواصل
+                                    </option>
+                                @endif
                                 <option value="cancelled" @selected(old('status', $followup->status) == 'cancelled')>
                                     ملغاة - تم إلغاؤها
                                 </option>
                             </select>
+                            @if ($followup->status === 'missed')
+                                <p class="text-[11px] text-slate-400 mt-1.5">
+                                    تتحول المتابعة إلى «فائتة» تلقائياً عند تجاوز موعدها. يمكنك هنا إعادة جدولتها أو إلغاءها.
+                                </p>
+                            @endif
 
                         </div>
                     </div>

@@ -95,7 +95,7 @@
 
             </div>
 
-            <!-- Assigned To (FR-6) -->
+            <!-- Assigned To -->
             <div class="space-y-1.5">
                 <label for="assigned_to" class="block font-bold text-slate-700 text-xs">
                     إسناد التحقيق إلى موظف / محقق جودة (Assign To):
@@ -109,7 +109,7 @@
                     <option value="">-- بدون إسناد فوري (ستكون الحالة: جديدة) --</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" @selected(old('assigned_to') == $user->id)>
-                            {{ $user->name }} - {{ collect(explode(',', $user->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}
+                            {{ $user->name }} - {{ $user->roleLabels() }}
                         </option>
                     @endforeach
                 </select>

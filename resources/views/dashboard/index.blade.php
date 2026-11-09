@@ -72,12 +72,12 @@
             <x-dashboard.kpi-card title="المتابعات السريرية الحرجة" :value="$scheduledFollowups" subvalue="حالة قيد المتابعة"
                 icon="🩺" color="amber" badge="أولوية سريرية" :footer="$doneFollowups . ' موثق · ' . $missedFollowups . ' فائت'" :link="route('follow_ups.index')" />
 
-            <!-- KPI 3: Satisfaction Index (FR-5, BR-5) -->
+            <!-- KPI 3: Satisfaction Index -->
             <x-dashboard.kpi-card title="مؤشر تجربة ورضا المرضى" :value="$avgRating . ' ★'" subvalue="من 5.0 نجوم" icon="⭐"
                 color="emerald" :trend="$positiveRate . '% إيجابي'" :trend-positive="true" :progress="$positiveRate" :footer="$rating5Count . ' ممتاز (5★) · ' . $lowRatingSurveysCount . ' تنبيه جودة'"
                 :link="route('surveys.index')" />
 
-            <!-- KPI 4: Complaints & Quality SLA (FR-6, BR-7) -->
+            <!-- KPI 4: Complaints & Quality SLA -->
             <x-dashboard.kpi-card title="تذاكر الشكاوى والاعتراض" :value="$activeComplaintsCount" subvalue="تذكرة نشطة" icon="🚨"
                 color="rose" :footer="$autoComplaintsFromSurveys . ' ناتجة آلياً · ' . $resolvedComplaints . ' تم حلها'" :link="route('complaints.index')" />
 
@@ -94,7 +94,7 @@
 
         <!-- 4. Quality Lifecycle Stepper & Specialty Clinics Load (2 Panels) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Visual Panel 3: Complaints 5-Stage Lifecycle Stepper (FR-6, BR-7) (6 Cols) -->
+            <!-- Visual Panel 3: Complaints 5-Stage Lifecycle Stepper (6 Cols) -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
                 <div class="flex items-center justify-between">
                     <div>
@@ -138,7 +138,7 @@
                         <div class="text-base font-extrabold font-mono text-blue-800">{{ $investigatingComplaints }}</div>
                     </div>
 
-                    <!-- Step 4: Resolved (BR-7 Note Required) -->
+                    <!-- Step 4: Resolved(Note Required) -->
                     <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
                         <div
                             class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center mx-auto">
@@ -157,7 +157,7 @@
                     </div>
                 </div>
 
-                <!-- BR-7 Requirement Notice -->
+                <!-- Requirement Notice -->
                 <div
                     class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
                     <span class="text-slate-600">

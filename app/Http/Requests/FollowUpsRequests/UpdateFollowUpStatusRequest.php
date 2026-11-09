@@ -17,7 +17,14 @@ class UpdateFollowUpStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|string|in:scheduled,done,missed,cancelled',
+            /*
+             * This endpoint carries a status and nothing else, so it can only
+             * express the two moves that need no outcome note: cancelling and
+             * rescheduling. Reaching `done` goes through the completion endpoint,
+             * which requires the note, and `missed` belongs to the scheduled
+             * `followups:update-overdue` command.
+             */
+            'status' => 'required|string|in:scheduled,cancelled',
         ];
     }
 

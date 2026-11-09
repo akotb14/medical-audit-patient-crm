@@ -337,17 +337,21 @@
                                         </div>
                                     </td>
                                 </tr>
-                                @can('complete', $flw)
-                                    <x-complete-followup-modal :followup="$flw" />
-                                @endcan
-                                @can('delete', $flw)
-                                    <x-delete-followup-modal :followup="$flw" />
-                                @endcan
                             @endforeach
                         @endif
                     </tbody>
                 </table>
             </div>
+
+            {{-- Modals live outside the table markup so the table stays valid HTML. --}}
+            @foreach ($followups ?? [] as $flw)
+                @can('complete', $flw)
+                    <x-complete-followup-modal :followup="$flw" />
+                @endcan
+                @can('delete', $flw)
+                    <x-delete-followup-modal :followup="$flw" />
+                @endcan
+            @endforeach
 
 
             @if (isset($followups) && method_exists($followups, 'links'))

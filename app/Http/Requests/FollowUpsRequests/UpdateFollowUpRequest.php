@@ -42,6 +42,13 @@ class UpdateFollowUpRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:500',
+                /*
+                 * `missed` stays in the list above so an overdue follow-up that
+                 * the scheduled command already marked missed can still be
+                 * edited and rescheduled; the service refuses to move a
+                 * follow-up into `missed` by hand.
+                 */
+                'required_if:status,done',
             ],
 
             'reason' => [
@@ -63,6 +70,7 @@ class UpdateFollowUpRequest extends FormRequest
 
             'outcome_note.string' => 'ملاحظات النتيجة يجب أن تكون نصًا.',
             'outcome_note.max' => 'ملاحظات النتيجة يجب ألا تتجاوز 500 حرف.',
+            'outcome_note.required_if' => 'يرجى تدوين نتيجة المتابعة عند تحويل حالتها إلى «مكتملة».',
 
             'reason.required' => 'يرجى إدخال سبب المتابعة.',
             'reason.string' => 'سبب المتابعة يجب أن يكون نصًا.',
@@ -70,13 +78,11 @@ class UpdateFollowUpRequest extends FormRequest
         ];
     }
 
-
     private function rescheduleRule(): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail): void {
             $followUp = $this->route('followup');
             $submitted = Carbon::parse($value);
-
 
             $isUnchanged = $followUp instanceof FollowUp
                 && $followUp->due_date !== null
@@ -87,6 +93,4 @@ class UpdateFollowUpRequest extends FormRequest
             }
         };
     }
-
-   
 }

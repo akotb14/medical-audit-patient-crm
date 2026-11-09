@@ -78,7 +78,7 @@
                 </div>
             </div>
 
-            <!-- Resolved (BR-7) -->
+            <!-- Resolved -->
             <div
                 class="p-3.5 rounded-xl border border-teal-200 shadow-xs flex items-center justify-between bg-teal-50/10">
                 <div>
@@ -91,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- Closed (BR-7) -->
+            <!-- Closed -->
             <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
                     <p class="text-[11px] font-semibold text-slate-500">مغلقة</p>
@@ -103,7 +103,7 @@
                 </div>
             </div>
 
-            <!-- From Surveys (BR-6) -->
+            <!-- From Surveys -->
             <div
                 class="p-3.5 rounded-xl border border-rose-200 shadow-xs flex items-center justify-between bg-rose-50/10">
                 <div>
@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <!-- BR-7 Explanatory Banner -->
+        <!-- Explanatory Banner -->
         <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-start gap-2.5">
             <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -160,7 +160,7 @@
                         </select>
                     </div>
 
-                    <!-- Assignee Filter (FR-6) -->
+                    <!-- Assignee Filter -->
                     <div class="flex items-center gap-1.5 text-xs">
                         <span class="text-slate-400 text-[11px]">المسند إليه:</span>
                         <select name="assigned_to"
@@ -174,7 +174,7 @@
                         </select>
                     </div>
 
-                    <!-- Source Filter (FR-6) -->
+                    <!-- Source Filter -->
                     <div class="flex items-center gap-1.5 text-xs">
                         <span class="text-slate-400 text-[11px]">المصدر:</span>
                         <select name="source"
@@ -305,7 +305,7 @@
                                         </span>
                                     </td>
 
-                                    <!-- Assignee (FR-6) -->
+                                    <!-- Assignee -->
                                     <td class="py-3.5 px-3.5">
                                         @if ($c->assignee)
                                             <div class="flex items-center gap-1.5">
@@ -317,7 +317,7 @@
                                                     <span
                                                         class="font-semibold text-slate-800 block text-xs">{{ $c->assignee->name }}</span>
                                                     <span
-                                                        class="text-[10px] text-slate-400 block">{{ collect(explode(',', $c->assignee->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}</span>
+                                                        class="text-[10px] text-slate-400 block">{{ $c->assignee->roleLabels() }}</span>
                                                 </div>
                                             </div>
                                         @else
@@ -332,7 +332,7 @@
                                         @endif
                                     </td>
 
-                                    <!-- Resolution Note (BR-7) -->
+                                    <!-- Resolution Note -->
                                     <td class="py-3.5 px-3.5">
                                         @if ($c->resolution_note)
                                             <div>
@@ -427,7 +427,7 @@
         </div>
     </div>
 
-    <!-- Modal: Quick Assign Complaint to User (FR-6) -->
+    <!-- Modal: Quick Assign Complaint to User -->
     <div id="assignComplaintModal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
         <div
@@ -464,7 +464,7 @@
                         class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-1 focus:ring-purple-600">
                         <option value="">-- اختر موظف الجودة --</option>
                         @foreach ($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} - {{ collect(explode(',', $user->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'بدون دور' }}
+                            <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->roleLabels() }}
                             </option>
                         @endforeach
                     </select>

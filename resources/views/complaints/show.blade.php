@@ -54,7 +54,7 @@
             </div>
         </div>
 
-        <!-- Stepper Lifecycle Component (Section 5.2 / FR-6) -->
+        <!-- Stepper Lifecycle Component -->
         @php
             $stages = [
                 'new' => ['name' => '1. جديدة', 'icon' => '🆕', 'desc' => 'تسجيل البلاغ'],
@@ -147,7 +147,7 @@
                     </div>
                 </div>
 
-                <!-- Resolution Note Card (BR-7) -->
+                <!-- Resolution Note Card -->
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2">
@@ -184,7 +184,7 @@
                     @endif
                 </div>
 
-                <!-- Stepper Transition & Action Form (Enforcing BR-7) -->
+                <!-- Stepper Transition & Action Form -->
                 @can('advance', $complaint)
                     <div class="bg-white rounded-2xl border border-[#00685f]/30 p-6 shadow-xs space-y-4">
                         <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -359,7 +359,7 @@
                     @endif
                 </div>
 
-                <!-- Linked Survey Card (BR-6 Origin) -->
+                <!-- Linked Survey Card -->
                 @if ($complaint->survey)
                     <div class="rounded-2xl border border-rose-200 p-5 shadow-xs space-y-3 text-xs bg-rose-50/20">
                         <div class="flex items-center justify-between border-b border-rose-100 pb-2.5">
@@ -423,7 +423,7 @@
                             <div>
                                 <div class="font-bold text-sm text-slate-900">{{ $complaint->assignee->name }}</div>
                                 <div class="text-slate-500 text-[11px]">
-                                    {{ collect(explode(',', $complaint->assignee->roleNames()))->map(fn ($role) => trim($role))->filter()->map(fn ($role) => trans()->has('roles.' . $role) ? __('roles.' . $role) : $role)->implode('، ') ?: 'مدقق جودة وخدمة عملاء' }}</div>
+                                    {{ $complaint->assignee->roleLabels('مدقق جودة وخدمة عملاء') }}</div>
                             </div>
                         </div>
                     @else

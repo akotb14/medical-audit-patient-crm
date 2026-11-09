@@ -41,9 +41,19 @@ class VisitController extends Controller
     {
         Gate::authorize('create', Visit::class);
         $patientId = $request->query('patient_id');
-        $patients = is_numeric($patientId)
-            ? $this->patientService->getPatientOption((int) $patientId)
-            : $this->patientService->getPatientOptions();
+
+        if (is_numeric($patientId)) {
+            /*
+             * A caller may preselect one patient. It is wrapped as a list so the
+             * form always receives the same shape it receives from the full
+             * option list, and an unknown id leaves the list empty rather than
+             * handing the view a single model.
+             */
+            $patients = collect([$this->patientService->getPatientOption((int) $patientId)])->filter();
+        } else {
+            $patients = $this->patientService->getPatientOptions();
+        }
+
         $doctors = $this->doctorService->getDoctorOptions(
             is_numeric($request->old('doctor_id')) ? (int) $request->old('doctor_id') : null
         );

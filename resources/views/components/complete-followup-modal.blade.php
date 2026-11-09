@@ -44,11 +44,13 @@
                     <span class="text-red-500">*</span>
                 </label>
                 <textarea name="outcome_note" id="complete_outcome_note_{{ $followup->id }}" rows="4" required
+                    maxlength="500"
                     placeholder="مثال: تم الاتصال بالمريض هاتفياً، وأفاد بانخفاض الحرارة إلى 37.2 م وزوال الصداع. أكد استمراره في تناول الدواء في المواعيد المقررة دون أي أعراض جانبية..."
                     class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800 text-xs leading-relaxed"></textarea>
                 <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1">
                     <span>نماذج سريعة:</span>
-                    <span data-outcome-counter>0 / 2000 حرف</span>
+                    {{-- The limit matches the validation rule and the stored column. --}}
+                    <span data-outcome-counter>0 / 500 حرف</span>
                 </div>
             </div>
 
@@ -116,7 +118,7 @@
             }
             const counter = textarea.closest('form')?.querySelector('[data-outcome-counter]');
             if (counter) {
-                counter.textContent = `${textarea.value.length} / 2000 حرف`;
+                counter.textContent = `${textarea.value.length} / 500 حرف`;
             }
         });
     }

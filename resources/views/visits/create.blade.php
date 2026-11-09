@@ -50,16 +50,6 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- patient_id: nullable foreignId constrained to patients -->
-                        @php
-                            /*
-                             | The controller hands over either the whole option list or the
-                             | single patient the caller preselected, so the select is fed a
-                             | uniform list here instead of iterating a model's attributes.
-                             */
-                            $patientOptions = $patients instanceof \Illuminate\Database\Eloquent\Model
-                                ? collect([$patients])
-                                : ($patients ?? collect());
-                        @endphp
                         <div>
                             <label for="patient_id" class="font-bold text-slate-700 block mb-1.5">
                                 المريض ورقم الملف (Patient):
@@ -67,7 +57,7 @@
                             <select name="patient_id" id="patient_id"
                                 class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00685f] text-slate-800">
                                 <option value="">-- اختر المريض --</option>
-                                @foreach ($patientOptions as $patient)
+                                @foreach ($patients ?? [] as $patient)
                                     <option value="{{ $patient->id }}"
                                         @selected(old('patient_id', request('patient_id')) == $patient->id)>
                                         {{ $patient->fullname }} ({{ $patient->mrn }})

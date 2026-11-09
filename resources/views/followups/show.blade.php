@@ -73,17 +73,6 @@
                         </button>
                     @endcan
                     @can('status', $followup)
-                        {{-- Mark Missed Button --}}
-                        <form action="{{ route('follow_ups.status', $followup) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="status" value="missed">
-                            <button type="submit"
-                                class="px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition">
-                                تسجيل كتفويت
-                            </button>
-                        </form>
-
                         {{-- Cancel Button --}}
                         <form action="{{ route('follow_ups.status', $followup) }}" method="POST">
                             @csrf

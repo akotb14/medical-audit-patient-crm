@@ -252,7 +252,7 @@
                                         @endif
                                     </td>
 
-                                    <!-- BR-6 Auto-created Complaint -->
+                                    <!-- Auto-created Complaint -->
                                     <td class="py-3.5 px-3.5">
                                         @if ($survey->complaint)
                                             <div

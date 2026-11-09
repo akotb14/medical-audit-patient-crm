@@ -56,7 +56,7 @@
                     <p class="text-xs text-slate-500">تم التقييم على مقياس من 1 إلى 5 نجوم</p>
                 </div>
             </div>
-            <!-- BR-6 Status Indicator -->
+            <!-- Status Indicator -->
             <div
                 class="p-4 rounded-xl {{ $survey->rating < 3 ? 'bg-rose-50 border border-rose-200 text-rose-900' : 'bg-emerald-50 border border-emerald-200 text-emerald-900' }} md:max-w-md text-xs space-y-1.5">
                 @if ($survey->rating < 3)
