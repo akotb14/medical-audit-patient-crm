@@ -338,7 +338,12 @@ $results[] = [
     'actor' => $case['actor'],
     'final' => ['status' => $fresh?->visit_status, 'exists' => $fresh !== null],
     'checks' => [
-        'actor_blocked_while_holder_held' => run_was_blocked_by_holder($case),
+        /*
+        | No blocking check here. When the completion commits before the delete
+        | reaches its first query, the policy refuses it on the spot and the
+        | action never waits — a correct outcome, but one this timing assertion
+        | reports as a failure. The outcome checks below carry the invariant.
+        */
         'visit_still_exists' => $fresh !== null,
         'visit_is_completed' => $fresh?->visit_status === 'completed',
         'actor_returned_no_exception' => ($actorResult['outcome'] ?? null) === 'response',
@@ -469,9 +474,17 @@ $results[] = [
 run_report($results[array_key_last($results)]['name'], $results[array_key_last($results)]);
 
 /* ---------------------------------------------------------------------
- | 5. Follow-up: two status changes released together on the same row. Only
- |    one may move it, and the row has to describe exactly that one: `done`
- |    carries a completion moment, `missed` does not.
+ | 5. Follow-up: two status changes released together on the same row. The
+ |    row starts `missed`, the only state from which both `scheduled` and
+ |    `cancelled` are valid transitions; the status endpoint refuses `done`
+ |    and `missed`, which belong to the completion endpoint and the scheduled
+ |    command respectively.
+ |
+ |    Both moves are legal, so both requests are answered successfully and the
+ |    later one wins — the endpoint serialises them on the row lock rather than
+ |    rejecting the second. The invariant this case can prove is therefore that
+ |    the final row belongs entirely to the last writer: its status, `updated_by`
+ |    and empty completion moment all describe that one request.
  * ------------------------------------------------------------------- */
 /*
 | A second operator, holding only the permission the status action checks. It is
@@ -482,20 +495,23 @@ $secondOperator = User::factory()->create();
 $secondOperator->givePermissionTo(PermissionEnum::FOLLOWUPS_STATUS->value);
 
 $followUp = run_make_followup($admin);
+$followUp->forceFill(['status' => 'missed'])->save();
 
 $case = run_together(
     $workDir,
     'followup_status_together',
     'worker_followup_status.php',
-    ['followup_id' => $followUp->id, 'acting_user_id' => $admin->id, 'status' => 'missed'],
+    ['followup_id' => $followUp->id, 'acting_user_id' => $admin->id, 'status' => 'scheduled'],
     'worker_followup_status.php',
-    ['followup_id' => $followUp->id, 'acting_user_id' => $secondOperator->id, 'status' => 'done'],
+    ['followup_id' => $followUp->id, 'acting_user_id' => $secondOperator->id, 'status' => 'cancelled'],
 );
 
 $fresh = $followUp->fresh();
 $successA = ($case['a']['result']['flash_success'] ?? null) !== null;
 $successB = ($case['b']['result']['flash_success'] ?? null) !== null;
-$winnerId = $fresh->status === 'done' ? $secondOperator->id : $admin->id;
+$answeredA = $successA || ($case['a']['result']['flash_error'] ?? null) !== null;
+$answeredB = $successB || ($case['b']['result']['flash_error'] ?? null) !== null;
+$winnerId = $fresh->status === 'scheduled' ? $admin->id : $secondOperator->id;
 
 $results[] = [
     'name' => 'followup_status_together',
@@ -507,12 +523,14 @@ $results[] = [
     ],
     'checks' => [
         'both_processes_started_together' => (bool) $case['both_ready_before_barrier'],
-        'final_status_is_one_of_the_two' => in_array($fresh->status, ['missed', 'done'], true),
-        'exactly_one_transition_succeeded' => $successA !== $successB,
-        'the_row_names_the_one_that_succeeded' => ($fresh->status === 'missed') === $successA,
-        'stored_by_is_the_winner' => (int) $fresh->updated_by === (int) $winnerId,
-        'completion_moment_matches_the_status' => ($fresh->status === 'done') === ($fresh->completed_at !== null),
-        'the_loser_was_told_why' => ($successA ? ($case['b']['result']['flash_error'] ?? null) : ($case['a']['result']['flash_error'] ?? null)) !== null,
+        'final_status_is_one_of_the_two' => in_array($fresh->status, ['scheduled', 'cancelled'], true),
+        'each_process_got_a_definite_answer' => $answeredA && $answeredB,
+        'stored_by_is_one_of_the_two_writers' => in_array((int) $fresh->updated_by, [(int) $admin->id, (int) $secondOperator->id], true),
+        // The status, `updated_by` and the empty completion moment must all
+        // describe the same request; a torn write would show one writer's
+        // status with the other's name against it.
+        'stored_by_is_the_last_writer' => (int) $fresh->updated_by === (int) $winnerId,
+        'completion_moment_stays_empty' => $fresh->completed_at === null,
     ],
 ];
 run_report($results[array_key_last($results)]['name'], $results[array_key_last($results)]);
@@ -589,52 +607,107 @@ $results[] = [
 ];
 run_report($results[array_key_last($results)]['name'], $results[array_key_last($results)]);
 
+/*
+| The last-administrator cases run several times each. The failure they guard
+| against is intermittent — it depends on which transaction reaches the lock
+| first — so a single pass proves little. Every iteration rebuilds the state it
+| needs: exactly two administrators, one of them the seeded account.
+*/
+
+/**
+ * Leave exactly two administrators, both fresh accounts.
+ *
+ * The two accounts are disposable: each case deletes or demotes one of them, so
+ * a later iteration must not depend on either survivor or on the seeded
+ * account, which a previous iteration may have removed from the role.
+ *
+ * @return array{User, User}
+ */
+function run_two_administrators(): array
+{
+    User::role('Admin')->get()->each(fn (User $user) => $user->removeRole('Admin'));
+
+    $first = User::factory()->create();
+    $second = User::factory()->create();
+
+    $first->assignRole('Admin');
+    $second->assignRole('Admin');
+
+    // A fixture that cannot establish the premise would make the case's checks
+    // meaningless, so it fails loudly instead of reporting a false pass.
+    if (User::role('Admin')->count() !== 2) {
+        throw new RuntimeException('the harness could not establish exactly two administrators');
+    }
+
+    return [$first, $second];
+}
+
+/**
+ * Make the seeded account an administrator again for the cases after these.
+ */
+function run_restore_seeded_administrator(User $seeded): void
+{
+    User::role('Admin')->get()->each(fn (User $user) => $user->removeRole('Admin'));
+
+    // `hasRole()` at boot loaded the relation; a stale copy would make
+    // `assignRole()` believe the role is already attached and skip the write.
+    $seeded->unsetRelation('roles');
+    $seeded->assignRole('Admin');
+    $seeded->unsetRelation('roles');
+}
+
+/** The number of last-administrator iterations each case runs. */
+const RUN_LAST_ADMIN_ITERATIONS = 5;
+
 /* ---------------------------------------------------------------------
  | 7. Last administrator: concurrent deletion of two different admins.
  * ------------------------------------------------------------------- */
-$seededHadAdminRole = $admin->hasRole('Admin');
+$deleteRuns = [];
+$receptionistRole = Role::findByName('Receptionist');
 
-if ($seededHadAdminRole) {
-    $admin->removeRole('Admin');
-}
+for ($iteration = 1; $iteration <= RUN_LAST_ADMIN_ITERATIONS; $iteration++) {
+    [$adminA, $adminB] = run_two_administrators();
+    $adminsBefore = User::role('Admin')->count();
 
-$adminA = User::factory()->create();
-$adminB = User::factory()->create();
-$adminA->assignRole('Admin');
-$adminB->assignRole('Admin');
+    $case = run_together(
+        $workDir,
+        'last_admin_delete_together_'.$iteration,
+        'worker_user_destroy.php',
+        ['user_id' => $adminB->id, 'acting_user_id' => $adminA->id],
+        'worker_user_destroy.php',
+        ['user_id' => $adminA->id, 'acting_user_id' => $adminB->id],
+    );
 
-$adminsBefore = User::role('Admin')->count();
+    $survivorA = User::query()->find($adminA->id);
+    $survivorB = User::query()->find($adminB->id);
 
-$case = run_together(
-    $workDir,
-    'last_admin_delete_together',
-    'worker_user_destroy.php',
-    ['user_id' => $adminB->id, 'acting_user_id' => $adminA->id],
-    'worker_user_destroy.php',
-    ['user_id' => $adminA->id, 'acting_user_id' => $adminB->id],
-);
-
-$adminsAfter = User::role('Admin')->count();
-$survivorA = User::query()->find($adminA->id);
-$survivorB = User::query()->find($adminB->id);
-
-$results[] = [
-    'name' => 'last_admin_delete_together',
-    'case' => $case,
-    'final' => [
+    $deleteRuns[] = [
+        'iteration' => $iteration,
         'admins_before' => $adminsBefore,
-        'admins_after' => $adminsAfter,
+        'admins_after' => User::role('Admin')->count(),
         'admin_a_exists' => $survivorA !== null,
         'admin_b_exists' => $survivorB !== null,
         'admin_a_roles' => $survivorA?->getRoleNames()->values()->all(),
         'admin_b_roles' => $survivorB?->getRoleNames()->values()->all(),
+        'both_ready' => (bool) $case['both_ready_before_barrier'],
+    ];
+}
+
+$runs = count($deleteRuns);
+
+$results[] = [
+    'name' => 'last_admin_delete_together',
+    'runs' => $deleteRuns,
+    'final' => [
+        'runs' => $runs,
+        'admins_after' => array_column($deleteRuns, 'admins_after'),
     ],
     'checks' => [
-        'both_processes_started_together' => (bool) $case['both_ready_before_barrier'],
-        'exactly_one_admin_remains' => $adminsAfter === 1,
-        'at_least_one_admin_remains' => $adminsAfter >= 1,
-        'exactly_one_of_the_two_was_deleted' => ($survivorA === null) !== ($survivorB === null),
-        'survivor_still_holds_admin' => (bool) ($survivorA?->hasRole('Admin') || $survivorB?->hasRole('Admin')),
+        'every_run_started_with_two_admins' => count(array_filter($deleteRuns, static fn (array $run): bool => $run['admins_before'] === 2)) === $runs,
+        'every_run_started_together' => count(array_filter($deleteRuns, static fn (array $run): bool => $run['both_ready'])) === $runs,
+        'every_run_left_exactly_one_admin' => count(array_filter($deleteRuns, static fn (array $run): bool => $run['admins_after'] === 1)) === $runs,
+        'every_run_deleted_exactly_one_of_the_two' => count(array_filter($deleteRuns, static fn (array $run): bool => $run['admin_a_exists'] !== $run['admin_b_exists'])) === $runs,
+        'every_run_kept_the_survivor_administrator' => count(array_filter($deleteRuns, static fn (array $run): bool => $run['admin_a_exists'] ? in_array('Admin', $run['admin_a_roles'], true) : in_array('Admin', $run['admin_b_roles'], true))) === $runs,
     ],
 ];
 run_report($results[array_key_last($results)]['name'], $results[array_key_last($results)]);
@@ -642,54 +715,138 @@ run_report($results[array_key_last($results)]['name'], $results[array_key_last($
 /* ---------------------------------------------------------------------
  | 8. Last administrator: concurrent demotion of two different admins.
  * ------------------------------------------------------------------- */
-$survivingAdmin = User::role('Admin')->firstOrFail();
-$receptionistRole = Role::findByName('Receptionist');
-$adminC = User::factory()->create();
-$adminC->assignRole('Admin');
+$demoteRuns = [];
 
-$adminsBefore = User::role('Admin')->count();
+for ($iteration = 1; $iteration <= RUN_LAST_ADMIN_ITERATIONS; $iteration++) {
+    [$survivingAdmin, $adminC] = run_two_administrators();
+    $adminsBefore = User::role('Admin')->count();
 
-$case = run_together(
-    $workDir,
-    'last_admin_demote_together',
-    'worker_user_update.php',
-    ['user_id' => $adminC->id, 'acting_user_id' => $survivingAdmin->id, 'role_id' => $receptionistRole->id],
-    'worker_user_update.php',
-    ['user_id' => $survivingAdmin->id, 'acting_user_id' => $adminC->id, 'role_id' => $receptionistRole->id],
-);
+    $case = run_together(
+        $workDir,
+        'last_admin_demote_together_'.$iteration,
+        'worker_user_update.php',
+        ['user_id' => $adminC->id, 'acting_user_id' => $survivingAdmin->id, 'role_id' => $receptionistRole->id],
+        'worker_user_update.php',
+        ['user_id' => $survivingAdmin->id, 'acting_user_id' => $adminC->id, 'role_id' => $receptionistRole->id],
+    );
 
-$adminsAfter = User::role('Admin')->count();
-$targetA = User::query()->find($survivingAdmin->id);
-$targetC = User::query()->find($adminC->id);
+    $targetA = User::query()->find($survivingAdmin->id);
+    $targetC = User::query()->find($adminC->id);
+    $resultA = $case['a']['result'] ?? [];
+    $resultB = $case['b']['result'] ?? [];
+
+    $demoteRuns[] = [
+        'iteration' => $iteration,
+        'admins_before' => $adminsBefore,
+        'admins_after' => User::role('Admin')->count(),
+        'target_a_roles' => $targetA?->getRoleNames()->values()->all(),
+        'target_c_roles' => $targetC?->getRoleNames()->values()->all(),
+        'a_outcome' => $resultA['outcome'] ?? null,
+        'a_errors' => $resultA['errors'] ?? [],
+        'b_outcome' => $resultB['outcome'] ?? null,
+        'b_errors' => $resultB['errors'] ?? [],
+        'both_ready' => (bool) $case['both_ready_before_barrier'],
+    ];
+}
+
+$runs = count($demoteRuns);
 
 $results[] = [
     'name' => 'last_admin_demote_together',
-    'case' => $case,
+    'runs' => $demoteRuns,
     'final' => [
-        'admins_before' => $adminsBefore,
-        'admins_after' => $adminsAfter,
-        'target_a_roles' => $targetA?->getRoleNames()->values()->all(),
-        'target_c_roles' => $targetC?->getRoleNames()->values()->all(),
+        'runs' => $runs,
+        'admins_after' => array_column($demoteRuns, 'admins_after'),
     ],
     'checks' => [
-        'both_processes_started_together' => (bool) $case['both_ready_before_barrier'],
-        'exactly_one_admin_remains' => $adminsAfter === 1,
-        'at_least_one_admin_remains' => $adminsAfter >= 1,
-        'exactly_one_demotion_succeeded' => ($targetA?->hasRole('Admin') ?? false) !== ($targetC?->hasRole('Admin') ?? false),
+        'every_run_started_with_two_admins' => count(array_filter($demoteRuns, static fn (array $run): bool => $run['admins_before'] === 2)) === $runs,
+        'every_run_started_together' => count(array_filter($demoteRuns, static fn (array $run): bool => $run['both_ready'])) === $runs,
+        'every_run_left_exactly_one_admin' => count(array_filter($demoteRuns, static fn (array $run): bool => $run['admins_after'] === 1)) === $runs,
+        'every_run_demoted_exactly_one_of_the_two' => count(array_filter($demoteRuns, static fn (array $run): bool => in_array('Admin', $run['target_a_roles'], true) !== in_array('Admin', $run['target_c_roles'], true))) === $runs,
+        'every_run_refused_the_second_demotion_in_the_guard' => count(array_filter($demoteRuns, static function (array $run): bool {
+            // Whichever target still holds Admin is the one whose demotion was refused.
+            $aStillAdmin = in_array('Admin', $run['target_a_roles'], true);
+            $refusedOutcome = $aStillAdmin ? $run['b_outcome'] : $run['a_outcome'];
+            $refusedErrors = $aStillAdmin ? $run['b_errors'] : $run['a_errors'];
+
+            return $refusedOutcome !== 'response' && isset($refusedErrors['role_id']);
+        })) === $runs,
+        'every_run_kept_the_survivor_administrator' => count(array_filter($demoteRuns, static fn (array $run): bool => in_array('Admin', $run['target_a_roles'], true) || in_array('Admin', $run['target_c_roles'], true))) === $runs,
     ],
 ];
 run_report($results[array_key_last($results)]['name'], $results[array_key_last($results)]);
 
-if ($seededHadAdminRole) {
-    $admin->assignRole('Admin');
+/* ---------------------------------------------------------------------
+ | 9. Last administrator: a deletion racing a demotion, which enter the guard
+ |    through two different service methods.
+ * ------------------------------------------------------------------- */
+$mixedRuns = [];
+
+for ($iteration = 1; $iteration <= RUN_LAST_ADMIN_ITERATIONS; $iteration++) {
+    [$adminA, $adminB] = run_two_administrators();
+    $adminsBefore = User::role('Admin')->count();
+
+    $case = run_together(
+        $workDir,
+        'last_admin_delete_vs_demote_together_'.$iteration,
+        'worker_user_destroy.php',
+        ['user_id' => $adminB->id, 'acting_user_id' => $adminA->id],
+        'worker_user_update.php',
+        ['user_id' => $adminA->id, 'acting_user_id' => $adminB->id, 'role_id' => $receptionistRole->id],
+    );
+
+    $survivorA = User::query()->find($adminA->id);
+    $survivorB = User::query()->find($adminB->id);
+
+    $mixedRuns[] = [
+        'iteration' => $iteration,
+        'admins_before' => $adminsBefore,
+        'admins_after' => User::role('Admin')->count(),
+        'admin_a_exists' => $survivorA !== null,
+        'admin_b_exists' => $survivorB !== null,
+        'admin_a_roles' => $survivorA?->getRoleNames()->values()->all(),
+        'admin_b_roles' => $survivorB?->getRoleNames()->values()->all(),
+        'both_ready' => (bool) $case['both_ready_before_barrier'],
+    ];
 }
 
+$runs = count($mixedRuns);
+
+$results[] = [
+    'name' => 'last_admin_delete_vs_demote_together',
+    'runs' => $mixedRuns,
+    'final' => [
+        'runs' => $runs,
+        'admins_after' => array_column($mixedRuns, 'admins_after'),
+    ],
+    'checks' => [
+        'every_run_started_with_two_admins' => count(array_filter($mixedRuns, static fn (array $run): bool => $run['admins_before'] === 2)) === $runs,
+        'every_run_started_together' => count(array_filter($mixedRuns, static fn (array $run): bool => $run['both_ready'])) === $runs,
+        'every_run_left_exactly_one_admin' => count(array_filter($mixedRuns, static fn (array $run): bool => $run['admins_after'] === 1)) === $runs,
+        'every_run_removed_administrator_access_once' => count(array_filter($mixedRuns, static function (array $run): bool {
+            $aRemoved = $run['admin_a_exists'] === false || ! in_array('Admin', $run['admin_a_roles'], true);
+            $bRemoved = $run['admin_b_exists'] === false || ! in_array('Admin', $run['admin_b_roles'], true);
+
+            return $aRemoved !== $bRemoved;
+        })) === $runs,
+        'every_run_kept_the_survivor_administrator' => count(array_filter($mixedRuns, static function (array $run): bool {
+            return $run['admin_a_exists'] && in_array('Admin', $run['admin_a_roles'], true)
+                || $run['admin_b_exists'] && in_array('Admin', $run['admin_b_roles'], true);
+        })) === $runs,
+    ],
+];
+run_report($results[array_key_last($results)]['name'], $results[array_key_last($results)]);
+
+// The MRN case below registers patients as the seeded administrator.
+run_restore_seeded_administrator($admin);
+
 /* ---------------------------------------------------------------------
- | 9. MRN: a registration racing an in-flight insert of the generated MRN.
+ | 10. MRN: a registration racing an in-flight insert of the generated MRN.
  * ------------------------------------------------------------------- */
 $pinnedMrn = 'MRN-AAAAAAAA';
-$holderPhone = '01000000901';
-$actorPhone = '01000000902';
+// International format: the phone rule rejects the local 01… spelling.
+$holderPhone = '+201000000901';
+$actorPhone = '+201000000902';
 
 $case = run_holder_then_actor($workDir, 'mrn_collision_race', [
     'entity' => 'patient_insert',

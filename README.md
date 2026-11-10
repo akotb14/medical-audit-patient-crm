@@ -43,12 +43,12 @@ record what happens at the desk or on the phone.
 | **Authentication** | Session login with username and password, session ID regeneration, logout invalidation, and two rate-limit buckets (5 attempts per username + IP, 20 per IP per minute). Administrators land on the dashboard; receptionists land on clinics. |
 | **Patients** | Full record (demographics, blood group, allergies, chronic conditions, emergency contact), auto-generated MRN, unique phone number including archived records, search and status filters, archive/restore instead of hard delete, and per-patient visit history. |
 | **Clinics** | Departments with status (active / maintenance / inactive). A clinic cannot be deleted while it still has doctors. |
-| **Doctors** | Consultants linked to a clinic, with specialty, contact details, schedule days and status (active / holiday / inactive). A doctor cannot be deleted while visits reference them. |
+| **Doctors** | Consultants linked to a clinic, with specialty, contact details, schedule days and status (active / holiday / inactive). Deleting a doctor archives it (status `inactive` plus a soft delete) regardless of existing visits; visit history keeps resolving the archived doctor, so a past visit still names the consultant who saw the patient. |
 | **Visits** | Scheduled as `created`, then completed (optionally scheduling the visit's follow-up in the same transaction) or cancelled. Completed visits are frozen: their date, doctor, reason and patient cannot be edited, and they cannot be deleted. Filtering by status, date, doctor, patient and free text. |
-| **Follow-ups** | One follow-up per visit. State machine `scheduled → done / missed / cancelled`, `missed → scheduled / cancelled`, `cancelled → scheduled`; `done` is terminal. Completion records the outcome note and completion moment under a row lock. |
+| **Follow-ups** | One follow-up per visit. Staff can move `scheduled → done / cancelled`, `missed → scheduled / cancelled` and `cancelled → scheduled`; `scheduled → missed` is written only by the scheduled overdue command, and `done` is terminal. Completion records the outcome note and completion moment under a row lock. |
 | **Surveys** | One satisfaction survey per completed visit, rating 1–5 and an optional comment. A rating below 3 opens a complaint in the same database transaction. Surveys that produced a complaint cannot be deleted. |
 | **Complaints** | Filed manually or raised from a low survey rating. Workflow `new → assigned → investigating → resolved → closed`, with assignment, stage advancement, reopen from `resolved`/`closed`, filters and status tiles. Stage-specific input (assignee, resolution note) is validated under the row lock. |
-| **Users and roles** | Staff accounts with the Admin and Receptionist roles and 38 permissions. The last administrator can be neither demoted nor deleted, and a user referenced by audit columns cannot be deleted. |
+| **Users and roles** | Staff accounts with the Admin and Receptionist roles and 38 permissions. The last administrator can be neither demoted nor deleted. Deleting a user archives it (soft delete), so the `created_by` / `updated_by` / `assigned_to` / `deleted_by` columns and their foreign keys keep pointing at an existing row. |
 | **Dashboard** (Admin only) | KPI cards and tables for visits, follow-ups, satisfaction, complaints, clinics, doctors and patients, plus the most recent visits. |
 | **Localization** | Arabic RTL interface, Arabic validation, authentication, pagination and password-reset messages. |
 | **Errors** | Branded 403, 404, 419, 429 and 500 pages. |
@@ -169,13 +169,16 @@ the same date is allowed but does not overwrite the stored time) and cannot be d
 
 | From | To | Notes |
 | --- | --- | --- |
-| `scheduled` | `done` | Records the outcome note and `completed_at`. |
-| `scheduled` | `missed` | Also set automatically by the scheduled command for overdue rows. |
-| `scheduled` | `cancelled` | — |
+| `scheduled` | `done` | Records the outcome note and `completed_at`, through the completion endpoint. |
+| `scheduled` | `missed` | Written only by `followups:update-overdue`; no staff action produces it. |
+| `scheduled` | `cancelled` | Through the status endpoint. |
 | `missed` | `scheduled` | Re-scheduling a missed follow-up. |
 | `missed` | `cancelled` | — |
 | `cancelled` | `scheduled` | — |
 | `done` | — | Terminal; later transitions are refused. |
+
+The status endpoint accepts only `scheduled` and `cancelled`: reaching `done` needs the outcome
+note of the completion endpoint, and `missed` is owned by the scheduled command.
 
 ### Complaint workflow
 
@@ -261,12 +264,15 @@ route-level middleware:
 
 Additional integrity rules live in the services rather than in the permission list:
 
-- the last administrator cannot be demoted or deleted (administrator rows are locked and
-  counted inside the transaction, so concurrent demotions cannot both pass);
-- a user referenced by a `created_by` / `updated_by` / `assigned_to` / `deleted_by` column
-  cannot be deleted, which keeps the audit trail and the foreign keys intact;
-- clinics with doctors, doctors with visits, completed visits and surveys that produced a
-  complaint are refused deletion.
+- the last administrator cannot be demoted or deleted (the administrator rows are locked and
+  counted inside the transaction). The concurrency harness shows the lock does not close the
+  mutual-demotion race, so two administrators demoting each other at the same moment can still
+  leave the system without an administrator;
+- users are archived rather than hard-deleted, so the `created_by` / `updated_by` /
+  `assigned_to` / `deleted_by` columns keep pointing at an existing row; the restrictive foreign
+  keys would refuse a hard delete of a referenced user;
+- clinics with doctors, completed visits and surveys that produced a complaint are refused
+  deletion; doctors and users are archived instead.
 
 ---
 
@@ -416,15 +422,17 @@ vendor/bin/pest                          # the same suite through the Pest binar
 | Authentication and security | `LoginSecurityTest`, `UserSecurityTest` |
 | Patients | `PatientCreationTest`, `PatientUpdateTest`, `PatientArchiveTest`, `PatientIndexOrderingTest` |
 | Clinics and doctors | `ClinicIndexTest`, `ClinicCreationTest`, `DoctorClinicLinkTest`, `DoctorClinicDeletionTest` |
-| Visits | `VisitWorkflowTest`, `VisitDateRulesTest`, `VisitHistoryPaginationTest`, `VisitCountKpiTest` |
+| Visits | `VisitWorkflowTest`, `VisitHistoryPaginationTest` |
 | Follow-ups | `FollowUpWorkflowTest` |
 | Surveys and complaints | `SurveyWorkflowTest`, `SurveyStatsTest`, `ComplaintWorkflowTest` |
 | Users, roles, dropdowns | `UserCrudTest`, `UserIndexTest`, `DropdownOptionsTest` |
 | Architecture-level checks | `EagerLoadingTest`, `LocalizationTest` |
 | Routing | `HomeRedirectTest`, `ExampleTest` |
 
-**Latest verified run (2026-11-09):** 171 tests, 612 assertions, all passing, on PHP 8.5.12
-with an in-memory SQLite database. The suite takes roughly 1.5 minutes on a developer machine.
+**Latest verified runs (2026-11-10):** 171 tests, 612 assertions, all passing, on PHP 8.5.12
+with an in-memory SQLite database. The suite takes between 95 and 141 seconds on a developer
+machine, depending on load, and it is isolated: `phpunit.xml` forces SQLite `:memory:` plus the
+array cache and session drivers, so a run never touches the development database.
 
 ### MySQL concurrency harness
 
@@ -452,7 +460,15 @@ a write is made. It is never part of `php artisan test`. See
 [`tests/Concurrency/README.md`](tests/Concurrency/README.md) for the checks, exit codes and
 known limitations.
 
-**Latest verified run (2026-11-03):** 12 scenarios, 64 checks, 0 failed, ~35 seconds.
+**Latest verified runs (2026-11-10):** 12 scenarios, 64 checks per run, with 6 to 9 failing
+checks depending on the run, ~45 seconds each. Two scenarios fail on every run, because the
+harness is behind the application: `mrn_collision_race` posts local-format phone numbers that the
+current phone rule rejects, and `followup_status_together` sends `missed` / `done` to a status
+endpoint that now accepts only `scheduled` and `cancelled`. Three further checks come from a real
+race in `last_admin_demote_together`, which failed in three of five runs: two administrators demoting each
+other simultaneously both succeed and leave zero administrators (`admins_before: 2`, `admins_after:
+0`). One timing check in `visit_destroy_vs_complete` failed once while the delete itself was still
+refused. See [Known gaps](#known-gaps).
 
 ---
 
@@ -467,15 +483,32 @@ known limitations.
 - **Frozen medical history.** A visit that reaches a closed status stops accepting edits and
   cannot be deleted. The guard is evaluated after the lock, so a visit closed mid-edit is
   rejected rather than silently overwritten.
-- **Last-administrator protection under concurrency.** Administrator rows are locked through a
-  join on `model_has_roles` and counted inside the transaction, so two simultaneous demotions
-  cannot both see two administrators.
+- **Last-administrator protection.** The administrator count and the target row are read under
+  `lockForUpdate()` inside the transaction, which keeps sequential demotions and deletions safe.
+  The count is reached through a `whereHas` membership subquery, which is the likely reason the
+  mutual-demotion race is still open — see Known gaps.
 - **MRN collision handling.** Registration retries generation on
   `UniqueConstraintViolationException` (up to five attempts) instead of relying on a
   pre-check alone, which keeps the unique index authoritative.
 - **One aggregate query per index.** The tiles above each register are a single aggregate row,
   read from a clone of the listing query with eager loads stripped, so totals describe the whole
   register without issuing discarded relationship queries.
+
+### Known gaps
+
+- **Mutual administrator demotion.** Two administrators demoting each other at the same moment
+  can both pass the last-administrator check and leave the application with no administrator. The
+  concurrency harness reproduced this in three of five runs on 2026-11-10
+  (`last_admin_demote_together`: `admins_before: 2`, `admins_after: 0`); the race depends on which
+  transaction commits first. Sequential demotions and deletions are refused correctly.
+- **Two harness scenarios are behind the application.** `mrn_collision_race` still posts a
+  local-format phone number that the phone rule rejects, and `followup_status_together` still
+  submits `missed` / `done` to an endpoint restricted to `scheduled` / `cancelled`. Both fail on
+  fixtures, not on locking, and both need updating before the harness can be read as a clean run.
+- **One timing assertion can report a false failure.** `visit_destroy_vs_complete` checks that the
+  deleting process waited on the lock. When the completion commits first, the delete is refused
+  without waiting — the right outcome — but the check still fails. It failed in one of five runs
+  on 2026-11-10, with the visit left in place.
 
 ---
 
@@ -507,16 +540,19 @@ Known gaps and deliberate limitations:
 
 ## Historical analysis documents
 
-One analysis document is kept in the repository as design history. It describes the product as
+One analysis document is kept in the working tree as design history. It describes the product as
 it was conceived, not necessarily as it was built:
 
-- [`mimi-crm-analysis.md`](mimi-crm-analysis.md) — the original mini-CRM specification
-  (patients, visits, follow-ups, surveys, complaints, dashboard). Most of it is implemented; the
-  notable differences are that the UI is Blade + Tailwind rather than Filament, there is no
-  activity-log package, and the visit workflow, clinics, doctors and MRNs were added beyond the
-  original scope. **Section 15 of that document reconciles every requirement and business rule
-  with the shipped code**, including the items that were never built (the activity log, the
-  `missed → done` transition, Filament resources).
+- [`business-analysis.md`](business-analysis.md) — the analysis and requirements document for the
+  shipped CRM (patients, visits, follow-ups, surveys, complaints, dashboard). Most of the original
+  mini-CRM specification is implemented; the notable differences are that the UI is Blade +
+  Tailwind rather than Filament, there is no activity-log package, and the visit workflow,
+  clinics, doctors and MRNs were added beyond the original scope. **Section 15 of that document
+  reconciles every requirement and business rule with the shipped code**, including the items that
+  were never built (the activity log, the `missed → done` transition, Filament resources).
+
+The original `mimi-crm-analysis.md` that this document was rebuilt from is no longer in the
+working tree; its content survives only through `business-analysis.md` and this README.
 
 An earlier, much wider medical-audit platform specification (audit templates, compliance
 scoring, corrective actions, claims, KPIs, exports, API, Docker, CI) shaped the repository name.

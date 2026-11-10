@@ -7,15 +7,13 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Spatie\Permission\Models\Role;
 
-
-
 it('renders the user edit page for an administrator', function () {
     actingAsAdmin();
     $user = User::factory()->create();
 
     $this->get(route('users.edit', $user))
         ->assertOk()
-        ->assertViewHas('user', fn(User $viewUser): bool => $viewUser->is($user))
+        ->assertViewHas('user', fn (User $viewUser): bool => $viewUser->is($user))
         ->assertViewHas('roles');
 });
 
@@ -135,7 +133,7 @@ function makeOnlyAdmin(User $admin): void
     User::role(RoleEnum::ADMIN->value)
         ->whereKeyNot($admin->getKey())
         ->get()
-        ->each(fn(User $other) => $other->removeRole(RoleEnum::ADMIN->value));
+        ->each(fn (User $other) => $other->removeRole(RoleEnum::ADMIN->value));
 }
 
 /*
@@ -215,6 +213,102 @@ describe('protecting the last administrator', function () {
 
         $this->assertNotSoftDeleted('users', ['id' => $lastAdmin->id]);
     });
+
+    /*
+    | The guard refuses a demotion, not every update: the account and its other
+    | fields must survive the refusal untouched.
+    */
+    it('leaves the account unchanged when it refuses to demote the last administrator', function () {
+        $actor = actingAsReceptionist();
+        $actor->givePermissionTo(PermissionEnum::USERS_UPDATE->value);
+        $lastAdmin = createUserWithRole(RoleEnum::ADMIN);
+        makeOnlyAdmin($lastAdmin);
+        $receptionistRole = Role::findByName(RoleEnum::RECEPTIONIST->value);
+        $originalName = $lastAdmin->name;
+        $originalUsername = $lastAdmin->username;
+
+        $this->from(route('users.edit', $lastAdmin))
+            ->put(route('users.update', $lastAdmin), [
+                'name' => 'اسم مرفوض مع الدور',
+                'username' => $originalUsername,
+                'role_id' => $receptionistRole->id,
+            ])
+            ->assertSessionHasErrors('role_id');
+
+        $lastAdmin->refresh();
+
+        expect($lastAdmin->name)->toBe($originalName)
+            ->and($lastAdmin->username)->toBe($originalUsername)
+            ->and($lastAdmin->hasRole(RoleEnum::ADMIN->value))->toBeTrue();
+    });
+
+    /*
+    | Adding the role never removes administrator access, so it is allowed even
+    | while another administrator exists.
+    */
+    it('promotes an account to administrator', function () {
+        actingAsAdmin();
+        $user = createUserWithRole(RoleEnum::RECEPTIONIST);
+        $adminRole = Role::findByName(RoleEnum::ADMIN->value);
+
+        $this->put(route('users.update', $user), [
+            'name' => $user->name,
+            'username' => $user->username,
+            'role_id' => $adminRole->id,
+        ])->assertRedirect(route('users.index'));
+
+        expect($user->refresh()->hasRole(RoleEnum::ADMIN->value))->toBeTrue();
+    });
+
+    /*
+    | The sequential shape of the race: once one administrator has been demoted,
+    | the one that remains is last and cannot follow.
+    */
+    it('refuses to demote the administrator that remains after the other one was demoted', function () {
+        $admin = actingAsAdmin();
+        makeOnlyAdmin($admin);
+        $otherAdmin = createUserWithRole(RoleEnum::ADMIN);
+        $receptionistRole = Role::findByName(RoleEnum::RECEPTIONIST->value);
+
+        $this->put(route('users.update', $otherAdmin), [
+            'name' => $otherAdmin->name,
+            'username' => $otherAdmin->username,
+            'role_id' => $receptionistRole->id,
+        ])->assertRedirect(route('users.index'));
+
+        expect($otherAdmin->refresh()->hasRole(RoleEnum::RECEPTIONIST->value))->toBeTrue();
+
+        $this->from(route('users.edit', $admin))
+            ->put(route('users.update', $admin), [
+                'name' => $admin->name,
+                'username' => $admin->username,
+                'role_id' => $receptionistRole->id,
+            ])
+            ->assertSessionHasErrors('role_id');
+
+        expect($admin->refresh()->hasRole(RoleEnum::ADMIN->value))->toBeTrue();
+    });
+
+    /*
+    | The sequential shape of the deletion race, which runs through the same
+    | guard on a different service method.
+    */
+    it('keeps one administrator after the other administrator was deleted', function () {
+        $admin = actingAsAdmin();
+        makeOnlyAdmin($admin);
+        $otherAdmin = createUserWithRole(RoleEnum::ADMIN);
+        $adminsBefore = User::role(RoleEnum::ADMIN->value)->count();
+
+        $this->delete(route('users.destroy', $otherAdmin))
+            ->assertRedirect(route('users.index'))
+            ->assertSessionHas('success');
+
+        $this->assertSoftDeleted('users', ['id' => $otherAdmin->id]);
+
+        expect($adminsBefore)->toBe(2)
+            ->and(User::role(RoleEnum::ADMIN->value)->count())->toBe(1)
+            ->and($admin->refresh()->hasRole(RoleEnum::ADMIN->value))->toBeTrue();
+    });
 });
 
 /*
@@ -238,7 +332,6 @@ describe('creating a user', function () {
 
         expect($user->hasRole(RoleEnum::RECEPTIONIST->value))->toBeTrue();
     });
-
 
     it('creates the account with the selected admin role', function () {
         actingAsAdmin();
@@ -270,7 +363,7 @@ describe('creating a user', function () {
             Role::query()->whereKey($role->id)->delete();
         });
         try {
-            expect(fn() => $this->withoutExceptionHandling()->post(route('users.store'), [
+            expect(fn () => $this->withoutExceptionHandling()->post(route('users.store'), [
                 'name' => 'هدى سمير عبد الرحمن',
                 'username' => 'huda.samir',
                 'password' => 'secret123',

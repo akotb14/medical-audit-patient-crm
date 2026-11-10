@@ -89,17 +89,38 @@ the signal files make it possible to re-run a single case by hand.
 | `followup_complete_race` | a second completion that must not overwrite the outcome or the completion moment |
 | `followup_complete_together` | two completions released at the same moment |
 | `followup_status_vs_complete` | a status change arriving after the follow-up reached `done`, which is the end of the workflow |
-| `followup_status_together` | two different status changes released at the same moment, one of which carries a completion moment |
+| `followup_status_together` | two different status changes released at the same moment; both moves are legal, so the later one wins and the row has to belong to it |
 | `complaint_assign_race` | an assignment racing the assignment that already moved the complaint out of `new` |
 | `complaint_assign_together` | two assignments released at the same moment |
 | `last_admin_delete_together` | two administrators deleting each other, one must survive |
 | `last_admin_demote_together` | two administrators demoting each other, one must survive |
+| `last_admin_delete_vs_demote_together` | a deletion racing a demotion, which reach the guard through two different service methods |
 | `mrn_collision_race` | a registration racing the in-flight insert of the MRN it just generated |
+
+The three last-administrator cases run `RUN_LAST_ADMIN_ITERATIONS` (5) times
+each: they guard an intermittent failure that depends on which process reaches
+the lock first, so one pass proves nothing. Every iteration rebuilds its premise
+— exactly two administrators, both disposable accounts — and throws if it
+cannot, so a broken fixture fails the run instead of reporting a false pass.
 
 Each case pairs a check on the row with a check on what the losing process was
 told, so a refusal that silently wrote something fails the run. `worker_hold.php`
 is the process that takes the lock; the `worker_*.php` files next to it are the
 actors, and each one calls the controller the route calls.
+
+## Last-administrator protection
+
+Concurrent administrative operations must never leave the application with zero
+active administrators. `UserService::update()` and `UserService::delete()` reach
+that decision through a single serialisation point: the `Admin` row in `roles`
+is locked first, then the current administrator memberships are read with a
+direct locking join over `users`, `model_has_roles` and `roles`.
+
+Both parts are load-bearing. Locking only the target user row serialises nothing
+when the two transactions have different targets, and reading membership through
+a `whereHas` subquery answers it from the transaction's read view, so a process
+that waited for the lock still counts the memberships from before the commit it
+waited for. See the `UserService` docblocks for the full reasoning.
 
 ## Limitations
 
@@ -117,3 +138,25 @@ actors, and each one calls the controller the route calls.
 - It does not run in CI: a CI job that runs it needs its own MySQL service and
   its own `CONCURRENCY_DB_DATABASE` value, and no test database secrets are
   committed here.
+
+## Known state (2026-11-10)
+
+A full run now covers 13 scenarios and 69 checks. Five consecutive runs after
+the last-administrator fix were green, which is 25 iterations of each
+last-administrator race and 75 concurrent races in total.
+
+- The phone and follow-up fixtures were corrected: `mrn_collision_race` submits
+  an international number, and `followup_status_together` starts from `missed`
+  and submits the two statuses the endpoint accepts. Both actors are accepted
+  and the later write wins, so the case asserts that the final row — status,
+  `updated_by` and the empty completion moment — belongs entirely to the last
+  writer; it no longer claims only one of the two can be answered.
+- `visit_destroy_vs_complete` no longer asserts that the delete was blocked. When
+  the completion commits first the policy refuses the delete on the spot, which
+  is correct, and the outcome checks carry the invariant.
+- Timing-based checks remain timing-based. `actor_blocked_while_holder_held` and
+  `run_was_blocked_by_holder()` need the actor's action to overlap the holder's
+  transaction; a heavily loaded machine can still report a false failure there,
+  which `hold_ms` in `run_all.php` is the knob for.
+- The harness still does not run in CI and does not test routing, middleware or
+  session persistence.

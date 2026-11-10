@@ -26,8 +26,6 @@ class UserService
      */
     private const OPTION_COLUMNS = ['id', 'name'];
 
-
-
     public function isAdmin(User $user): bool
     {
         return $user->hasRole(RoleEnum::ADMIN->value);
@@ -51,7 +49,6 @@ class UserService
         ];
     }
 
-
     public function create(array $data): User
     {
         return DB::transaction(function () use ($data): User {
@@ -61,7 +58,7 @@ class UserService
                 'password' => $data['password'],
             ]);
             $role = Role::query()->findOrFail($data['role_id']);
-            if ($role->name === RoleEnum::ADMIN->value && !$this->isAdmin(Auth::user())) {
+            if ($role->name === RoleEnum::ADMIN->value && ! $this->isAdmin(Auth::user())) {
                 throw ValidationException::withMessages([
                     'role_id' => 'لا يوجد لديك صلاحية لاضافة مدير.',
                 ]);
@@ -72,17 +69,16 @@ class UserService
         });
     }
 
-
-
     public function update(User $user, array $data)
     {
         $role = Role::findOrFail($data['role_id']);
 
         DB::transaction(function () use ($user, $data, $role) {
-            $administratorCount = $this->lockAdministrators()->count();
+            $this->lockAdministratorRole();
+            $administrators = $this->lockAdministrators();
             $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
 
-            if ($this->isRemovingLastAdmin($lockedUser, $role, $administratorCount)) {
+            if ($role->name !== RoleEnum::ADMIN->value && $this->isLastAdministrator($lockedUser, $administrators)) {
                 throw ValidationException::withMessages([
                     'role_id' => 'لا يمكن إزالة دور المدير من آخر مدير في النظام.',
                 ]);
@@ -93,14 +89,14 @@ class UserService
         });
     }
 
-
     public function delete(User $user): string
     {
         return DB::transaction(function () use ($user): string {
-            $administratorCount = $this->lockAdministrators()->count();
+            $this->lockAdministratorRole();
+            $administrators = $this->lockAdministrators();
             $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
 
-            if ($lockedUser->hasRole(RoleEnum::ADMIN->value) && $administratorCount <= 1) {
+            if ($this->isLastAdministrator($lockedUser, $administrators)) {
                 return 'last_admin';
             }
             $lockedUser->delete();
@@ -109,17 +105,6 @@ class UserService
         });
     }
 
-    /**
-     * The staff options offered by an assignee dropdown, bounded and ordered by
-     * name.
-     *
-     * The user a complaint is already assigned to stays in the list even when the
-     * staff list outgrew the limit: dropping it would leave the field pointing at
-     * an option that is not there, and the browser would submit whichever name
-     * happened to be first instead.
-     *
-     * @return Collection<int, User>
-     */
     public function getAssigneeOptions(?int $selectedUserId = null): Collection
     {
         $users = $this->optionQuery()
@@ -153,21 +138,62 @@ class UserService
             ->orderBy('name');
     }
 
+    /**
+     * The serialisation point for every change to administrator membership.
+     *
+     * Two administrators can demote each other at once, so locking the target
+     * row alone serialises nothing. The administrator role row is a stable
+     * record that every such change has to take first: whoever holds it is the
+     * only transaction that can read the administrator count and write a role,
+     * so the next one reads the state the previous one committed.
+     */
+    private function lockAdministratorRole(): void
+    {
+        Role::query()
+            ->where('name', RoleEnum::ADMIN->value)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
 
+    /**
+     * The current administrators, read as a locking join rather than through a
+     * `whereHas` subquery.
+     *
+     * MySQL answers a membership subquery from the transaction's read view, so
+     * a process that waits on the lock and then counts still sees the snapshot
+     * it started with — the demotion it waited for is invisible, and both
+     * transactions believe two administrators remain. A direct locking join
+     * reads the latest committed rows, so the count reflects the transaction
+     * that just held the lock.
+     *
+     * @return Collection<int, User>
+     */
     private function lockAdministrators(): Collection
     {
-
-        return User::query()->whereHas('roles', fn($builder) => $builder->where('name', RoleEnum::ADMIN->value))->select('users.*')
+        return User::query()
+            ->join('model_has_roles', 'model_has_roles.model_id', '=', 'users.id')
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.model_type', (new User)->getMorphClass())
+            ->where('roles.name', RoleEnum::ADMIN->value)
+            ->select('users.*')
             ->orderBy('users.id')
-            ->lockForUpdate()->get();
+            ->lockForUpdate()
+            ->get();
     }
 
-
-    private function isRemovingLastAdmin(User $user, Role $role, int $administratorCount): bool
+    /**
+     * True when the locked user is the only administrator the locked read found.
+     *
+     * The membership comes from the locked set rather than from `hasRole()`:
+     * the relation is a consistent read too, and inside a transaction that
+     * waited on the role lock it could still describe the state before the
+     * transaction that held it.
+     *
+     * @param  Collection<int, User>  $administrators
+     */
+    private function isLastAdministrator(User $user, Collection $administrators): bool
     {
-        return $role->name !== RoleEnum::ADMIN->value
-            && $user->hasRole(RoleEnum::ADMIN->value)
-            && $administratorCount <= 1;
+        return $administrators->count() <= 1
+            && $administrators->contains(fn (User $administrator): bool => $administrator->is($user));
     }
-
 }
